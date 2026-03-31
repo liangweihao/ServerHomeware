@@ -1,4 +1,5 @@
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils import timezone
@@ -27,7 +28,7 @@ from apps.inventory.models import InventoryLog
 def initiate_sync(request):
     serializer = SyncRequestSerializer(data=request.data)
     if not serializer.is_valid():
-        return Response(serializer.errors, status=400)
+        return Response({'error': '同步请求无效'}, status=status.HTTP_400_BAD_REQUEST)
     
     family_id = serializer.validated_data['family_id']
     sync_type = serializer.validated_data['sync_type']
@@ -39,7 +40,7 @@ def initiate_sync(request):
             members__user=request.user
         )
     except Family.DoesNotExist:
-        return Response({'error': '家庭不存在或无权访问'}, status=404)
+        return Response({'error': '家庭不存在或无权访问'}, status=status.HTTP_404_NOT_FOUND)
     
     sync_record = SyncRecord.objects.create(
         user=request.user,
@@ -89,14 +90,14 @@ def initiate_sync(request):
         }
         
         data_serializer = SyncDataSerializer(sync_data)
-        return Response(data_serializer.data, status=200)
+        return Response(data_serializer.data, status=status.HTTP_200_OK)
     
     except Exception as e:
         sync_record.status = 'failed'
         sync_record.error_message = str(e)
         sync_record.completed_at = timezone.now()
         sync_record.save()
-        return Response({'error': f'同步失败: {str(e)}'}, status=500)
+        return Response({'error': f'同步失败: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @extend_schema(
@@ -109,7 +110,7 @@ def initiate_sync(request):
 def upload_client_data(request):
     serializer = SyncDataSerializer(data=request.data)
     if not serializer.is_valid():
-        return Response(serializer.errors, status=400)
+        return Response({'error': '上传数据无效'}, status=status.HTTP_400_BAD_REQUEST)
     
     family_id = request.data.get('family_id')
     
@@ -119,7 +120,7 @@ def upload_client_data(request):
             members__user=request.user
         )
     except Family.DoesNotExist:
-        return Response({'error': '家庭不存在或无权访问'}, status=404)
+        return Response({'error': '家庭不存在或无权访问'}, status=status.HTTP_404_NOT_FOUND)
     
     sync_record = SyncRecord.objects.create(
         user=request.user,
@@ -188,14 +189,14 @@ def upload_client_data(request):
         return Response({
             'message': '数据上传成功',
             'conflicts': conflicts
-        }, status=200)
+        }, status=status.HTTP_200_OK)
     
     except Exception as e:
         sync_record.status = 'failed'
         sync_record.error_message = str(e)
         sync_record.completed_at = timezone.now()
         sync_record.save()
-        return Response({'error': f'上传失败: {str(e)}'}, status=500)
+        return Response({'error': f'上传失败: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @extend_schema(
@@ -218,7 +219,7 @@ def get_sync_records(request):
     queryset = queryset.order_by('-created_at')[:50]
     
     serializer = SyncRecordSerializer(queryset, many=True)
-    return Response(serializer.data, status=200)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -248,7 +249,7 @@ def get_sync_conflicts(request):
     queryset = queryset.order_by('-created_at')
     
     serializer = SyncConflictSerializer(queryset, many=True)
-    return Response(serializer.data, status=200)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -261,7 +262,7 @@ def get_sync_conflicts(request):
 def resolve_conflict(request):
     serializer = ConflictResolutionSerializer(data=request.data)
     if not serializer.is_valid():
-        return Response(serializer.errors, status=400)
+        return Response({'error': '解决请求无效'}, status=status.HTTP_400_BAD_REQUEST)
     
     conflict_id = serializer.validated_data['conflict_id']
     resolution = serializer.validated_data['resolution']
@@ -273,7 +274,7 @@ def resolve_conflict(request):
             sync_record__user=request.user
         )
     except SyncConflict.DoesNotExist:
-        return Response({'error': '冲突记录不存在或无权访问'}, status=404)
+        return Response({'error': '冲突记录不存在或无权访问'}, status=status.HTTP_404_NOT_FOUND)
     
     try:
         with transaction.atomic():
@@ -298,7 +299,7 @@ def resolve_conflict(request):
             conflict.resolved_at = timezone.now()
             conflict.save()
         
-        return Response({'message': '冲突已解决'}, status=200)
+        return Response({'message': '冲突已解决'}, status=status.HTTP_200_OK)
     
     except Exception as e:
-        return Response({'error': f'解决冲突失败: {str(e)}'}, status=500)
+        return Response({'error': f'解决冲突失败: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

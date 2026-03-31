@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/services/local_storage_service.dart';
 import 'package:app/models/user.dart';
+import 'package:app/models/api_error.dart';
 
 /// 认证提供者类，用于管理用户认证状态和相关操作
 class AuthProvider extends ChangeNotifier {
@@ -111,14 +112,54 @@ class AuthProvider extends ChangeNotifier {
         });
         _isAuthenticated = true;
         _user = User.fromJson(response['user']);
+        print('登录成功，用户: ${response['user']['username']}');
         return true;
       } else {
-        _errorMessage = response['message'] ?? '登录失败';
+        // 响应格式错误，属于非预期但可处理的情况
+        _errorMessage = '登录失败，响应格式错误';
+        print('登录失败，响应格式错误: ${response.toString()}');
         return false;
       }
     } catch (e) {
-      _errorMessage = '登录失败，请检查网络连接';
-      print('Login error: $e');
+      // 处理ApiException异常
+      if (e is ApiException) {
+        _errorMessage = e.error.message;
+        print('Login error: ${e.toString()}');
+        print('Error status code: ${e.error.statusCode}');
+        
+        // 根据状态码进行不同的处理
+        switch (e.error.statusCode) {
+          case 0:
+            // 网络异常
+            print('网络异常: ${e.error.message}');
+            break;
+          case 401:
+            // 认证错误
+            print('认证错误: ${e.error.message}');
+            break;
+          case 400:
+            // 请求参数错误
+            print('请求参数错误: ${e.error.message}');
+            break;
+          case 429:
+            // 登录过于频繁
+            print('登录过于频繁: ${e.error.message}');
+            break;
+          case 500:
+            // 服务器内部错误
+            print('服务器内部错误: ${e.error.message}');
+            break;
+          default:
+            // 其他错误
+            print('其他错误: ${e.error.message}');
+            break;
+        }
+      } else {
+        // 处理其他异常
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        print('Login error: $e');
+      }
+      
       return false;
     } finally {
       _isLoading = false;

@@ -41,10 +41,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('家庭管理'),
-        centerTitle: true,
-      ),
+      // appBar: AppBar(
+      //   title: const Text('家庭管理'),
+      //   centerTitle: true,
+      // ),
       // 显示当前选中的屏幕
       body: _screens[_currentIndex],
       // 底部导航栏

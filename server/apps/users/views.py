@@ -48,7 +48,7 @@ def register(request):
                 'refresh': str(refresh),
             }
         }, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'error': '注册失败'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(
@@ -89,7 +89,7 @@ def login(request):
         
         return Response({'error': '邮箱或密码错误'}, status=status.HTTP_401_UNAUTHORIZED)
     
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'error': '请输入有效的邮箱地址'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(
@@ -190,4 +190,4 @@ def join_family(request, id):
     if serializer.is_valid():
         member = serializer.save()
         return Response(FamilyMemberSerializer(member).data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'error': '加入家庭失败'}, status=status.HTTP_400_BAD_REQUEST)

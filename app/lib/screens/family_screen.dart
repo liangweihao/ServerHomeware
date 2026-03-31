@@ -57,10 +57,10 @@ class _FamilyScreenState extends State<FamilyScreen> {
     final familyProvider = Provider.of<FamilyProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('家庭管理'),
-        centerTitle: true,
-      ),
+      // appBar: AppBar(
+      //   title: const Text('家庭管理'),
+      //   centerTitle: true,
+      // ),
       body: familyProvider.isLoading
           ? const Center(child: CircularProgressIndicator()) // 显示加载指示器
           : Padding(

@@ -61,10 +61,10 @@ class _LoginScreenState extends State<LoginScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('登录'),
-        centerTitle: true,
-      ),
+      // appBar: AppBar(
+      //   title: const Text('登录'),
+      //   centerTitle: true,
+      // ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

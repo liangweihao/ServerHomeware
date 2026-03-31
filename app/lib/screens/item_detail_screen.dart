@@ -103,7 +103,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView(
+        child: ListView( // 物品功能列表
           children: [
             Card(
               child: Padding(
@@ -134,13 +134,13 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     if (item.price != null)
                       Text('价格: ¥${item.price}'),
                     const SizedBox(height: 8),
-                    // 过期日期（如果有）
-                    if (item.expiryDate != null)
-                      Text('过期日期: ${item.expiryDate!.toString().split(' ')[0]}'),
-                    const SizedBox(height: 8),
                     // 购买日期（如果有）
                     if (item.purchaseDate != null)
                       Text('购买日期: ${item.purchaseDate!.toString().split(' ')[0]}'),
+                    const SizedBox(height: 8),
+                    // 过期日期（如果有）
+                    if (item.expiryDate != null)
+                      Text('过期日期: ${item.expiryDate!.toString().split(' ')[0]}'),
                     const SizedBox(height: 8),
                     // 创建时间
                     Text('创建时间: ${item.createdAt.toString().split(' ')[0]}'),

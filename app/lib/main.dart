@@ -12,6 +12,7 @@ import 'package:app/screens/item_list_screen.dart';
 import 'package:app/screens/add_item_screen.dart';
 import 'package:app/screens/item_detail_screen.dart';
 import 'package:app/screens/register_screen.dart';
+import 'package:app/services/api_service.dart';
 
 /// 应用程序入口点
 void main() {
@@ -25,6 +26,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 创建全局导航键
+    final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+    // 设置ApiService的全局导航键
+    ApiService.setNavigatorKey(navigatorKey);
+
     return MultiProvider(
       /// 注册全局状态管理提供者
       providers: [
@@ -36,6 +42,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ItemProvider()),
       ],
       child: MaterialApp(
+        /// 全局导航键
+        navigatorKey: navigatorKey,
         /// 应用主题
         theme: ThemeData(
           primarySwatch: Colors.blue,

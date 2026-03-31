@@ -1,4 +1,5 @@
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils import timezone
@@ -47,7 +48,7 @@ def get_inventory_alerts(request):
     queryset = queryset.order_by('-created_at')
     
     serializer = InventoryAlertSerializer(queryset, many=True)
-    return Response(serializer.data, status=200)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -60,7 +61,7 @@ def get_inventory_alerts(request):
 def resolve_alerts(request):
     alert_ids = request.data.get('alert_ids', [])
     if not alert_ids:
-        return Response({'error': '请提供要解决的预警ID列表'}, status=400)
+        return Response({'error': '请提供要解决的预警ID列表'}, status=status.HTTP_400_BAD_REQUEST)
     
     queryset = InventoryAlert.objects.filter(
         id__in=alert_ids,
@@ -73,7 +74,7 @@ def resolve_alerts(request):
     return Response({
         'message': f'成功解决 {updated_count} 个预警',
         'resolved_count': updated_count
-    }, status=200)
+    }, status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -127,7 +128,7 @@ def get_inventory_report(request):
     }
     
     serializer = InventoryReportSerializer(report_data)
-    return Response(serializer.data, status=200)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -191,7 +192,7 @@ def get_purchase_suggestions(request):
     suggestions.sort(key=lambda x: x['priority'] == 'high', reverse=True)
     
     serializer = PurchaseSuggestionSerializer(suggestions, many=True)
-    return Response(serializer.data, status=200)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -226,7 +227,7 @@ def get_inventory_logs(request):
     queryset = queryset.order_by('-created_at')[:100]
     
     serializer = InventoryLogSerializer(queryset, many=True)
-    return Response(serializer.data, status=200)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -243,7 +244,7 @@ def log_inventory_action(request):
     note = request.data.get('note', '')
     
     if not item_id or not action:
-        return Response({'error': '请提供物品ID和操作类型'}, status=400)
+        return Response({'error': '请提供物品ID和操作类型'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
         item = Item.objects.get(
@@ -251,13 +252,13 @@ def log_inventory_action(request):
             family__members__user=request.user
         )
     except Item.DoesNotExist:
-        return Response({'error': '物品不存在或无权访问'}, status=404)
+        return Response({'error': '物品不存在或无权访问'}, status=status.HTTP_404_NOT_FOUND)
     
     quantity_before = item.quantity
     quantity_after = quantity_before + quantity_change
     
     if quantity_after < 0:
-        return Response({'error': '库存不能为负数'}, status=400)
+        return Response({'error': '库存不能为负数'}, status=status.HTTP_400_BAD_REQUEST)
     
     item.quantity = quantity_after
     item.save()
@@ -272,4 +273,4 @@ def log_inventory_action(request):
     )
     
     serializer = InventoryLogSerializer(log)
-    return Response(serializer.data, status=201)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
