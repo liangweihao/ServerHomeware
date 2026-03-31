@@ -1,19 +1,35 @@
+/// 物品模型类，用于表示系统中的物品信息
 class Item {
+  /// 物品唯一标识符
   final int id;
+  /// 物品名称
   final String name;
+  /// 物品描述（可选）
   final String? description;
+  /// 分类ID
   final int categoryId;
+  /// 位置ID
   final int locationId;
+  /// 数量
   final int quantity;
+  /// 单位
   final String unit;
+  /// 过期日期（可选）
   final DateTime? expiryDate;
+  /// 购买日期（可选）
   final DateTime? purchaseDate;
+  /// 价格（可选）
   final double? price;
+  /// 家庭ID
   final int familyId;
+  /// 创建者ID
   final int createdBy;
+  /// 创建时间
   final DateTime createdAt;
+  /// 更新时间
   final DateTime updatedAt;
 
+  /// 构造函数
   Item({
     required this.id,
     required this.name,
@@ -31,6 +47,8 @@ class Item {
     required this.updatedAt,
   });
 
+  /// 从JSON数据创建Item实例
+  /// [json] JSON格式的物品数据
   factory Item.fromJson(Map<String, dynamic> json) {
     return Item(
       id: json['id'],
@@ -50,6 +68,8 @@ class Item {
     );
   }
 
+  /// 将Item实例转换为JSON格式
+  /// 返回JSON格式的物品数据
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -70,12 +90,18 @@ class Item {
   }
 }
 
+/// 分类模型类，用于表示物品的分类信息
 class Category {
+  /// 分类唯一标识符
   final int id;
+  /// 分类名称
   final String name;
+  /// 家庭ID
   final int familyId;
+  /// 创建时间
   final DateTime createdAt;
 
+  /// 构造函数
   Category({
     required this.id,
     required this.name,
@@ -83,6 +109,8 @@ class Category {
     required this.createdAt,
   });
 
+  /// 从JSON数据创建Category实例
+  /// [json] JSON格式的分类数据
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
       id: json['id'],
@@ -92,6 +120,8 @@ class Category {
     );
   }
 
+  /// 将Category实例转换为JSON格式
+  /// 返回JSON格式的分类数据
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -102,13 +132,20 @@ class Category {
   }
 }
 
+/// 位置模型类，用于表示物品的存放位置信息
 class Location {
+  /// 位置唯一标识符
   final int id;
+  /// 位置名称
   final String name;
+  /// 位置描述（可选）
   final String? description;
+  /// 家庭ID
   final int familyId;
+  /// 创建时间
   final DateTime createdAt;
 
+  /// 构造函数
   Location({
     required this.id,
     required this.name,
@@ -117,6 +154,8 @@ class Location {
     required this.createdAt,
   });
 
+  /// 从JSON数据创建Location实例
+  /// [json] JSON格式的位置数据
   factory Location.fromJson(Map<String, dynamic> json) {
     return Location(
       id: json['id'],
@@ -127,6 +166,8 @@ class Location {
     );
   }
 
+  /// 将Location实例转换为JSON格式
+  /// 返回JSON格式的位置数据
   Map<String, dynamic> toJson() {
     return {
       'id': id,

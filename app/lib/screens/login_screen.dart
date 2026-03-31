@@ -4,26 +4,36 @@ import 'package:app/providers/auth_provider.dart';
 import 'package:app/screens/register_screen.dart';
 import 'package:app/screens/home_screen.dart';
 
+/// 登录屏幕类
 class LoginScreen extends StatefulWidget {
+  /// 构造函数
   const LoginScreen({Key? key}) : super(key: key);
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
+/// 登录屏幕状态类
 class _LoginScreenState extends State<LoginScreen> {
+  /// 表单键，用于表单验证
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  /// 邮箱输入控制器，默认值为测试邮箱
+  final _emailController = TextEditingController(text: "123@example.com");
+  /// 密码输入控制器，默认值为测试密码
+  final _passwordController = TextEditingController(text: "123456");
+  /// 是否隐藏密码
   bool _obscurePassword = true;
 
   @override
   void dispose() {
+    // 释放控制器资源
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
+  /// 登录方法
+  /// 验证表单并调用AuthProvider的login方法进行登录
   void _login() async {
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -32,11 +42,13 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text.trim(),
       );
       if (success) {
+        // 登录成功，跳转到主页
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
         );
       } else {
+        // 登录失败，显示错误信息
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(authProvider.errorMessage ?? '登录失败')),
         );
@@ -62,11 +74,12 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const SizedBox(height: 32),
               const Text(
-                '家庭物品管理',
+                '登录',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
+              // 邮箱输入框
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -84,6 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
               const SizedBox(height: 16),
+              // 密码输入框
               TextFormField(
                 controller: _passwordController,
                 decoration: InputDecoration(
@@ -112,6 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
               const SizedBox(height: 24),
+              // 登录按钮
               ElevatedButton(
                 onPressed: authProvider.isLoading ? null : _login,
                 child: authProvider.isLoading
@@ -119,6 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     : const Text('登录'),
               ),
               const SizedBox(height: 16),
+              // 注册按钮
               TextButton(
                 onPressed: () {
                   Navigator.push(

@@ -4,24 +4,35 @@ import 'package:app/providers/auth_provider.dart';
 import 'package:app/screens/login_screen.dart';
 import 'package:app/screens/home_screen.dart';
 
+/// 注册屏幕类
 class RegisterScreen extends StatefulWidget {
+  /// 构造函数
   const RegisterScreen({Key? key}) : super(key: key);
 
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
 
+/// 注册屏幕状态类
 class _RegisterScreenState extends State<RegisterScreen> {
+  /// 表单键，用于表单验证
   final _formKey = GlobalKey<FormState>();
+  /// 用户名输入控制器
   final _usernameController = TextEditingController();
+  /// 邮箱输入控制器
   final _emailController = TextEditingController();
+  /// 密码输入控制器
   final _passwordController = TextEditingController();
+  /// 确认密码输入控制器
   final _confirmPasswordController = TextEditingController();
+  /// 是否隐藏密码
   bool _obscurePassword = true;
+  /// 是否隐藏确认密码
   bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
+    // 释放控制器资源
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -29,6 +40,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  /// 注册方法
+  /// 验证表单并调用AuthProvider的register方法进行注册
   void _register() async {
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -38,11 +51,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _passwordController.text.trim(),
       );
       if (success) {
+        // 注册成功，跳转到主页
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
         );
       } else {
+        // 注册失败，显示错误信息
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(authProvider.errorMessage ?? '注册失败')),
         );
@@ -73,6 +88,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
+              // 用户名输入框
               TextFormField(
                 controller: _usernameController,
                 decoration: const InputDecoration(
@@ -90,6 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 },
               ),
               const SizedBox(height: 16),
+              // 邮箱输入框
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -107,6 +124,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 },
               ),
               const SizedBox(height: 16),
+              // 密码输入框
               TextFormField(
                 controller: _passwordController,
                 decoration: InputDecoration(
@@ -135,6 +153,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 },
               ),
               const SizedBox(height: 16),
+              // 确认密码输入框
               TextFormField(
                 controller: _confirmPasswordController,
                 decoration: InputDecoration(
@@ -163,6 +182,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 },
               ),
               const SizedBox(height: 24),
+              // 注册按钮
               ElevatedButton(
                 onPressed: authProvider.isLoading ? null : _register,
                 child: authProvider.isLoading
@@ -170,6 +190,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     : const Text('注册'),
               ),
               const SizedBox(height: 16),
+              // 登录按钮
               TextButton(
                 onPressed: () {
                   Navigator.push(

@@ -3,24 +3,32 @@ import 'package:provider/provider.dart';
 import 'package:app/providers/family_provider.dart';
 import 'package:app/providers/item_provider.dart';
 
+/// 库存屏幕类，用于显示库存预警、报表和采购建议
 class InventoryScreen extends StatefulWidget {
+  /// 构造函数
   const InventoryScreen({Key? key}) : super(key: key);
 
   @override
   _InventoryScreenState createState() => _InventoryScreenState();
 }
 
+/// InventoryScreen的状态类
 class _InventoryScreenState extends State<InventoryScreen> {
+  /// 当前选中的标签页索引
   int _currentTab = 0;
 
+  /// 初始化状态，加载库存数据
   @override
   void initState() {
     super.initState();
+    // 使用addPostFrameCallback确保在构建完成后再加载数据，避免setState() during build错误
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadInventoryData();
     });
   }
 
+  /// 加载库存数据
+  /// 包括库存预警、库存报表和采购建议
   void _loadInventoryData() {
     final familyProvider = Provider.of<FamilyProvider>(context, listen: false);
     final itemProvider = Provider.of<ItemProvider>(context, listen: false);
@@ -31,11 +39,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
     }
   }
 
+  /// 构建UI界面
   @override
   Widget build(BuildContext context) {
     final familyProvider = Provider.of<FamilyProvider>(context);
     final itemProvider = Provider.of<ItemProvider>(context);
 
+    // 未选择家庭时显示提示
     if (familyProvider.selectedFamily == null) {
       return Center(
         child: Column(
@@ -55,10 +65,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
     return Scaffold(
       body: DefaultTabController(
-        length: 3,
+        length: 3, // 三个标签页
         initialIndex: _currentTab,
         child: Column(
           children: [
+            // 标签栏
             const TabBar(
               tabs: [
                 Tab(text: '库存预警'),
@@ -66,29 +77,19 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 Tab(text: '采购建议'),
               ],
             ),
+            // 标签内容
             Expanded(
               child: TabBarView(
                 children: [
-                  // 库存预警
+                  // 库存预警标签页
                   itemProvider.isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : FutureBuilder<List<dynamic>>(
-                          future: itemProvider.getInventoryAlerts(familyProvider.selectedFamily!.id),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator());
-                            }
-                            if (snapshot.hasError) {
-                              return Center(child: Text('获取预警失败: ${snapshot.error}'));
-                            }
-                            final alerts = snapshot.data ?? [];
-                            if (alerts.isEmpty) {
-                              return const Center(child: Text('暂无库存预警'));
-                            }
-                            return ListView.builder(
-                              itemCount: alerts.length,
+                      ? const Center(child: CircularProgressIndicator()) // 显示加载指示器
+                      : itemProvider.inventoryAlerts.isEmpty
+                          ? const Center(child: Text('暂无库存预警')) // 无预警时显示提示
+                          : ListView.builder(
+                              itemCount: itemProvider.inventoryAlerts.length,
                               itemBuilder: (context, index) {
-                                final alert = alerts[index];
+                                final alert = itemProvider.inventoryAlerts[index];
                                 return Card(
                                   child: ListTile(
                                     title: Text(alert['item_name']),
@@ -97,59 +98,34 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                   ),
                                 );
                               },
-                            );
-                          },
-                        ),
-                  // 库存报表
+                            ),
+                  // 库存报表标签页
                   itemProvider.isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : FutureBuilder<Map<String, dynamic>>(
-                          future: itemProvider.getInventoryReport(familyProvider.selectedFamily!.id),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator());
-                            }
-                            if (snapshot.hasError) {
-                              return Center(child: Text('获取报表失败: ${snapshot.error}'));
-                            }
-                            final report = snapshot.data ?? {};
-                            return Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('总物品数: ${report['total_items'] ?? 0}'),
-                                  const SizedBox(height: 8),
-                                  Text('总价值: ¥${report['total_value'] ?? 0}'),
-                                  const SizedBox(height: 8),
-                                  Text('即将过期: ${report['expiring_soon'] ?? 0}'),
-                                  const SizedBox(height: 8),
-                                  Text('库存不足: ${report['low_stock'] ?? 0}'),
-                                ],
-                              ),
-                            );
-                          },
+                      ? const Center(child: CircularProgressIndicator()) // 显示加载指示器
+                      : Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('总物品数: ${itemProvider.inventoryReport['total_items'] ?? 0}'),
+                              const SizedBox(height: 8),
+                              Text('总价值: ¥${itemProvider.inventoryReport['total_value'] ?? 0}'),
+                              const SizedBox(height: 8),
+                              Text('即将过期: ${itemProvider.inventoryReport['expiring_soon'] ?? 0}'),
+                              const SizedBox(height: 8),
+                              Text('库存不足: ${itemProvider.inventoryReport['low_stock'] ?? 0}'),
+                            ],
+                          ),
                         ),
-                  // 采购建议
+                  // 采购建议标签页
                   itemProvider.isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : FutureBuilder<List<dynamic>>(
-                          future: itemProvider.getPurchaseSuggestions(familyProvider.selectedFamily!.id),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator());
-                            }
-                            if (snapshot.hasError) {
-                              return Center(child: Text('获取建议失败: ${snapshot.error}'));
-                            }
-                            final suggestions = snapshot.data ?? [];
-                            if (suggestions.isEmpty) {
-                              return const Center(child: Text('暂无采购建议'));
-                            }
-                            return ListView.builder(
-                              itemCount: suggestions.length,
+                      ? const Center(child: CircularProgressIndicator()) // 显示加载指示器
+                      : itemProvider.purchaseSuggestions.isEmpty
+                          ? const Center(child: Text('暂无采购建议')) // 无建议时显示提示
+                          : ListView.builder(
+                              itemCount: itemProvider.purchaseSuggestions.length,
                               itemBuilder: (context, index) {
-                                final suggestion = suggestions[index];
+                                final suggestion = itemProvider.purchaseSuggestions[index];
                                 return Card(
                                   child: ListTile(
                                     title: Text(suggestion['item_name']),
@@ -158,9 +134,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                   ),
                                 );
                               },
-                            );
-                          },
-                        ),
+                            ),
                 ],
               ),
             ),

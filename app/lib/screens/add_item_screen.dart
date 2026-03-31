@@ -4,27 +4,41 @@ import 'package:app/providers/family_provider.dart';
 import 'package:app/providers/item_provider.dart';
 import 'package:app/providers/auth_provider.dart';
 
+/// 添加物品屏幕类
 class AddItemScreen extends StatefulWidget {
+  /// 构造函数
   const AddItemScreen({Key? key}) : super(key: key);
 
   @override
   _AddItemScreenState createState() => _AddItemScreenState();
 }
 
+/// 添加物品屏幕状态类
 class _AddItemScreenState extends State<AddItemScreen> {
+  /// 表单键，用于表单验证
   final _formKey = GlobalKey<FormState>();
+  /// 物品名称输入控制器
   final _nameController = TextEditingController();
+  /// 物品描述输入控制器
   final _descriptionController = TextEditingController();
+  /// 物品数量输入控制器
   final _quantityController = TextEditingController();
+  /// 物品单位输入控制器
   final _unitController = TextEditingController();
+  /// 物品价格输入控制器
   final _priceController = TextEditingController();
+  /// 过期日期
   DateTime? _expiryDate;
+  /// 购买日期
   DateTime? _purchaseDate;
+  /// 选中的分类ID
   int? _selectedCategoryId;
+  /// 选中的位置ID
   int? _selectedLocationId;
 
   @override
   void dispose() {
+    // 释放控制器资源
     _nameController.dispose();
     _descriptionController.dispose();
     _quantityController.dispose();
@@ -33,6 +47,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
     super.dispose();
   }
 
+  /// 保存物品方法
+  /// 验证表单并调用ItemProvider的addItem方法添加物品
   void _saveItem() async {
     if (_formKey.currentState!.validate()) {
       final familyProvider = Provider.of<FamilyProvider>(context, listen: false);
@@ -55,8 +71,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
       final success = await itemProvider.addItem(itemData);
       if (success) {
+        // 保存成功，返回上一页
         Navigator.pop(context);
       } else {
+        // 保存失败，显示错误信息
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(itemProvider.errorMessage ?? '添加物品失败')),
         );
@@ -80,6 +98,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
           key: _formKey,
           child: ListView(
             children: [
+              // 物品名称输入框
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -94,6 +113,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 },
               ),
               const SizedBox(height: 16),
+              // 物品描述输入框
               TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(
@@ -102,6 +122,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+              // 分类选择下拉框
               DropdownButtonFormField<int>(
                 value: _selectedCategoryId,
                 hint: const Text('选择分类'),
@@ -124,6 +145,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 },
               ),
               const SizedBox(height: 16),
+              // 位置选择下拉框
               DropdownButtonFormField<int>(
                 value: _selectedLocationId,
                 hint: const Text('选择位置'),
@@ -146,6 +168,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 },
               ),
               const SizedBox(height: 16),
+              // 数量和单位输入框
               Row(
                 children: [
                   Expanded(
@@ -186,6 +209,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 ],
               ),
               const SizedBox(height: 16),
+              // 价格输入框
               Row(
                 children: [
                   Expanded(
@@ -201,6 +225,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 ],
               ),
               const SizedBox(height: 16),
+              // 过期日期选择按钮
               Row(
                 children: [
                   Expanded(
@@ -226,6 +251,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 ],
               ),
               const SizedBox(height: 16),
+              // 购买日期选择按钮
               Row(
                 children: [
                   Expanded(
@@ -251,6 +277,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 ],
               ),
               const SizedBox(height: 24),
+              // 保存按钮
               ElevatedButton(
                 onPressed: itemProvider.isLoading ? null : _saveItem,
                 child: itemProvider.isLoading

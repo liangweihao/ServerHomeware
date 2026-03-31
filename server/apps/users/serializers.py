@@ -11,6 +11,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'phone', 'avatar', 'is_verified', 'created_at']
         read_only_fields = ['id', 'is_verified', 'created_at']
+        extra_kwargs = {
+            'phone': {'allow_null': True, 'required': False},
+            'avatar': {'allow_null': True, 'required': False},
+        }
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):

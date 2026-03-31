@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from datetime import timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -8,7 +9,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-me-in-production')
 
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+# DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = False
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
@@ -103,6 +105,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+APPEND_SLASH = False
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -116,8 +120,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': int(os.getenv('JWT_ACCESS_TOKEN_LIFETIME', 60)),
-    'REFRESH_TOKEN_LIFETIME': int(os.getenv('JWT_REFRESH_TOKEN_LIFETIME', 1440)),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=int(os.getenv('JWT_ACCESS_TOKEN_LIFETIME', 60))),
+    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=int(os.getenv('JWT_REFRESH_TOKEN_LIFETIME', 1440))),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'ALGORITHM': 'HS256',
@@ -136,6 +140,25 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': '家庭物品管理系统的API文档',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'REDOC_UI_SETTINGS': {
+        'theme': {
+            'colors': {
+                'primary': {
+                    'main': '#4CAF50'
+                },
+                'background': {
+                    'default': '#ffffff'
+                },
+                'text': {
+                    'primary': '#333333',
+                    'secondary': '#666666'
+                }
+            },
+            'typography': {
+                'fontFamily': '"Open Sans", sans-serif'
+            }
+        }
+    }
 }
 
 CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
