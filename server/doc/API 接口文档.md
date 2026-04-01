@@ -696,16 +696,15 @@ Content-Type: application/json
 **响应结构** (200 OK):
 
 ```json
-[
-  {
+ 
+{"count":0,"next":null,"previous":null,"results":[ {
     "id": 1,
     "name": "水果",
     "icon": "🍎",
     "color": "#FF6B6B",
     "family": 1,
     "created_at": "2026-03-30T12:00:00Z"
-  }
-]
+  }]}
 ```
 
 **响应结构** (200 OK - 无数据):

@@ -188,8 +188,17 @@ Content-Type: application/json
 - **请求方法**: POST
 - **请求路径**: /categories/
 - **请求参数**:
-    - name: 分类名称 (必填)
-    - family_id: 家庭ID (必填)
+  **请求内容**:
+
+```json
+{
+  "name": "水果",
+  "icon": "🍎",
+  "color": "#FF6B6B",
+  "family": 1
+}
+```
+
 - **响应**:
     - 成功: 返回创建的分类信息
     - 失败: 返回错误信息
@@ -204,20 +213,33 @@ Content-Type: application/json
     - 成功: 返回分类列表数据
 
 ```json
-
-[
-  {
-    "id": 1,
-    "name": "水果",
-    "icon": "🍎",
-    "color": "#FF6B6B",
-    "family": 1,
-    "created_at": "2026-03-30T12:00:00Z"
-  }
-]
-
+{
+  "count": 0,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "name": "水果",
+      "icon": "🍎",
+      "color": "#FF6B6B",
+      "family": 1,
+      "created_at": "2026-03-30T12:00:00Z"
+    }
+  ]
+}
 ```
-    - 失败: 返回错误信息
+
+- 失败:
+
+```json
+{
+  "count": 0,
+  "next": null,
+  "previous": null,
+  "results": []
+}
+```
 
 ## 位置相关接口
 
@@ -225,13 +247,30 @@ Content-Type: application/json
 
 - **请求方法**: POST
 - **请求路径**: /locations/
-- **请求参数**:
-    - name: 位置名称 (必填)
-    - family_id: 家庭ID (必填)
-    - description: 位置描述 (可选)
-- **响应**:
-    - 成功: 返回创建的位置信息
-    - 失败: 返回错误信息
+  **请求内容**:
+
+```json
+{
+  "name": "厨房",
+  "description": "存放厨房用品",
+  "parent": null,
+  "family": 1
+}
+```
+
+**响应结构** (201 Created):
+
+```json
+{
+  "id": 1,
+  "name": "厨房",
+  "description": "存放厨房用品",
+  "parent": null,
+  "parent_name": null,
+  "family": 1,
+  "created_at": "2026-03-30T12:00:00Z"
+}
+```
 
 ### 获取位置列表
 

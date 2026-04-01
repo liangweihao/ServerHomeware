@@ -225,32 +225,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              // 过期日期选择按钮
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        final pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-                        );
-                        if (pickedDate != null) {
-                          setState(() {
-                            _expiryDate = pickedDate;
-                          });
-                        }
-                      },
-                      child: Text(_expiryDate != null
-                          ? '过期日期: ${_expiryDate!.toString().split(' ')[0]}'
-                          : '选择过期日期'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
               // 购买日期选择按钮
               Row(
                 children: [
@@ -272,6 +246,32 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       child: Text(_purchaseDate != null
                           ? '购买日期: ${_purchaseDate!.toString().split(' ')[0]}'
                           : '选择购买日期'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // 过期日期选择按钮
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                        );
+                        if (pickedDate != null) {
+                          setState(() {
+                            _expiryDate = pickedDate;
+                          });
+                        }
+                      },
+                      child: Text(_expiryDate != null
+                          ? '过期日期: ${_expiryDate!.toString().split(' ')[0]}'
+                          : '选择过期日期'),
                     ),
                   ),
                 ],

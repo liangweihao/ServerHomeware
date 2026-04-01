@@ -35,7 +35,7 @@ class LocalStorageService {
     final path = join(documentsDirectory.path, 'home_ware.db');
     return await openDatabase(
       path,
-      version: 2,
+      version: 4,
       onCreate: (db, version) async {
         // 创建用户表
         await db.execute('''
@@ -93,6 +93,8 @@ class LocalStorageService {
           CREATE TABLE IF NOT EXISTS categories (
             id INTEGER PRIMARY KEY,
             name TEXT,
+            icon TEXT,
+            color TEXT,
             family_id INTEGER,
             created_at TEXT
           )
@@ -103,6 +105,8 @@ class LocalStorageService {
             id INTEGER PRIMARY KEY,
             name TEXT,
             description TEXT,
+            parent INTEGER,
+            parent_name TEXT,
             family_id INTEGER,
             created_at TEXT
           )
@@ -135,6 +139,16 @@ class LocalStorageService {
               joined_at TEXT
             )
           ''');
+        }
+        if (oldVersion < 3) {
+          // 为分类表添加 icon 和 color 字段
+          await db.execute('ALTER TABLE categories ADD COLUMN icon TEXT');
+          await db.execute('ALTER TABLE categories ADD COLUMN color TEXT');
+        }
+        if (oldVersion < 4) {
+          // 为位置表添加 parent 和 parent_name 字段
+          await db.execute('ALTER TABLE locations ADD COLUMN parent INTEGER');
+          await db.execute('ALTER TABLE locations ADD COLUMN parent_name TEXT');
         }
       },
     );

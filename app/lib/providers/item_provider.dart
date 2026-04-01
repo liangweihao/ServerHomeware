@@ -295,6 +295,8 @@ class ItemProvider extends ChangeNotifier {
       _categories = localCategories.map<Category>((item) => Category(
         id: item['id'],
         name: item['name'],
+        icon: item['icon'],
+        color: item['color'],
         familyId: item['family_id'],
         createdAt: DateTime.parse(item['created_at']),
       )).toList();
@@ -307,14 +309,16 @@ class ItemProvider extends ChangeNotifier {
   /// 添加分类
   /// [name] 分类名称
   /// [familyId] 家庭ID
+  /// [icon] 分类图标（可选）
+  /// [color] 分类颜色（可选）
   /// 返回添加是否成功
-  Future<bool> addCategory(String name, int familyId) async {
+  Future<bool> addCategory(String name, int familyId, {String? icon, String? color}) async {
     try {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
 
-      final response = await _apiService.addCategory(name, familyId);
+      final response = await _apiService.addCategory(name, familyId, icon: icon, color: color);
       // 检查响应是否直接包含分类数据
       if (response.containsKey('id') && response.containsKey('name')) {
         final newCategory = Category.fromJson(response);
@@ -378,14 +382,15 @@ class ItemProvider extends ChangeNotifier {
   /// [name] 位置名称
   /// [familyId] 家庭ID
   /// [description] 位置描述（可选）
+  /// [parent] 父位置ID（可选）
   /// 返回添加是否成功
-  Future<bool> addLocation(String name, int familyId, {String? description}) async {
+  Future<bool> addLocation(String name, int familyId, {String? description, int? parent}) async {
     try {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
 
-      final response = await _apiService.addLocation(name, familyId, description: description);
+      final response = await _apiService.addLocation(name, familyId, description: description, parent: parent);
       // 检查响应是否直接包含位置数据
       if (response.containsKey('id') && response.containsKey('name')) {
         final newLocation = Location.fromJson(response);

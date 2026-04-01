@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app/providers/family_provider.dart';
 import 'package:app/providers/item_provider.dart';
+import 'package:app/screens/category_management_screen.dart';
+import 'package:app/screens/location_management_screen.dart';
 
 /// 库存屏幕类，用于显示库存预警、报表和采购建议
 class InventoryScreen extends StatefulWidget {
@@ -65,7 +67,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
     return Scaffold(
       body: DefaultTabController(
-        length: 3, // 三个标签页
+        length: 5, // 五个标签页
         initialIndex: _currentTab,
         child: Column(
           children: [
@@ -75,6 +77,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 Tab(text: '库存预警'),
                 Tab(text: '库存报表'),
                 Tab(text: '采购建议'),
+                Tab(text: '分类管理'),
+                Tab(text: '位置管理'),
               ],
             ),
             // 标签内容
@@ -135,6 +139,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                 );
                               },
                             ),
+                  // 分类管理标签页
+                  CategoryManagementScreen(familyId: familyProvider.selectedFamily!.id),
+                  // 位置管理标签页
+                  LocationManagementScreen(familyId: familyProvider.selectedFamily!.id),
                 ],
               ),
             ),

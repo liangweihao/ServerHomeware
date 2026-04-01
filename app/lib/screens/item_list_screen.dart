@@ -61,41 +61,54 @@ class _ItemListScreenState extends State<ItemListScreen> {
     }
 
     return Scaffold(
-      // 添加物品的浮动按钮
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddItemScreen()),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
       // 物品列表
       body: itemProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: itemProvider.items.length,
-              itemBuilder: (context, index) {
-                final item = itemProvider.items[index];
-                return ListTile(
-                  title: Text(item.name),
-                  subtitle: Text('数量: ${item.quantity} ${item.unit}'),
-                  trailing: item.expiryDate != null
-                      ? Text('过期: ${item.expiryDate!.toString().split(' ')[0]}')
-                      : null,
-                  onTap: () {
-                    // 点击跳转到物品详情页
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ItemDetailScreen(itemId: item.id),
+          : itemProvider.items.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.inventory_2, size: 80, color: Colors.grey[300]),
+                      const SizedBox(height: 20),
+                      const Text('暂无物品', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 10),
+                      const Text('点击下方按钮添加第一个物品', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                      const SizedBox(height: 30),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const AddItemScreen()),
+                          );
+                        },
+                        child: const Text('立即添加'),
                       ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: itemProvider.items.length,
+                  itemBuilder: (context, index) {
+                    final item = itemProvider.items[index];
+                    return ListTile(
+                      title: Text(item.name),
+                      subtitle: Text('数量: ${item.quantity} ${item.unit}'),
+                      trailing: item.expiryDate != null
+                          ? Text('过期: ${item.expiryDate!.toString().split(' ')[0]}')
+                          : null,
+                      onTap: () {
+                        // 点击跳转到物品详情页
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ItemDetailScreen(itemId: item.id),
+                          ),
+                        );
+                      },
                     );
                   },
-                );
-              },
-            ),
+                ),
     );
   }
 }

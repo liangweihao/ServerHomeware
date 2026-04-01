@@ -727,16 +727,28 @@ class ApiService {
   /// 添加新分类
   /// [name] 分类名称
   /// [familyId] 家庭ID
+  /// [icon] 分类图标（可选）
+  /// [color] 分类颜色（可选）
   /// 返回创建的分类信息
   /// 异常：当添加失败时抛出ApiException异常，包含错误信息
-  Future<Map<String, dynamic>> addCategory(String name, int familyId) async {
+  Future<Map<String, dynamic>> addCategory(String name, int familyId, {String? icon, String? color}) async {
     try {
-      print('开始添加新分类，名称: $name, 家庭ID: $familyId');
+      print('开始添加新分类，名称: $name, 家庭ID: $familyId, 图标: $icon, 颜色: $color');
       
-      final response = await _dio.post('/categories/', data: {
+      final data = {
         'name': name,
-        'family_id': familyId,
-      });
+        'family': familyId,
+      };
+      
+      // 添加可选参数
+      if (icon != null && icon.isNotEmpty) {
+        data['icon'] = icon;
+      }
+      if (color != null && color.isNotEmpty) {
+        data['color'] = color;
+      }
+      
+      final response = await _dio.post('/categories/', data: data);
       
       // 检查响应状态码
       if (response.statusCode != 201 && response.statusCode != 200) {
@@ -822,17 +834,27 @@ class ApiService {
   /// [name] 位置名称
   /// [familyId] 家庭ID
   /// [description] 位置描述（可选）
+  /// [parent] 父位置ID（可选）
   /// 返回创建的位置信息
   /// 异常：当添加失败时抛出ApiException异常，包含错误信息
-  Future<Map<String, dynamic>> addLocation(String name, int familyId, {String? description}) async {
+  Future<Map<String, dynamic>> addLocation(String name, int familyId, {String? description, int? parent}) async {
     try {
-      print('开始添加新位置，名称: $name, 家庭ID: $familyId');
+      print('开始添加新位置，名称: $name, 家庭ID: $familyId, 父位置: $parent');
       
-      final response = await _dio.post('/locations/', data: {
+      final data = {
         'name': name,
-        'family_id': familyId,
-        'description': description,
-      });
+        'family': familyId,
+      };
+      
+      // 添加可选参数
+      if (description != null && description.isNotEmpty) {
+        data['description'] = description;
+      }
+      if (parent != null) {
+        data['parent'] = parent;
+      }
+      
+      final response = await _dio.post('/locations/', data: data);
       
       // 检查响应状态码
       if (response.statusCode != 201 && response.statusCode != 200) {

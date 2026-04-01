@@ -96,6 +96,10 @@ class Category {
   final int id;
   /// 分类名称
   final String name;
+  /// 分类图标（可选）
+  final String? icon;
+  /// 分类颜色（可选）
+  final String? color;
   /// 家庭ID
   final int familyId;
   /// 创建时间
@@ -105,6 +109,8 @@ class Category {
   Category({
     required this.id,
     required this.name,
+    this.icon,
+    this.color,
     required this.familyId,
     required this.createdAt,
   });
@@ -115,7 +121,9 @@ class Category {
     return Category(
       id: json['id'],
       name: json['name'],
-      familyId: json['family_id'],
+      icon: json['icon'],
+      color: json['color'],
+      familyId: json['family_id'] ?? json['family'],
       createdAt: DateTime.parse(json['created_at']),
     );
   }
@@ -126,6 +134,8 @@ class Category {
     return {
       'id': id,
       'name': name,
+      'icon': icon,
+      'color': color,
       'family_id': familyId,
       'created_at': createdAt.toIso8601String(),
     };
@@ -140,6 +150,10 @@ class Location {
   final String name;
   /// 位置描述（可选）
   final String? description;
+  /// 父位置ID（可选）
+  final int? parent;
+  /// 父位置名称（可选）
+  final String? parentName;
   /// 家庭ID
   final int familyId;
   /// 创建时间
@@ -150,6 +164,8 @@ class Location {
     required this.id,
     required this.name,
     this.description,
+    this.parent,
+    this.parentName,
     required this.familyId,
     required this.createdAt,
   });
@@ -161,7 +177,9 @@ class Location {
       id: json['id'],
       name: json['name'],
       description: json['description'],
-      familyId: json['family_id'],
+      parent: json['parent'],
+      parentName: json['parent_name'],
+      familyId: json['family_id'] ?? json['family'],
       createdAt: DateTime.parse(json['created_at']),
     );
   }
@@ -173,6 +191,8 @@ class Location {
       'id': id,
       'name': name,
       'description': description,
+      'parent': parent,
+      'parent_name': parentName,
       'family_id': familyId,
       'created_at': createdAt.toIso8601String(),
     };
