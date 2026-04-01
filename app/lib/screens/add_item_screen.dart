@@ -47,6 +47,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
     super.dispose();
   }
 
+  /// 格式化日期为 YYYY-MM-DD 格式
+  String? _formatDate(DateTime? date) {
+    if (date == null) return null;
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
   /// 保存物品方法
   /// 验证表单并调用ItemProvider的addItem方法添加物品
   void _saveItem() async {
@@ -62,8 +68,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
         'location_id': _selectedLocationId,
         'quantity': int.parse(_quantityController.text),
         'unit': _unitController.text.trim(),
-        'expiry_date': _expiryDate?.toIso8601String(),
-        'purchase_date': _purchaseDate?.toIso8601String(),
+        'expiry_date': _formatDate(_expiryDate),
+        'purchase_date': _formatDate(_purchaseDate),
         'price': _priceController.text.isNotEmpty ? double.parse(_priceController.text) : null,
         'family_id': familyProvider.selectedFamily!.id,
         'created_by': authProvider.user?.id,

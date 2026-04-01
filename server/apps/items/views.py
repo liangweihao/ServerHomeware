@@ -142,7 +142,7 @@ class ItemDetailView(generics.RetrieveUpdateDestroyAPIView):
         return ItemSerializer
 
     def get_queryset(self):
-        return Item.objects.filter(family__members__user=self.request.user)
+        return Item.objects.select_related('category', 'location', 'created_by').filter(family__members__user=self.request.user)
 
     @extend_schema(
         summary='获取物品详情',

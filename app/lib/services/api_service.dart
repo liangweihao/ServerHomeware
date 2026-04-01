@@ -485,7 +485,27 @@ class ApiService {
     try {
       print('开始添加新物品');
       
-      final response = await _dio.post('/items/', data: data);
+
+      final apiData = {
+        'name': data['name'],
+        'description': data['description'],
+        'category': data['category_id'],
+        'location': data['location_id'],
+        'quantity': data['quantity'],
+        'unit': data['unit'],
+        'expiry_date': data['expiry_date'],
+        'purchase_date': data['purchase_date'],
+        'price': data['price'],
+        'family': data['family_id'],
+        'created_by': data['created_by'],
+      };
+      
+      // 过滤掉null值
+      final filteredData = apiData..removeWhere((key, value) => value == null);
+      
+      print('添加物品请求参数: $filteredData');
+      
+      final response = await _dio.post('/items/', data: filteredData);
       
       // 检查响应状态码
       if (response.statusCode != 201 && response.statusCode != 200) {

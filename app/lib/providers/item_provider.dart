@@ -79,13 +79,13 @@ class ItemProvider extends ChangeNotifier {
         locationId: item['location_id'],
         quantity: item['quantity'],
         unit: item['unit'],
-        expiryDate: item['expiry_date'] != null ? DateTime.parse(item['expiry_date']) : null,
-        purchaseDate: item['purchase_date'] != null ? DateTime.parse(item['purchase_date']) : null,
+        expiryDate: item['expiry_date']  ,
+        purchaseDate: item['purchase_date'],
         price: item['price'],
         familyId: item['family_id'],
         createdBy: item['created_by'],
-        createdAt: DateTime.parse(item['created_at']),
-        updatedAt: DateTime.parse(item['updated_at']),
+        createdAt:  item['created_at'],
+        updatedAt:  item['updated_at'],
       )).toList();
     } finally {
       _isLoading = false;
@@ -131,13 +131,13 @@ class ItemProvider extends ChangeNotifier {
         locationId: data['location_id'],
         quantity: data['quantity'],
         unit: data['unit'],
-        expiryDate: data['expiry_date'] != null ? DateTime.parse(data['expiry_date']) : null,
-        purchaseDate: data['purchase_date'] != null ? DateTime.parse(data['purchase_date']) : null,
+        expiryDate: data['expiry_date']  ,
+        purchaseDate: data['purchase_date'] ,
         price: data['price'],
         familyId: data['family_id'],
         createdBy: data['created_by'],
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
       );
       _items.add(newItem);
       notifyListeners();
@@ -194,13 +194,13 @@ class ItemProvider extends ChangeNotifier {
         locationId: data['location_id'],
         quantity: data['quantity'],
         unit: data['unit'],
-        expiryDate: data['expiry_date'] != null ? DateTime.parse(data['expiry_date']) : null,
-        purchaseDate: data['purchase_date'] != null ? DateTime.parse(data['purchase_date']) : null,
+        expiryDate: data['expiry_date'] ,
+        purchaseDate: data['purchase_date'] ,
         price: data['price'],
         familyId: data['family_id'],
         createdBy: data['created_by'],
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
       );
       final index = _items.indexWhere((item) => item.id == id);
       if (index != -1) {

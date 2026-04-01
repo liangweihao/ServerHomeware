@@ -134,21 +134,104 @@ Content-Type: application/json
 
 - **请求方法**: POST
 - **请求路径**: /items/
-- **请求参数**:
-    - 物品数据 (必填)
-- **响应**:
-    - 成功: 返回创建的物品信息
-    - 失败: 返回错误信息
+  **请求内容**:
+
+```json
+{
+  "name": "红富士苹果",
+  "description": "新鲜红富士苹果",
+  "category": 1,
+  "location": 1,
+  "quantity": 10,
+  "unit": "个",
+  "expiry_date": "2026-04-15",
+  "purchase_date": "2026-03-25",
+  "price": 15.50,
+  "image": null,
+  "barcode": "4901234567890",
+  "family": 1
+}
+```
+
+**响应结构** (201 Created):
+
+```json
+{
+  "id": 1,
+  "name": "红富士苹果",
+  "description": "新鲜红富士苹果",
+  "category": 1,
+  "category_name": "水果",
+  "location": 1,
+  "location_name": "厨房",
+  "quantity": 10,
+  "unit": "个",
+  "expiry_date": "2026-04-15",
+  "purchase_date": "2026-03-25",
+  "price": 15.50,
+  "image": null,
+  "image_url": null,
+  "barcode": "4901234567890",
+  "family": 1,
+  "created_by": 1,
+  "created_by_username": "张三",
+  "is_expired": false,
+  "is_low_stock": false,
+  "created_at": "2026-03-30T12:00:00Z",
+  "updated_at": "2026-03-30T12:00:00Z"
+}
+```
 
 ### 获取物品列表
 
 - **请求方法**: GET
 - **请求路径**: /items/
-- **请求参数**:
-    - family_id: 家庭ID (可选)
-- **响应**:
-    - 成功: 返回物品列表数据
-    - 失败: 返回错误信息
+
+**请求参数**:
+
+| 参数名        | 类型     | 说明    | 示例             |
+|------------|--------|-------|----------------|
+| family\_id | int    | 家庭ID  | 1              |
+| category   | int    | 分类ID  | 1              |
+| location   | int    | 位置ID  | 1              |
+| search     | string | 搜索关键词 | "苹果"           |
+| ordering   | string | 排序字段  | "-created\_at" |
+
+**响应结构** (200 OK):
+
+```json
+{
+  "count": 10,
+  "next": "http://localhost:8000/api/items/?page=2",
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "name": "红富士苹果",
+      "description": "新鲜红富士苹果",
+      "category": 1,
+      "category_name": "水果",
+      "location": 1,
+      "location_name": "厨房",
+      "quantity": 10,
+      "unit": "个",
+      "expiry_date": "2026-04-15",
+      "purchase_date": "2026-03-25",
+      "price": 15.50,
+      "image": null,
+      "image_url": null,
+      "barcode": "4901234567890",
+      "family": 1,
+      "created_by": 1,
+      "created_by_username": "张三",
+      "is_expired": false,
+      "is_low_stock": false,
+      "created_at": "2026-03-30T12:00:00Z",
+      "updated_at": "2026-03-30T12:00:00Z"
+    }
+  ]
+}
+```
 
 ### 获取物品详情
 
@@ -157,8 +240,34 @@ Content-Type: application/json
 - **请求参数**:
     - id: 物品ID (必填)
 - **响应**:
-    - 成功: 返回物品详细信息
-    - 失败: 返回错误信息
+  **响应结构** (200 OK):
+
+```json
+{
+  "id": 1,
+  "name": "红富士苹果",
+  "description": "新鲜红富士苹果",
+  "category": 1,
+  "category_name": "水果",
+  "location": 1,
+  "location_name": "厨房",
+  "quantity": 10,
+  "unit": "个",
+  "expiry_date": "2026-04-15",
+  "purchase_date": "2026-03-25",
+  "price": 15.50,
+  "image": null,
+  "image_url": null,
+  "barcode": "4901234567890",
+  "family": 1,
+  "created_by": 1,
+  "created_by_username": "张三",
+  "is_expired": false,
+  "is_low_stock": false,
+  "created_at": "2026-03-30T12:00:00Z",
+  "updated_at": "2026-03-30T12:00:00Z"
+}
+```
 
 ### 更新物品信息
 

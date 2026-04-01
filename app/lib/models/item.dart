@@ -15,9 +15,9 @@ class Item {
   /// 单位
   final String unit;
   /// 过期日期（可选）
-  final DateTime? expiryDate;
+  final String? expiryDate;
   /// 购买日期（可选）
-  final DateTime? purchaseDate;
+  final String? purchaseDate;
   /// 价格（可选）
   final double? price;
   /// 家庭ID
@@ -25,9 +25,9 @@ class Item {
   /// 创建者ID
   final int createdBy;
   /// 创建时间
-  final DateTime createdAt;
+  final String createdAt;
   /// 更新时间
-  final DateTime updatedAt;
+  final String updatedAt;
 
   /// 构造函数
   Item({
@@ -54,17 +54,17 @@ class Item {
       id: json['id'],
       name: json['name'],
       description: json['description'],
-      categoryId: json['category_id'],
-      locationId: json['location_id'],
+      categoryId: json['category_id'] ?? json['category'] ?? 0,
+      locationId: json['location_id'] ?? json['location'] ?? 0,
       quantity: json['quantity'],
-      unit: json['unit'],
-      expiryDate: json['expiry_date'] != null ? DateTime.parse(json['expiry_date']) : null,
-      purchaseDate: json['purchase_date'] != null ? DateTime.parse(json['purchase_date']) : null,
-      price: json['price'] != null ? double.parse(json['price'].toString()) : null,
-      familyId: json['family_id'],
-      createdBy: json['created_by'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      unit: json['unit'] ?? '',
+      expiryDate: json['expiry_date']  ,
+      purchaseDate: json['purchase_date'] ,
+      price: json['price'] != null ? double.tryParse(json['price'].toString()) : null,
+      familyId: json['family_id'] ?? json['family'] ?? 0,
+      createdBy: json['created_by'] ?? 0,
+      createdAt: json['created_at'] ?? '',
+      updatedAt: json['updated_at'] ?? '',
     );
   }
 
@@ -79,13 +79,13 @@ class Item {
       'location_id': locationId,
       'quantity': quantity,
       'unit': unit,
-      'expiry_date': expiryDate?.toIso8601String(),
-      'purchase_date': purchaseDate?.toIso8601String(),
+      'expiry_date': expiryDate,
+      'purchase_date': purchaseDate,
       'price': price,
       'family_id': familyId,
       'created_by': createdBy,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'created_at': createdAt,
+      'updated_at': updatedAt,
     };
   }
 }

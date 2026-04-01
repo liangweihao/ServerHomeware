@@ -7,6 +7,6 @@ from .views import (
 
 urlpatterns = [
     path('', ItemListCreateView.as_view(), name='item-list-create'),
-    path('<int:id>/', ItemDetailView.as_view(), name='item-detail'),
+    path('<int:pk>/', ItemDetailView.as_view(), name='item-detail'),
     path('batch-delete/', batch_delete_items, name='batch-delete-items'),
 ]
