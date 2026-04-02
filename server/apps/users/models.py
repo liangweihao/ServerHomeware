@@ -61,6 +61,7 @@ class FamilyMember(models.Model):
     family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='members', verbose_name='家庭')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_memberships', verbose_name='用户')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='member', verbose_name='角色')
+    is_selected = models.BooleanField(default=False, verbose_name='是否选中')
     joined_at = models.DateTimeField(auto_now_add=True, verbose_name='加入时间')
 
     class Meta:

@@ -106,7 +106,56 @@ Content-Type: application/json
 - **请求参数**: 无
 - **响应**:
     - 成功: 返回家庭列表数据
+    ```json
+    [
+      {
+        "id": 1,
+        "name": "张三家庭",
+        "invite_code": "abc123def4",
+        "created_by": 1,
+        "created_by_username": "张三",
+        "is_selected": true,
+        "members": [
+          {
+            "id": 1,
+            "username": "张三",
+            "email": "zhangsan@example.com",
+            "role": "admin",
+            "joined_at": "2026-03-30T12:00:00Z"
+          }
+        ],
+        "created_at": "2026-03-30T12:00:00Z"
+      }
+    ]
+    ```
     - 失败: 返回错误信息
+
+### 更新选中家庭
+
+- **请求方法**: PUT
+- **请求路径**: /families/selected/
+- **请求参数**:
+    - family_id: 家庭ID (必填)
+- **响应**:
+    - 成功: 返回更新结果
+    ```json
+    {
+      "message": "选中家庭更新成功",
+      "family_id": 1
+    }
+    ```
+    - 失败: 返回错误信息
+    ```json
+    {
+      "error": "家庭不存在"
+    }
+    ```
+    或
+    ```json
+    {
+      "error": "您不是该家庭的成员"
+    }
+    ```
 
 ### 获取家庭详情
 
@@ -478,7 +527,7 @@ Content-Type: application/json
 
 - **请求方法**: GET
 - **请求路径**: /inventory/alert/
-- **请求参数**:
+- **请求参数**:[sutyo-ASR和NLP.md](..%2F..%2F..%2F..%2F..%2FDownloads%2Fsutyo-ASR%E5%92%8CNLP.md)
     - family_id: 家庭ID (必填)
 - **响应**:
     - 成功: 返回库存预警列表

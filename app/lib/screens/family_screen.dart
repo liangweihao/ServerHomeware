@@ -55,6 +55,7 @@ class _FamilyScreenState extends State<FamilyScreen> {
   @override
   Widget build(BuildContext context) {
     final familyProvider = Provider.of<FamilyProvider>(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     return Scaffold(
       // appBar: AppBar(
@@ -144,19 +145,24 @@ class _FamilyScreenState extends State<FamilyScreen> {
                       itemCount: familyProvider.families.length,
                       itemBuilder: (context, index) {
                         final family = familyProvider.families[index];
-                        final isSelected = familyProvider.selectedFamily?.id == family.id;
                         return Card(
-                          elevation: isSelected ? 4 : 2,
-                          color: isSelected ? Colors.blue[50] : null,
+                          elevation: family.isSelected ? 4 : 2,
+                          color: family.isSelected ? Colors.blue[50] : null,
                           child: ListTile(
                             title: Text(family.name),
-                            trailing: isSelected ? const Icon(Icons.check) : null,
-                            onTap: () {
+                            trailing: family.isSelected ? const Icon(Icons.check) : null,
+                            onTap: () async {
                               // 选择家庭
-                              familyProvider.selectFamily(family);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('已选择家庭: ${family.name}')),
-                              );
+                              final success = await familyProvider.updateSelectedFamily(family.id);
+                              if (success) {
+                                scaffoldMessenger.showSnackBar(
+                                  SnackBar(content: Text('已选择家庭: ${family.name}')),
+                                );
+                              } else {
+                                scaffoldMessenger.showSnackBar(
+                                  SnackBar(content: Text('选择家庭失败')),
+                                );
+                              }
                             },
                           ),
                         );

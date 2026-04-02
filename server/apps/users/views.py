@@ -145,7 +145,9 @@ class FamilyListCreateView(generics.ListCreateAPIView):
         responses={200: FamilySerializer(many=True)}
     )
     def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
         summary='创建家庭',
@@ -191,3 +193,38 @@ def join_family(request, id):
         member = serializer.save()
         return Response(FamilyMemberSerializer(member).data, status=status.HTTP_200_OK)
     return Response({'error': '加入家庭失败'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(
+    summary='更新选中家庭',
+    request={'application/json': {'family_id': int}},
+    responses={200: {'message': str, 'family_id': int}}
+)
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_selected_family(request):
+    try:
+        family_id = request.data.get('family_id')
+        if not family_id:
+            return Response({'error': '缺少 family_id 参数'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            family = Family.objects.get(id=family_id)
+        except Family.DoesNotExist:
+            return Response({'error': '家庭不存在'}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            member = FamilyMember.objects.get(family=family, user=request.user)
+        except FamilyMember.DoesNotExist:
+            return Response({'error': '您不是该家庭的成员'}, status=status.HTTP_403_FORBIDDEN)
+        
+        FamilyMember.objects.filter(user=request.user).update(is_selected=False)
+        member.is_selected = True
+        member.save()
+        
+        return Response({
+            'message': '选中家庭更新成功',
+            'family_id': family_id
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': f'更新失败: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -228,6 +228,7 @@ Content-Type: application/json
     "invite_code": "abc123def4",
     "created_by": 1,
     "created_by_username": "张三",
+    "is_selected": true,
     "members": [
       {
         "id": 1,
@@ -241,6 +242,9 @@ Content-Type: application/json
   }
 ]
 ```
+
+**字段说明**:
+- `is_selected`: 布尔值，表示当前家庭是否为用户选中的家庭
 
 ***
 
@@ -370,6 +374,56 @@ Content-Type: application/json
 ```json
 {
   "invite_code": ["邀请码无效"]
+}
+```
+
+***
+
+### 2.5 更新选中家庭
+
+**功能**: 更新用户当前选中的家庭
+
+**请求方式**: `PUT`
+
+**请求路径**: `/families/selected/`
+
+**请求头**:
+
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**请求内容**:
+
+```json
+{
+  "family_id": 1
+}
+```
+
+**响应结构** (200 OK):
+
+```json
+{
+  "message": "选中家庭更新成功",
+  "family_id": 1
+}
+```
+
+**错误响应** (404 Not Found):
+
+```json
+{
+  "error": "家庭不存在"
+}
+```
+
+**错误响应** (403 Forbidden):
+
+```json
+{
+  "error": "您不是该家庭的成员"
 }
 ```
 

@@ -6,7 +6,8 @@ from .views import (
     update_profile,
     FamilyListCreateView,
     FamilyDetailView,
-    join_family
+    join_family,
+    update_selected_family
 )
 
 urlpatterns = [
@@ -17,4 +18,5 @@ urlpatterns = [
     path('families/', FamilyListCreateView.as_view(), name='family-list-create'),
     path('families/<int:id>/', FamilyDetailView.as_view(), name='family-detail'),
     path('families/<int:id>/join/', join_family, name='join-family'),
+    path('families/selected/', update_selected_family, name='update-selected-family'),
 ]

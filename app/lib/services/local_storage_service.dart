@@ -35,7 +35,7 @@ class LocalStorageService {
     final path = join(documentsDirectory.path, 'home_ware.db');
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: (db, version) async {
         // 创建用户表
         await db.execute('''
@@ -54,6 +54,7 @@ class LocalStorageService {
             invite_code TEXT,
             created_by INTEGER,
             created_by_username TEXT,
+            is_selected INTEGER DEFAULT 0,
             created_at TEXT
           )
         ''');
@@ -150,6 +151,10 @@ class LocalStorageService {
           await db.execute('ALTER TABLE locations ADD COLUMN parent INTEGER');
           await db.execute('ALTER TABLE locations ADD COLUMN parent_name TEXT');
         }
+        if (oldVersion < 5) {
+          // 为家庭表添加 is_selected 字段
+          await db.execute('ALTER TABLE families ADD COLUMN is_selected INTEGER DEFAULT 0');
+        }
       },
     );
   }
@@ -204,6 +209,7 @@ class LocalStorageService {
         'invite_code': family['invite_code'] ?? '',
         'created_by': family['created_by'],
         'created_by_username': family['created_by_username'] ?? '',
+        'is_selected': family['is_selected'] ? 1 : 0,
         'created_at': family['created_at'],
       });
       // 处理家庭成员
@@ -233,6 +239,8 @@ class LocalStorageService {
       final members = await db.query('family_members',
           where: 'family_id = ?', whereArgs: [family['id']]);
       family['members'] = members;
+      // 将 is_selected 从整数转换为布尔值
+      family['is_selected'] = (family['is_selected'] as int) == 1;
     }
     return families;
   }

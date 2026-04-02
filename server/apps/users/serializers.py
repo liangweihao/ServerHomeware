@@ -57,11 +57,22 @@ class FamilyMemberSerializer(serializers.ModelSerializer):
 class FamilySerializer(serializers.ModelSerializer):
     members = FamilyMemberSerializer(many=True, read_only=True)
     created_by_username = serializers.CharField(source='created_by.username', read_only=True)
+    is_selected = serializers.SerializerMethodField()
 
     class Meta:
         model = Family
-        fields = ['id', 'name', 'invite_code', 'created_by', 'created_by_username', 'members', 'created_at']
-        read_only_fields = ['id', 'invite_code', 'created_by', 'created_at']
+        fields = ['id', 'name', 'invite_code', 'created_by', 'created_by_username', 'is_selected', 'members', 'created_at']
+        read_only_fields = ['id', 'invite_code', 'created_by', 'created_by_username', 'is_selected', 'created_at']
+
+    def get_is_selected(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            try:
+                member = FamilyMember.objects.get(family=obj, user=request.user)
+                return member.is_selected
+            except FamilyMember.DoesNotExist:
+                return False
+        return False
 
 
 class FamilyCreateSerializer(serializers.ModelSerializer):

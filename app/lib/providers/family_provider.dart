@@ -123,6 +123,34 @@ class FamilyProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 更新选中家庭
+  /// [familyId] 家庭ID
+  /// 返回更新是否成功
+  Future<bool> updateSelectedFamily(int familyId) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      final response = await _apiService.updateSelectedFamily(familyId);
+      if (response.containsKey('message') && response.containsKey('family_id')) {
+        // 重新获取家庭列表，以更新 is_selected 字段
+        await getFamilies();
+        return true;
+      } else {
+        _errorMessage = '更新选中家庭失败';
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = '更新选中家庭失败';
+      print('Update selected family error: $e');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   /// 获取家庭详情
   /// [familyId] 家庭ID
   /// 返回家庭详情，若获取失败则返回null

@@ -330,7 +330,7 @@ class ApiService {
   }
 
   /// 获取用户的家庭列表
-  /// 返回家庭列表数据
+  /// 返回家庭列表数据，每个家庭包含 is_selected 字段
   /// 异常：当获取失败时抛出ApiException异常，包含错误信息
   Future<List<dynamic>> getFamilies() async {
     try {
@@ -362,9 +362,59 @@ class ApiService {
       }
       
       print('获取家庭列表成功');
-      return _extractPaginatedResults(response.data);
+      // 家庭列表是直接返回的列表，不是分页格式
+      return List<dynamic>.from(response.data);
     } catch (e) {
       print('获取家庭列表异常: $e');
+      if (e is ApiException) {
+        rethrow;
+      }
+      // 网络异常或其他异常
+      final apiError = ApiError(
+        statusCode: 0,
+        message: '网络连接失败，请检查网络设置',
+      );
+      throw ApiException(apiError);
+    }
+  }
+
+  /// 更新选中家庭
+  /// [familyId] 家庭ID
+  /// 返回更新结果
+  /// 异常：当更新失败时抛出ApiException异常，包含错误信息
+  Future<Map<String, dynamic>> updateSelectedFamily(int familyId) async {
+    try {
+      print('开始更新选中家庭，ID: $familyId');
+      
+      final response = await _dio.put('/families/selected/', data: {'family_id': familyId});
+      
+      // 检查响应状态码
+      if (response.statusCode != 200) {
+        // 尝试获取响应数据，处理不同格式的错误响应
+        dynamic responseData = response.data;
+        String errorMessage = '请求失败';
+        
+        if (responseData is Map<String, dynamic>) {
+          if (responseData.containsKey('error')) {
+            errorMessage = responseData['error'];
+          } else if (responseData.containsKey('message')) {
+            errorMessage = responseData['message'];
+          }
+        } else if (responseData is String) {
+          errorMessage = responseData;
+        }
+        
+        final apiError = ApiError(
+          statusCode: response.statusCode!,
+          message: errorMessage.isNotEmpty ? errorMessage : '请求失败',
+        );
+        throw ApiException(apiError);
+      }
+      
+      print('更新选中家庭成功');
+      return Map<String, dynamic>.from(response.data);
+    } catch (e) {
+      print('更新选中家庭异常: $e');
       if (e is ApiException) {
         rethrow;
       }

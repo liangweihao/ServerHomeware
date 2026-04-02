@@ -10,6 +10,8 @@ class Family {
   final int createdBy;
   /// 创建者用户名
   final String createdByUsername;
+  /// 是否为当前选中的家庭
+  final bool isSelected;
   /// 家庭成员列表
   final List<FamilyMember> members;
   /// 创建时间
@@ -22,6 +24,7 @@ class Family {
     required this.inviteCode,
     required this.createdBy,
     required this.createdByUsername,
+    required this.isSelected,
     required this.members,
     required this.createdAt,
   });
@@ -35,6 +38,7 @@ class Family {
       inviteCode: json['invite_code'] ?? '',
       createdBy: json['created_by'],
       createdByUsername: json['created_by_username'] ?? '',
+      isSelected: json['is_selected'] ?? false,
       members: json['members'] != null
           ? List<FamilyMember>.from(
               (json['members'] as List).map((e) => FamilyMember.fromJson(e)))
@@ -52,6 +56,7 @@ class Family {
       'invite_code': inviteCode,
       'created_by': createdBy,
       'created_by_username': createdByUsername,
+      'is_selected': isSelected,
       'members': members.map((e) => e.toJson()).toList(),
       'created_at': createdAt.toIso8601String(),
     };
