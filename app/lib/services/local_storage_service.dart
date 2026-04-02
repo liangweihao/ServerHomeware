@@ -306,6 +306,15 @@ class LocalStorageService {
     return await db.query('locations', where: 'family_id = ?', whereArgs: [familyId]);
   }
 
+  /// 删除位置
+  /// [id] 位置ID
+  Future<void> deleteLocation(int id) async {
+    final db = await database;
+    await db.delete('locations', where: 'id = ?', whereArgs: [id]);
+    // 添加到同步队列
+    await addToSyncQueue('delete', 'locations', {'id': id});
+  }
+
   /// 同步队列相关方法
   
   /// 添加到同步队列

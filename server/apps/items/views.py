@@ -83,6 +83,44 @@ class LocationListCreateView(generics.ListCreateAPIView):
         return super().post(request, *args, **kwargs)
 
 
+class LocationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = LocationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Location.objects.filter(family__members__user=self.request.user)
+
+    @extend_schema(
+        summary='获取位置详情',
+        responses={200: LocationSerializer}
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @extend_schema(
+        summary='更新位置',
+        request=LocationSerializer,
+        responses={200: LocationSerializer}
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+    @extend_schema(
+        summary='部分更新位置',
+        request=LocationSerializer,
+        responses={200: LocationSerializer}
+    )
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)
+
+    @extend_schema(
+        summary='删除位置',
+        responses={204: None}
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
+
+
 class ItemListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]

@@ -104,20 +104,9 @@ class ItemProvider extends ChangeNotifier {
 
       final response = await _apiService.addItem(data);
       // 检查响应是否直接包含物品数据
-      if (response.containsKey('id') && response.containsKey('name')) {
-        final newItem = Item.fromJson(response);
-        _items.add(newItem);
-        await _localStorage.saveItem(newItem.toJson());
-        return true;
-      } else if (response['success'] == true && response.containsKey('item')) {
-        final newItem = Item.fromJson(response['item']);
-        _items.add(newItem);
-        await _localStorage.saveItem(newItem.toJson());
-        return true;
-      } else {
-        _errorMessage = response['message'] ?? '添加物品失败';
-        return false;
-      }
+      _items.add(Item.fromJson(response));
+      notifyListeners();
+      return true;
     } catch (e) {
       _errorMessage = '添加物品失败';
       print('Add item error: $e');
@@ -409,6 +398,33 @@ class ItemProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = '添加位置失败';
       print('Add location error: $e');
+      return false;
+    } finally {
+    _isLoading = false;
+    notifyListeners();
+  }
+}
+
+  /// 删除位置
+  /// [id] 位置ID
+  /// 返回删除是否成功
+  Future<bool> deleteLocation(int id) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      await _apiService.deleteLocation(id);
+      
+      // 从本地列表中移除
+      _locations.removeWhere((location) => location.id == id);
+      // 从本地存储中删除
+      await _localStorage.deleteLocation(id);
+      
+      return true;
+    } catch (e) {
+      _errorMessage = '删除位置失败';
+      print('Delete location error: $e');
       return false;
     } finally {
       _isLoading = false;

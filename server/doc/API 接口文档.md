@@ -838,6 +838,140 @@ Content-Type: application/json
 
 ***
 
+### 3.11 获取位置详情
+
+**功能**: 获取指定位置的详细信息
+
+**请求方式**: `GET`
+
+**请求路径**: `/locations/{id}/`
+
+**请求头**:
+
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**响应结构** (200 OK):
+
+```json
+{
+  "id": 1,
+  "name": "厨房",
+  "description": "存放厨房用品",
+  "parent": null,
+  "parent_name": null,
+  "family": 1,
+  "created_at": "2026-03-30T12:00:00Z"
+}
+```
+
+**错误响应** (404 Not Found):
+
+```json
+{
+  "error": "位置不存在"
+}
+```
+
+***
+
+### 3.12 更新位置
+
+**功能**: 更新位置信息
+
+**请求方式**: `PUT`
+
+**请求路径**: `/locations/{id}/`
+
+**请求头**:
+
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**请求内容**:
+
+```json
+{
+  "name": "厨房",
+  "description": "存放厨房用品和食材",
+  "parent": null
+}
+```
+
+**响应结构** (200 OK):
+
+```json
+{
+  "id": 1,
+  "name": "厨房",
+  "description": "存放厨房用品和食材",
+  "parent": null,
+  "parent_name": null,
+  "family": 1,
+  "created_at": "2026-03-30T12:00:00Z"
+}
+```
+
+**错误响应** (404 Not Found):
+
+```json
+{
+  "error": "位置不存在"
+}
+```
+
+**错误响应** (400 Bad Request):
+
+```json
+{
+  "name": ["位置名称不能为空"]
+}
+```
+
+***
+
+### 3.13 删除位置
+
+**功能**: 删除指定位置
+
+**请求方式**: `DELETE`
+
+**请求路径**: `/locations/{id}/`
+
+**请求头**:
+
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**响应结构** (204 No Content):
+
+```
+无响应内容
+```
+
+**错误响应** (404 Not Found):
+
+```json
+{
+  "error": "位置不存在"
+}
+
+**错误响应** (400 Bad Request):
+
+```json
+{
+  "error": "该位置下存在子位置，无法删除"
+}
+```
+
+***
+
 ## 4. 库存管理模块
 
 ### 4.1 获取库存预警

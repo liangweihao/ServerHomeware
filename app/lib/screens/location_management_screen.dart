@@ -176,7 +176,8 @@ class _LocationManagementScreenState extends State<LocationManagementScreen> {
   @override
   Widget build(BuildContext context) {
     final itemProvider = Provider.of<ItemProvider>(context);
-    
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('位置管理'),
@@ -212,16 +213,65 @@ class _LocationManagementScreenState extends State<LocationManagementScreen> {
                   itemCount: itemProvider.locations.length,
                   itemBuilder: (context, index) {
                     final location = itemProvider.locations[index];
-                    return ListTile(
-                      leading: const Icon(Icons.location_on, color: Colors.blue),
-                      title: Text(location.name),
-                      subtitle: location.description != null && location.description!.isNotEmpty
-                          ? Text(location.description!)
-                          : null,
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        // 可以添加编辑位置的功能
+                    return Dismissible(
+                      key: Key(location.id.toString()),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      confirmDismiss: (direction) async {
+                        final confirmed = await showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: const Text('确认删除'),
+                              content: Text('确定要删除位置 "${location.name}" 吗？'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: const Text('取消'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(true),
+                                  child: const Text('删除', style: TextStyle(color: Colors.red)),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                        
+                        if (confirmed == true) {
+                          final success = await itemProvider.deleteLocation(location.id);
+                          if (success) {
+                            scaffoldMessenger.showSnackBar(
+                              SnackBar(content: Text('位置 "${location.name}" 已删除')),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('删除位置失败')),
+                            );
+                          }
+                          return true;
+                        }
+                        return false;
                       },
+                      onDismissed: (direction) {
+                        // 删除动画完成后的回调，不需要在这里执行删除操作
+                      },
+                      child: ListTile(
+                        leading: const Icon(Icons.location_on, color: Colors.blue),
+                        title: Text(location.name),
+                        subtitle: location.description != null && location.description!.isNotEmpty
+                            ? Text(location.description!)
+                            : null,
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          // 可以添加编辑位置的功能
+                        },
+                      ),
                     );
                   },
                 ),

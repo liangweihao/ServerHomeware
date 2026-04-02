@@ -964,6 +964,53 @@ class ApiService {
     }
   }
 
+  /// 删除位置
+  /// [id] 位置ID
+  /// 异常：当删除失败时抛出ApiException异常，包含错误信息
+  Future<void> deleteLocation(int id) async {
+    try {
+      print('开始删除位置，ID: $id');
+      
+      final response = await _dio.delete('/locations/$id/');
+      
+      // 检查响应状态码
+      if (response.statusCode != 204 && response.statusCode != 200) {
+        // 尝试获取响应数据，处理不同格式的错误响应
+        dynamic responseData = response.data;
+        String errorMessage = '删除失败';
+        
+        if (responseData is Map<String, dynamic>) {
+          if (responseData.containsKey('error')) {
+            errorMessage = responseData['error'];
+          } else if (responseData.containsKey('message')) {
+            errorMessage = responseData['message'];
+          }
+        } else if (responseData is String) {
+          errorMessage = responseData;
+        }
+        
+        final apiError = ApiError(
+          statusCode: response.statusCode!,
+          message: errorMessage.isNotEmpty ? errorMessage : '删除失败',
+        );
+        throw ApiException(apiError);
+      }
+      
+      print('删除位置成功');
+    } catch (e) {
+      print('删除位置异常: $e');
+      if (e is ApiException) {
+        rethrow;
+      }
+      // 网络异常或其他异常
+      final apiError = ApiError(
+        statusCode: 0,
+        message: '网络连接失败，请检查网络设置',
+      );
+      throw ApiException(apiError);
+    }
+  }
+
   /// 库存相关方法
   
   /// 获取库存预警
