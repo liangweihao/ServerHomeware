@@ -4,6 +4,7 @@ import 'package:app/providers/family_provider.dart';
 import 'package:app/providers/item_provider.dart';
 import 'package:app/screens/add_item_screen.dart';
 import 'package:app/screens/item_detail_screen.dart';
+import 'package:app/models/family.dart';
 
 /// 物品列表屏幕类
 class ItemListScreen extends StatefulWidget {
@@ -16,6 +17,9 @@ class ItemListScreen extends StatefulWidget {
 
 /// 物品列表屏幕状态类
 class _ItemListScreenState extends State<ItemListScreen> {
+  /// 上次选中的家庭ID
+  int? _lastSelectedFamilyId;
+
   @override
   void initState() {
     super.initState();
@@ -25,15 +29,39 @@ class _ItemListScreenState extends State<ItemListScreen> {
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 监听家庭列表变化，当选中的家庭变更时重新加载数据
+    final familyProvider = Provider.of<FamilyProvider>(context);
+    final selectedFamily = familyProvider.families.cast<Family?>().firstWhere(
+      (family) => family?.isSelected ?? false,
+      orElse: () => null,
+    );
+    
+    if (selectedFamily?.id != _lastSelectedFamilyId) {
+      _lastSelectedFamilyId = selectedFamily?.id;
+      // 延迟加载数据，避免在构建过程中调用 notifyListeners()
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadItems();
+      });
+    }
+  }
+
   /// 加载物品数据
   /// 从选中的家庭中获取物品、分类和位置数据
   void _loadItems() {
     final familyProvider = Provider.of<FamilyProvider>(context, listen: false);
     final itemProvider = Provider.of<ItemProvider>(context, listen: false);
-    if (familyProvider.selectedFamily != null) {
-      itemProvider.getItems(familyProvider.selectedFamily!.id);
-      itemProvider.getCategories(familyProvider.selectedFamily!.id);
-      itemProvider.getLocations(familyProvider.selectedFamily!.id);
+    // 从家庭列表中获取选中的家庭
+    final selectedFamily = familyProvider.families.cast<Family?>().firstWhere(
+      (family) => family?.isSelected ?? false,
+      orElse: () => null,
+    );
+    if (selectedFamily != null) {
+      itemProvider.getItems(selectedFamily.id);
+      itemProvider.getCategories(selectedFamily.id);
+      itemProvider.getLocations(selectedFamily.id);
     }
   }
 
@@ -42,8 +70,14 @@ class _ItemListScreenState extends State<ItemListScreen> {
     final familyProvider = Provider.of<FamilyProvider>(context);
     final itemProvider = Provider.of<ItemProvider>(context);
 
+    // 从家庭列表中获取选中的家庭
+    final selectedFamily = familyProvider.families.cast<Family?>().firstWhere(
+      (family) => family?.isSelected ?? false,
+      orElse: () => null,
+    );
+
     // 如果没有选择家庭，显示提示信息
-    if (familyProvider.selectedFamily == null) {
+    if (selectedFamily == null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

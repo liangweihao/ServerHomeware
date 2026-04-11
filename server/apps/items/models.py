@@ -80,3 +80,33 @@ class Item(models.Model):
     @property
     def is_low_stock(self):
         return self.quantity <= 3
+
+
+class ItemUsageHistory(models.Model):
+    ACTION_CHOICES = [
+        ('add', '添加'),
+        ('use', '使用'),
+        ('adjust', '调整'),
+        ('delete', '删除'),
+    ]
+    
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='usage_history', verbose_name='物品')
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES, verbose_name='操作类型')
+    previous_quantity = models.IntegerField(verbose_name='操作前数量')
+    current_quantity = models.IntegerField(verbose_name='操作后数量')
+    description = models.TextField(blank=True, null=True, verbose_name='操作描述')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='item_usage_history', verbose_name='操作人')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='操作时间')
+
+    class Meta:
+        db_table = 'item_usage_history'
+        verbose_name = '物品使用历史'
+        verbose_name_plural = '物品使用历史'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.item.name} - {self.get_action_display()} - {self.created_at}"
+
+    @property
+    def quantity_change(self):
+        return self.current_quantity - self.previous_quantity

@@ -7,7 +7,7 @@ import 'package:app/models/api_error.dart';
 /// API服务类，用于处理与后端服务器的所有通信
 class ApiService {
   /// API基础URL
-  static const String baseUrl = 'http://localhost:8000/api';
+  static const String baseUrl = 'http://localhost:8001/api';
   /// Dio实例，用于发送HTTP请求
   late Dio _dio;
   /// 全局导航键，用于处理401错误时的导航
@@ -1198,6 +1198,55 @@ class ApiService {
       return _extractPaginatedResults(response.data);
     } catch (e) {
       print('获取采购建议异常: $e');
+      if (e is ApiException) {
+        rethrow;
+      }
+      // 网络异常或其他异常
+      final apiError = ApiError(
+        statusCode: 0,
+        message: '网络连接失败，请检查网络设置',
+      );
+      throw ApiException(apiError);
+    }
+  }
+
+  /// 获取物品使用历史记录
+  /// [itemId] 物品ID
+  /// 返回物品使用历史记录列表
+  /// 异常：当获取失败时抛出ApiException异常，包含错误信息
+  Future<List<dynamic>> getItemUsageHistory(int itemId) async {
+    try {
+      print('开始获取物品使用历史记录，物品ID: $itemId');
+      
+      final response = await _dio.get('/items/$itemId/usage-history/');
+      
+      // 检查响应状态码
+      if (response.statusCode != 200) {
+        // 尝试获取响应数据，处理不同格式的错误响应
+        dynamic responseData = response.data;
+        String errorMessage = '请求失败';
+        
+        if (responseData is Map<String, dynamic>) {
+          if (responseData.containsKey('error')) {
+            errorMessage = responseData['error'];
+          } else if (responseData.containsKey('message')) {
+            errorMessage = responseData['message'];
+          }
+        } else if (responseData is String) {
+          errorMessage = responseData;
+        }
+        
+        final apiError = ApiError(
+          statusCode: response.statusCode!,
+          message: errorMessage.isNotEmpty ? errorMessage : '请求失败',
+        );
+        throw ApiException(apiError);
+      }
+      
+      print('获取物品使用历史记录成功');
+      return _extractPaginatedResults(response.data);
+    } catch (e) {
+      print('获取物品使用历史记录异常: $e');
       if (e is ApiException) {
         rethrow;
       }

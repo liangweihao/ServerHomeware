@@ -198,3 +198,70 @@ class Location {
     };
   }
 }
+
+/// 物品使用历史记录模型类
+class ItemUsageHistory {
+  /// 历史记录ID
+  final int id;
+  /// 物品ID
+  final int itemId;
+  /// 操作类型
+  final String action;
+  /// 操作前数量
+  final int previousQuantity;
+  /// 操作后数量
+  final int currentQuantity;
+  /// 操作描述
+  final String? description;
+  /// 操作人ID
+  final int userId;
+  /// 操作人名称
+  final String? userName;
+  /// 操作时间
+  final String createdAt;
+
+  /// 构造函数
+  ItemUsageHistory({
+    required this.id,
+    required this.itemId,
+    required this.action,
+    required this.previousQuantity,
+    required this.currentQuantity,
+    this.description,
+    required this.userId,
+    this.userName,
+    required this.createdAt,
+  });
+
+  /// 从JSON数据创建ItemUsageHistory实例
+  /// [json] JSON格式的使用历史数据
+  factory ItemUsageHistory.fromJson(Map<String, dynamic> json) {
+    return ItemUsageHistory(
+      id: json['id'],
+      itemId: json['item_id'],
+      action: json['action'],
+      previousQuantity: json['previous_quantity'],
+      currentQuantity: json['current_quantity'],
+      description: json['description'],
+      userId: json['user_id'],
+      userName: json['user_name'],
+      createdAt: json['created_at'] ?? '',
+    );
+  }
+
+  /// 将ItemUsageHistory实例转换为JSON格式
+  /// 返回JSON格式的使用历史数据
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'item_id': itemId,
+      'action': action,
+      'previous_quantity': previousQuantity,
+      'current_quantity': currentQuantity,
+      'description': description,
+      'user_id': userId,
+      'user_name': userName,
+      'created_at': createdAt,
+    };
+  }
+}

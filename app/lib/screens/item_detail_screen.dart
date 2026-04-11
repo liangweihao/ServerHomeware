@@ -26,6 +26,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final itemProvider = Provider.of<ItemProvider>(context, listen: false);
       itemProvider.getItemDetail(widget.itemId);
+      itemProvider.getItemUsageHistory(widget.itemId);
     });
   }
 
@@ -144,6 +145,88 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     const SizedBox(height: 8),
                     // 创建时间
                     Text('创建时间: ${item.createdAt.toString().split(' ')[0]}'),
+                  ],
+                ),
+              ),
+            ),
+            // 使用历史记录
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '使用历史记录',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 12),
+                    if (itemProvider.usageHistory.isEmpty)
+                      const Text('暂无使用历史记录'),
+                    if (itemProvider.usageHistory.isNotEmpty)
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: itemProvider.usageHistory.length,
+                        itemBuilder: (context, index) {
+                          final history = itemProvider.usageHistory[index];
+                          final quantityChange = history.currentQuantity - history.previousQuantity;
+                          final changeText = quantityChange > 0 
+                              ? '+$quantityChange' 
+                              : quantityChange < 0 
+                                  ? '$quantityChange' 
+                                  : '0';
+                          
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      history.action,
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      history.createdAt.toString().split(' ')[0],
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Text('数量变化: '),
+                                    Text(
+                                      changeText,
+                                      style: TextStyle(
+                                        color: quantityChange > 0 ? Colors.green : quantityChange < 0 ? Colors.red : Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Text('当前数量: ${history.currentQuantity}'),
+                                  ],
+                                ),
+                                if (history.description != null && history.description!.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text('备注: ${history.description}'),
+                                  ),
+                                if (history.userName != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text('操作人: ${history.userName}'),
+                                  ),
+                                if (index < itemProvider.usageHistory.length - 1)
+                                  const Divider(),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                   ],
                 ),
               ),

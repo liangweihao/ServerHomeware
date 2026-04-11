@@ -21,6 +21,8 @@ class ItemProvider extends ChangeNotifier {
   List<dynamic> _purchaseSuggestions = [];
   /// 当前选中的物品
   Item? _selectedItem;
+  /// 物品使用历史记录
+  List<ItemUsageHistory> _usageHistory = [];
   /// 错误信息
   String? _errorMessage;
 
@@ -40,6 +42,8 @@ class ItemProvider extends ChangeNotifier {
   List<dynamic> get purchaseSuggestions => _purchaseSuggestions;
   /// 获取当前选中的物品
   Item? get selectedItem => _selectedItem;
+  /// 获取物品使用历史记录
+  List<ItemUsageHistory> get usageHistory => _usageHistory;
   /// 获取错误信息
   String? get errorMessage => _errorMessage;
 
@@ -400,10 +404,10 @@ class ItemProvider extends ChangeNotifier {
       print('Add location error: $e');
       return false;
     } finally {
-    _isLoading = false;
-    notifyListeners();
+      _isLoading = false;
+      notifyListeners();
+    }
   }
-}
 
   /// 删除位置
   /// [id] 位置ID
@@ -492,6 +496,29 @@ class ItemProvider extends ChangeNotifier {
       print('Get purchase suggestions error: $e');
       _purchaseSuggestions = [];
       return [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// 获取物品使用历史记录
+  /// [itemId] 物品ID
+  /// 从服务器获取物品使用历史记录
+  Future<void> getItemUsageHistory(int itemId) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      final response = await _apiService.getItemUsageHistory(itemId);
+      _usageHistory = List<ItemUsageHistory>.from(
+        response.map((history) => ItemUsageHistory.fromJson(Map<String, dynamic>.from(history)))
+      );
+    } catch (e) {
+      _errorMessage = '获取使用历史记录失败';
+      print('Get item usage history error: $e');
+      _usageHistory = [];
     } finally {
       _isLoading = false;
       notifyListeners();

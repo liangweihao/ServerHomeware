@@ -4,13 +4,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-from .models import Category, Location, Item
+from .models import Category, Location, Item, ItemUsageHistory
 from .serializers import (
     CategorySerializer,
     LocationSerializer,
     ItemSerializer,
     ItemCreateSerializer,
-    ItemUpdateSerializer
+    ItemUpdateSerializer,
+    ItemUsageHistorySerializer
 )
 
 
@@ -237,3 +238,28 @@ def batch_delete_items(request):
         'message': f'成功删除 {deleted_count} 个物品',
         'deleted_count': deleted_count
     }, status=status.HTTP_200_OK)
+
+
+class ItemUsageHistoryView(generics.ListAPIView):
+    serializer_class = ItemUsageHistorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        item_id = self.kwargs.get('item_id')
+        # 确保物品存在且用户有权访问
+        item = Item.objects.filter(
+            id=item_id,
+            family__members__user=self.request.user
+        ).first()
+        
+        if not item:
+            return ItemUsageHistory.objects.none()
+        
+        return ItemUsageHistory.objects.filter(item_id=item_id).select_related('user')
+
+    @extend_schema(
+        summary='获取物品使用历史记录',
+        responses={200: ItemUsageHistorySerializer(many=True)}
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)

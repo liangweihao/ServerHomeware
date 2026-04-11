@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Location, Item
+from .models import Category, Location, Item, ItemUsageHistory
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -48,7 +48,19 @@ class ItemCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
-        return super().create(validated_data)
+        item = super().create(validated_data)
+        
+        # 创建使用历史记录
+        ItemUsageHistory.objects.create(
+            item=item,
+            action='add',
+            previous_quantity=0,
+            current_quantity=item.quantity,
+            description='物品创建',
+            user=self.context['request'].user
+        )
+        
+        return item
 
 
 class ItemUpdateSerializer(serializers.ModelSerializer):
@@ -58,3 +70,38 @@ class ItemUpdateSerializer(serializers.ModelSerializer):
             'name', 'description', 'category', 'location', 'quantity', 
             'unit', 'expiry_date', 'purchase_date', 'price', 'image', 'barcode'
         ]
+
+    def update(self, instance, validated_data):
+        previous_quantity = instance.quantity
+        item = super().update(instance, validated_data)
+        
+        # 如果数量发生变化，创建使用历史记录
+        if previous_quantity != item.quantity:
+            action = 'add' if item.quantity > previous_quantity else 'use'
+            description = '物品数量调整'
+            
+            ItemUsageHistory.objects.create(
+                item=item,
+                action=action,
+                previous_quantity=previous_quantity,
+                current_quantity=item.quantity,
+                description=description,
+                user=self.context['request'].user
+            )
+        
+        return item
+
+
+class ItemUsageHistorySerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.username', read_only=True)
+    action_display = serializers.CharField(source='get_action_display', read_only=True)
+    quantity_change = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = ItemUsageHistory
+        fields = [
+            'id', 'item', 'action', 'action_display', 'previous_quantity',
+            'current_quantity', 'quantity_change', 'description', 'user',
+            'user_name', 'created_at'
+        ]
+        read_only_fields = ['id', 'item', 'user', 'created_at']
