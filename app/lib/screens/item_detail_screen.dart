@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app/providers/item_provider.dart';
 import 'package:app/models/item.dart';
+import 'package:app/screens/add_item_screen.dart';
 
 /// 物品详情屏幕类，用于查看和编辑物品详细信息
 class ItemDetailScreen extends StatefulWidget {
@@ -67,6 +68,17 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             icon: const Icon(Icons.edit),
             onPressed: () {
               // 导航到编辑屏幕
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AddItemScreen(item: item),
+                ),
+              ).then((value) {
+                // 编辑完成后重新加载物品详情和使用历史
+                final itemProvider = Provider.of<ItemProvider>(context, listen: false);
+                itemProvider.getItemDetail(widget.itemId);
+                itemProvider.getItemUsageHistory(widget.itemId);
+              });
             },
           ),
           // 删除按钮

@@ -3,11 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:app/providers/family_provider.dart';
 import 'package:app/providers/item_provider.dart';
 import 'package:app/providers/auth_provider.dart';
+import 'package:app/models/item.dart';
 
 /// 添加物品屏幕类
 class AddItemScreen extends StatefulWidget {
+  /// 要编辑的物品（可选）
+  final Item? item;
+
   /// 构造函数
-  const AddItemScreen({Key? key}) : super(key: key);
+  const AddItemScreen({Key? key, this.item}) : super(key: key);
 
   @override
   _AddItemScreenState createState() => _AddItemScreenState();
@@ -37,14 +41,20 @@ class _AddItemScreenState extends State<AddItemScreen> {
   int? _selectedLocationId;
 
   @override
-  void dispose() {
-    // 释放控制器资源
-    _nameController.dispose();
-    _descriptionController.dispose();
-    _quantityController.dispose();
-    _unitController.dispose();
-    _priceController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    // 如果是编辑模式，填充表单数据
+    if (widget.item != null) {
+      _nameController.text = widget.item!.name;
+      _descriptionController.text = widget.item!.description ?? '';
+      _quantityController.text = widget.item!.quantity.toString();
+      _unitController.text = widget.item!.unit;
+      _priceController.text = widget.item!.price?.toString() ?? '';
+      _expiryDate = widget.item!.expiryDate != null ? DateTime.tryParse(widget.item!.expiryDate!) : null;
+      _purchaseDate = widget.item!.purchaseDate != null ? DateTime.tryParse(widget.item!.purchaseDate!) : null;
+      _selectedCategoryId = widget.item!.categoryId > 0 ? widget.item!.categoryId : null;
+      _selectedLocationId = widget.item!.locationId > 0 ? widget.item!.locationId : null;
+    }
   }
 
   /// 格式化日期为 YYYY-MM-DD 格式
@@ -54,12 +64,27 @@ class _AddItemScreenState extends State<AddItemScreen> {
   }
 
   /// 保存物品方法
-  /// 验证表单并调用ItemProvider的addItem方法添加物品
+  /// 验证表单并调用ItemProvider的addItem或updateItem方法
   void _saveItem() async {
     if (_formKey.currentState!.validate()) {
       final familyProvider = Provider.of<FamilyProvider>(context, listen: false);
       final itemProvider = Provider.of<ItemProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      int familyId;
+      if (widget.item != null) {
+        // 编辑模式：使用物品原本的家庭ID
+        familyId = widget.item!.familyId;
+      } else {
+        // 添加模式：检查是否有选中的家庭
+        if (familyProvider.selectedFamily == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('请先选择一个家庭')),
+          );
+          return;
+        }
+        familyId = familyProvider.selectedFamily!.id;
+      }
 
       final itemData = {
         'name': _nameController.text.trim(),
@@ -71,18 +96,26 @@ class _AddItemScreenState extends State<AddItemScreen> {
         'expiry_date': _formatDate(_expiryDate),
         'purchase_date': _formatDate(_purchaseDate),
         'price': _priceController.text.isNotEmpty ? double.parse(_priceController.text) : null,
-        'family_id': familyProvider.selectedFamily!.id,
+        'family_id': familyId,
         'created_by': authProvider.user?.id,
       };
 
-      final success = await itemProvider.addItem(itemData);
+      bool success;
+      if (widget.item != null) {
+        // 编辑模式
+        success = await itemProvider.updateItem(widget.item!.id, itemData);
+      } else {
+        // 添加模式
+        success = await itemProvider.addItem(itemData);
+      }
+
       if (success) {
         // 保存成功，返回上一页
         Navigator.pop(context);
       } else {
         // 保存失败，显示错误信息
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(itemProvider.errorMessage ?? '添加物品失败')),
+          SnackBar(content: Text(itemProvider.errorMessage ?? '操作失败')),
         );
       }
     }
@@ -95,7 +128,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('添加物品'),
+        title: Text(widget.item != null ? '编辑物品' : '添加物品'),
         centerTitle: true,
       ),
       body: Padding(

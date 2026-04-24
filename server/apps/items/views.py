@@ -183,6 +183,17 @@ class ItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return Item.objects.select_related('category', 'location', 'created_by').filter(family__members__user=self.request.user)
 
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        # 使用ItemSerializer返回完整数据
+        output_serializer = ItemSerializer(instance)
+        return Response(output_serializer.data)
+
     @extend_schema(
         summary='获取物品详情',
         responses={200: ItemSerializer}

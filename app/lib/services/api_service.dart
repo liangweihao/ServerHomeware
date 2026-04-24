@@ -7,7 +7,7 @@ import 'package:app/models/api_error.dart';
 /// API服务类，用于处理与后端服务器的所有通信
 class ApiService {
   /// API基础URL
-  static const String baseUrl = 'http://localhost:8001/api';
+  static const String baseUrl = 'http://localhost:8000/api';
   /// Dio实例，用于发送HTTP请求
   late Dio _dio;
   /// 全局导航键，用于处理401错误时的导航
