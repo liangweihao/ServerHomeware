@@ -1,0 +1,33 @@
+---
+description: 
+alwaysApply: true
+---
+
+# Project Rules
+
+## 注解规范
+- 新增代码必须添加注释/注解
+- 修改代码必须同步更新对应注释/注解
+
+## 日志规范
+- 核心业务代码必须添加日志，覆盖：关键流程 / WARN / ERROR
+- UI 层涉及逻辑分支差异时必须打印日志，覆盖：关键流程 / WARN / ERROR
+
+## KMP 规范
+- 业务逻辑必须写在 commonMain，禁止在平台层重复实现
+- 平台差异代码使用 expect/actual 机制隔离，不得在 commonMain 直接调用平台 API
+- 数据层（Repository / DataSource）必须在 commonMain 定义接口，平台层实现
+- UI 层优先使用 Compose Multiplatform；平台独有 UI 使用 expect/actual 或平台模块实现
+- 依赖库必须优先选择支持 KMP 的版本，引入纯平台库需说明原因并记录在文档
+- 新增模块必须明确标注目标平台（commonMain / androidMain / iosMain 等）
+- 平台特定代码必须添加平台标识注释，例如 `// Android only` / `// iOS only`
+
+## 变更记录规范
+- 每次执行代码编写任务后，必须将改动记录保存到 `lwh/code_changed` 文件
+- 记录内容尽可能包含：
+  - 技术开发文档（实现方案、改动点、影响范围）
+  - 提测开发文档（测试点、验证方式、注意事项）
+- 代码变更时同步更新本地文档，保持文档与代码一致
+
+## 提示词关联
+- 每次输入提示词的时候，尽量从 lwh 目录中检索基础知识库、代码变更记录等信息 保证上下文的准确性
