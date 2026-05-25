@@ -1,4 +1,71 @@
+import 'dart:convert';
 import 'dart:math';
+
+/// Token 模型类
+class Token {
+  final String accessToken;
+  final String refreshToken;
+
+  Token({
+    required this.accessToken,
+    required this.refreshToken,
+  });
+
+  Token copyWith({
+    String? accessToken,
+    String? refreshToken,
+  }) {
+    return Token(
+      accessToken: accessToken ?? this.accessToken,
+      refreshToken: refreshToken ?? this.refreshToken,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'access_token': accessToken,
+      'refresh_token': refreshToken,
+    };
+  }
+
+  factory Token.fromJson(Map<String, dynamic> json) {
+    return Token(
+      accessToken: json['access_token'],
+      refreshToken: json['refresh_token'],
+    );
+  }
+}
+
+/// 统一响应模型类
+class ApiResponse<T> {
+  final int code;
+  final String message;
+  final T? data;
+
+  ApiResponse({
+    required this.code,
+    required this.message,
+    this.data,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'code': code,
+      'message': message,
+      'data': data,
+    };
+  }
+
+  factory ApiResponse.fromJson(Map<String, dynamic> json) {
+    return ApiResponse(
+      code: json['code'],
+      message: json['message'],
+      data: json['data'],
+    );
+  }
+
+  bool get isSuccess => code == 200;
+}
 
 /// 用户信息模型
 class User {
@@ -33,6 +100,28 @@ class User {
       avatar: avatar ?? this.avatar,
       familyId: familyId ?? this.familyId,
       familyRole: familyRole ?? this.familyRole,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'phone': phone,
+      'nickname': nickname,
+      'avatar': avatar,
+      'family_id': familyId,
+      'family_role': familyRole,
+    };
+  }
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'],
+      phone: json['phone'],
+      nickname: json['nickname'],
+      avatar: json['avatar'],
+      familyId: json['family_id'],
+      familyRole: json['family_role'],
     );
   }
 }
@@ -117,31 +206,65 @@ class AuthService {
   }
 
   /// 注册
-  Future<User> register({
+  /// POST /api/v1/auth/register
+  /// Request: {phone, password, nickname}
+  /// Response: {code, message, data: {user, access_token, refresh_token}}
+  /// 逻辑：检查手机号唯一 → 创建用户 → 自动创建默认家庭 → 返回token
+  Future<ApiResponse<Map<String, dynamic>>> register({
     required String phone,
     required String password,
-    required String code,
+    required String nickname,
   }) async {
     await Future.delayed(_delay);
     
     // 模拟验证
     if (phone.length != 11 || !phone.startsWith('1')) {
-      throw Exception('请输入正确的手机号');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 400,
+        message: '请输入正确的手机号',
+        data: null,
+      );
     }
     if (password.length < 6) {
-      throw Exception('密码需要至少6位');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 400,
+        message: '密码需要至少6位',
+        data: null,
+      );
     }
-    if (code != '123456') {
-      throw Exception('验证码错误');
+    if (nickname.isEmpty || nickname.length > 50) {
+      return ApiResponse<Map<String, dynamic>>(
+        code: 400,
+        message: '昵称长度需要1-50个字符',
+        data: null,
+      );
     }
     
-    // 模拟成功
-    return User(
-      id: _generateId(),
+    // 模拟成功：创建用户并自动创建默认家庭
+    final userId = _generateId();
+    final familyId = _generateId();
+    
+    final user = User(
+      id: userId,
       phone: phone,
-      nickname: '用户${phone.substring(7)}',
-      familyId: null,
-      familyRole: null,
+      nickname: nickname,
+      familyId: familyId,
+      familyRole: 'admin',
+    );
+    
+    final token = Token(
+      accessToken: 'access_${_generateId()}',
+      refreshToken: 'refresh_${_generateId()}',
+    );
+    
+    return ApiResponse<Map<String, dynamic>>(
+      code: 200,
+      message: 'success',
+      data: {
+        'user': user.toJson(),
+        'access_token': token.accessToken,
+        'refresh_token': token.refreshToken,
+      },
     );
   }
 

@@ -97,21 +97,35 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   Future<void> register({
     required String phone,
     required String password,
-    required String code,
+    required String nickname,
   }) async {
     state = const AsyncLoading();
     
     try {
-      final user = await _authService.register(
+      final response = await _authService.register(
         phone: phone,
         password: password,
-        code: code,
+        nickname: nickname,
       );
       
-      await _saveUserInfo(user, 'token_${DateTime.now().millisecondsSinceEpoch}');
+      if (!response.isSuccess) {
+        throw Exception(response.message);
+      }
+      
+      final data = response.data;
+      if (data == null) {
+        throw Exception('注册失败');
+      }
+      
+      final userMap = data['user'] as Map<String, dynamic>;
+      final user = User.fromJson(userMap);
+      final accessToken = data['access_token'] as String? ?? '';
+      
+      await _saveUserInfo(user, accessToken);
       await _markFirstLaunchComplete();
       
-      state = const AsyncData(AuthState.needCompleteProfile);
+      // 注册成功后自动创建家庭，直接进入首页
+      state = const AsyncData(AuthState.authenticated);
     } catch (e) {
       state = AsyncError(e, StackTrace.current);
       rethrow;
