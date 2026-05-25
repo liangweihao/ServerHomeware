@@ -55,7 +55,7 @@ class _AppButtonState extends State<AppButton> {
 
     final backgroundColor = switch (widget.variant) {
       ButtonVariant.primary => AppColors.primary,
-      ButtonVariant.secondary => AppColors.primary.withValues(alpha: 0.1),
+      ButtonVariant.secondary => AppColors.primary.withOpacity( 0.1),
       ButtonVariant.outline => Colors.transparent,
       ButtonVariant.ghost => Colors.transparent,
       ButtonVariant.danger => AppColors.danger,
@@ -91,7 +91,7 @@ class _AppButtonState extends State<AppButton> {
       if (widget.leadingIcon != null) {
         children.add(IconTheme(
           data: IconThemeData(color: foregroundColor, size: widget.size == ButtonSize.small32 ? 18 : 22),
-          child: widget.leadingIcon!,
+          child: widget.leadingIcon ?? const SizedBox.shrink(),
         ));
         children.add(const SizedBox(width: 8));
       }
@@ -100,7 +100,7 @@ class _AppButtonState extends State<AppButton> {
         children.add(const SizedBox(width: 8));
         children.add(IconTheme(
           data: IconThemeData(color: foregroundColor, size: widget.size == ButtonSize.small32 ? 18 : 22),
-          child: widget.trailingIcon!,
+          child: widget.trailingIcon ?? const SizedBox.shrink(),
         ));
       }
       content = Row(
@@ -115,7 +115,7 @@ class _AppButtonState extends State<AppButton> {
       style: ElevatedButton.styleFrom(
         backgroundColor: backgroundColor,
         foregroundColor: foregroundColor,
-        disabledBackgroundColor: AppColors.disabled.withValues(alpha: 0.3),
+        disabledBackgroundColor: AppColors.disabled.withOpacity( 0.3),
         disabledForegroundColor: AppColors.disabled,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),

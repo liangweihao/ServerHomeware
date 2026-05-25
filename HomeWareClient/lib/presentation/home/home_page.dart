@@ -132,19 +132,21 @@ class HomePage extends ConsumerWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              const Text('📅 ', style: TextStyle(fontSize: 18)),
-                              Flexible(
-                                child: Text(
-                                  '最近动态',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                  overflow: TextOverflow.ellipsis,
+                          Expanded(
+                            child: Row(
+                              children: [
+                                const Text('📅 ', style: TextStyle(fontSize: 18)),
+                                Flexible(
+                                  child: Text(
+                                    '最近动态',
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           const SizedBox(width: 8),
                           TextButton(

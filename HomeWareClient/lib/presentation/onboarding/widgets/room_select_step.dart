@@ -121,7 +121,7 @@ class _RoomSelectStepState extends ConsumerState<RoomSelectStep> {
                       ),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.primary.withValues(alpha: 0.1)
+                            ? AppColors.primary.withOpacity( 0.1)
                             : AppColors.card,
                         borderRadius: BorderRadius.circular(AppRadius.lg),
                         border: Border.all(

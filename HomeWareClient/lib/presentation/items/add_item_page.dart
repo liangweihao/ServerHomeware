@@ -75,12 +75,15 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
     }
 
     final db = ref.read(databaseProvider);
+    final categoryId = _selectedCategory?.id ?? 0;
+    final locationId = _selectedLocation?.id;
+    
     final itemId = await db.insertItem(
       ItemsCompanion.insert(
         name: _nameController.text,
         brand: _brandController.text.isEmpty ? const Value.absent() : Value(_brandController.text),
-        categoryId: _selectedCategory!.id,
-        locationId: _selectedLocation != null ? Value(_selectedLocation!.id) : const Value.absent(),
+        categoryId: categoryId,
+        locationId: locationId != null ? Value(locationId) : const Value.absent(),
         purchasePrice: _priceController.text.isEmpty ? const Value.absent() : Value(double.tryParse(_priceController.text)),
         purchaseQuantity: Value(_quantity.toInt()),
         currentQuantity: Value(_quantity),
@@ -240,7 +243,7 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
                 prefixIcon: _selectedCategory?.icon != null
                     ? Padding(
                         padding: const EdgeInsets.only(left: 16, right: 8),
-                        child: Text(_selectedCategory!.icon, style: const TextStyle(fontSize: 24)),
+                        child: Text(_selectedCategory?.icon ?? '', style: const TextStyle(fontSize: 24)),
                       )
                     : null,
               ),
@@ -291,7 +294,7 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
                 value: _unit,
                 decoration: const InputDecoration(labelText: '单位'),
                 items: AppConstants.units.map((unit) => DropdownMenuItem(value: unit, child: Text(unit))).toList(),
-                onChanged: (value) => setState(() => _unit = value!),
+                onChanged: (value) => setState(() => _unit = value ?? '件'),
               ),
             ),
           ],
@@ -320,7 +323,7 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
                 suffixIcon: Icon(Icons.calendar_today),
               ),
               controller: TextEditingController(
-                text: _purchaseDate != null ? DateFormat('yyyy-MM-dd').format(_purchaseDate!) : null,
+                text: _purchaseDate != null ? DateFormat('yyyy-MM-dd').format(_purchaseDate ?? DateTime.now()) : null,
               ),
             ),
           ),
@@ -353,7 +356,7 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
                 suffixIcon: Icon(Icons.calendar_today),
               ),
               controller: TextEditingController(
-                text: _productionDate != null ? DateFormat('yyyy-MM-dd').format(_productionDate!) : null,
+                text: _productionDate != null ? DateFormat('yyyy-MM-dd').format(_productionDate ?? DateTime.now()) : null,
               ),
             ),
           ),
@@ -383,7 +386,7 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
                 suffixIcon: Icon(Icons.calendar_today),
               ),
               controller: TextEditingController(
-                text: _expiryDate != null ? DateFormat('yyyy-MM-dd').format(_expiryDate!) : null,
+                text: _expiryDate != null ? DateFormat('yyyy-MM-dd').format(_expiryDate ?? DateTime.now()) : null,
               ),
             ),
           ),
@@ -431,7 +434,7 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
           items: AppConstants.expiryAlertDays
               .map((days) => DropdownMenuItem(value: days, child: Text('$days 天')))
               .toList(),
-          onChanged: (value) => setState(() => _expiryAlertDays = value!),
+          onChanged: (value) => setState(() => _expiryAlertDays = value ?? 3),
         ),
         const SizedBox(height: 16),
         Column(

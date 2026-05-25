@@ -35,7 +35,7 @@ class FirstItemStep extends StatelessWidget {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
+                    color: AppColors.primary.withOpacity( 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Center(

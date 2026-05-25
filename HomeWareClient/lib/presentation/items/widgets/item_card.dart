@@ -41,7 +41,7 @@ class _ItemCardState extends State<ItemCard> {
             borderRadius: BorderRadius.circular(AppRadius.lg),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.black.withOpacity( 0.05),
                 blurRadius: _isPressed ? 5 : 10,
                 offset: Offset(0, _isPressed ? 1 : 2),
               ),
@@ -79,7 +79,7 @@ class _ItemCardState extends State<ItemCard> {
                     if (widget.item.brand != null) ...[
                       const SizedBox(height: 2),
                       Text(
-                        widget.item.brand!,
+                        widget.item.brand ?? '',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),
@@ -99,7 +99,7 @@ class _ItemCardState extends State<ItemCard> {
                           const SizedBox(width: 2),
                           Expanded(
                             child: Text(
-                              widget.locationName!,
+                              widget.locationName ?? '',
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppColors.textHint,
                                   ),
@@ -139,7 +139,11 @@ class _ItemCardState extends State<ItemCard> {
 
   Widget _buildExpiryBadge(BuildContext context) {
     final now = DateTime.now();
-    final daysUntilExpiry = widget.item.expiryDate!.difference(now).inDays;
+    final expiryDate = widget.item.expiryDate;
+    if (expiryDate == null) {
+      return const SizedBox.shrink();
+    }
+    final daysUntilExpiry = expiryDate.difference(now).inDays;
 
     Color badgeColor;
     String badgeText;
@@ -161,7 +165,7 @@ class _ItemCardState extends State<ItemCard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: badgeColor.withValues(alpha: 0.1),
+        color: badgeColor.withOpacity( 0.1),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(

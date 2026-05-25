@@ -70,10 +70,11 @@ class NotificationScheduler {
   Future<void> scheduleExpiryNotification(Item item) async {
     if (!_initialized) await initialize();
 
-    if (item.expiryDate == null) return;
+    final expiryDate = item.expiryDate;
+    if (expiryDate == null) return;
 
     final alertDate =
-        item.expiryDate!.subtract(Duration(days: item.expiryAlertDays));
+        expiryDate.subtract(Duration(days: item.expiryAlertDays));
     final now = DateTime.now();
 
     if (alertDate.isBefore(now)) return;
@@ -136,9 +137,10 @@ class NotificationScheduler {
     final today = DateTime.now();
 
     for (final item in items) {
+      final expiryDate = item.expiryDate;
       if (item.status == 0 &&
-          item.expiryDate != null &&
-          item.expiryDate!.isBefore(today)) {
+          expiryDate != null &&
+          expiryDate.isBefore(today)) {
         await db.updateItem(item.copyWith(status: 2));
         await cancelNotification(item.id);
       }

@@ -69,7 +69,8 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
   Future<void> _prefetchLocationNames(List<Item> items) async {
     final locationIds = items
         .where((item) => item.locationId != null)
-        .map((item) => item.locationId!)
+        .map((item) => item.locationId)
+        .whereType<int>()
         .toSet()
         .toList();
 
