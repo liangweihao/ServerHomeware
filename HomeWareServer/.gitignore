@@ -1,0 +1,9 @@
+./.env
+./.env.test
+./.env.development
+.pip
+./.pycache
+./.vscode
+./.idea
+
+./venv

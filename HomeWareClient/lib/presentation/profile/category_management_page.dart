@@ -1,0 +1,389 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:drift/drift.dart' as drift;
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_radius.dart';
+import '../../core/providers/database_provider.dart';
+import '../../data/database/app_database.dart';
+import '../common/widgets/app_empty_state.dart';
+
+// Provider for categories
+final categoriesProvider = FutureProvider<List<Category>>((ref) async {
+  final db = ref.watch(databaseProvider);
+  return db.getTopLevelCategories();
+});
+
+// Provider for child categories
+final childCategoriesProvider = FutureProvider.family<List<Category>, int>((ref, parentId) async {
+  final db = ref.watch(databaseProvider);
+  return db.getChildCategories(parentId);
+});
+
+class CategoryManagementPage extends ConsumerStatefulWidget {
+  const CategoryManagementPage({super.key});
+
+  @override
+  ConsumerState<CategoryManagementPage> createState() => _CategoryManagementPageState();
+}
+
+class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage> {
+  @override
+  Widget build(BuildContext context) {
+    final categoriesAsync = ref.watch(categoriesProvider);
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.card,
+        title: const Text('分类管理'),
+      ),
+      body: categoriesAsync.when(
+        data: (categories) {
+          if (categories.isEmpty) {
+            return const AppEmptyState(
+              icon: '🏷️',
+              title: '暂无分类',
+              subtitle: '添加你的第一个分类',
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: categories.length,
+            itemBuilder: (context, index) {
+              final category = categories[index];
+              return _buildCategoryItem(category);
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => AppEmptyState(
+          icon: '❌',
+          title: '加载失败',
+          subtitle: error.toString(),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddCategoryDialog(context),
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildCategoryItem(Category category) {
+    final childCategoriesAsync = ref.watch(childCategoriesProvider(category.id));
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      child: Column(
+        children: [
+          // 父分类
+          InkWell(
+            onTap: () {
+              // TODO: 展开/收起子分类
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Color(int.parse(category.color.replaceFirst('#', '0xFF'))).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    child: Center(
+                      child: Text(
+                        category.icon,
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          category.name,
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                        ),
+                        if (category.isSystem)
+                          Text(
+                            '系统预设',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textHint,
+                                ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (!category.isSystem)
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          _showEditCategoryDialog(context, category);
+                        } else if (value == 'delete') {
+                          _deleteCategory(category);
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(value: 'edit', child: Text('编辑')),
+                        const PopupMenuItem(value: 'delete', child: Text('删除')),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ),
+          // 子分类
+          childCategoriesAsync.when(
+            data: (children) {
+              if (children.isEmpty) return const SizedBox.shrink();
+
+              return Container(
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(AppRadius.lg),
+                    bottomRight: Radius.circular(AppRadius.lg),
+                  ),
+                ),
+                child: Column(
+                  children: children.map((child) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 52),
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: Color(int.parse(child.color.replaceFirst('#', '0xFF'))).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                            ),
+                            child: Center(
+                              child: Text(
+                                child.icon,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              child.name,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ),
+                          if (!child.isSystem)
+                            PopupMenuButton<String>(
+                              onSelected: (value) {
+                                if (value == 'edit') {
+                                  _showEditCategoryDialog(context, child);
+                                } else if (value == 'delete') {
+                                  _deleteCategory(child);
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(value: 'edit', child: Text('编辑')),
+                                const PopupMenuItem(value: 'delete', child: Text('删除')),
+                              ],
+                            ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddCategoryDialog(BuildContext context) {
+    final nameController = TextEditingController();
+    String selectedIcon = '📦';
+    String selectedColor = '#2196F3';
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('添加分类'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: '分类名称',
+                  hintText: '请输入分类名称',
+                ),
+              ),
+              const SizedBox(height: 16),
+              // 图标选择
+              Wrap(
+                spacing: 8,
+                children: ['📦', '🍎', '🧴', '💄', '💊', '📺', '👕', '🧹', '🥛', '🥩', '🥦', '🍪'].map((icon) {
+                  return GestureDetector(
+                    onTap: () => setState(() => selectedIcon = icon),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: selectedIcon == icon ? AppColors.primary.withOpacity(0.2) : AppColors.background,
+                        borderRadius: BorderRadius.circular(8),
+                        border: selectedIcon == icon ? Border.all(color: AppColors.primary) : null,
+                      ),
+                      child: Center(child: Text(icon, style: const TextStyle(fontSize: 20))),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (nameController.text.trim().isEmpty) return;
+
+                final db = ref.read(databaseProvider);
+                await db.into(db.categories).insert(
+                  CategoriesCompanion.insert(
+                    name: nameController.text.trim(),
+                    icon: selectedIcon,
+                    color: selectedColor,
+                    isSystem: const drift.Value(false),
+                  ),
+                );
+
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ref.invalidate(categoriesProvider);
+                }
+              },
+              child: const Text('添加'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditCategoryDialog(BuildContext context, Category category) {
+    final nameController = TextEditingController(text: category.name);
+    String selectedIcon = category.icon;
+    String selectedColor = category.color;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('编辑分类'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: '分类名称',
+                ),
+              ),
+              const SizedBox(height: 16),
+              // 图标选择
+              Wrap(
+                spacing: 8,
+                children: ['📦', '🍎', '🧴', '💄', '💊', '📺', '👕', '🧹', '🥛', '🥩', '🥦', '🍪'].map((icon) {
+                  return GestureDetector(
+                    onTap: () => setState(() => selectedIcon = icon),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: selectedIcon == icon ? AppColors.primary.withOpacity(0.2) : AppColors.background,
+                        borderRadius: BorderRadius.circular(8),
+                        border: selectedIcon == icon ? Border.all(color: AppColors.primary) : null,
+                      ),
+                      child: Center(child: Text(icon, style: const TextStyle(fontSize: 20))),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (nameController.text.trim().isEmpty) return;
+
+                final db = ref.read(databaseProvider);
+                await (db.update(db.categories)..where((c) => c.id.equals(category.id))).write(
+                  CategoriesCompanion(
+                    name: drift.Value(nameController.text.trim()),
+                    icon: drift.Value(selectedIcon),
+                    color: drift.Value(selectedColor),
+                  ),
+                );
+
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ref.invalidate(categoriesProvider);
+                }
+              },
+              child: const Text('保存'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _deleteCategory(Category category) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('删除分类'),
+        content: Text('确定删除 "${category.name}" 吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final db = ref.read(databaseProvider);
+              await (db.delete(db.categories)..where((c) => c.id.equals(category.id))).go();
+
+              if (context.mounted) {
+                Navigator.pop(context);
+                ref.invalidate(categoriesProvider);
+              }
+            },
+            child: const Text('删除', style: TextStyle(color: AppColors.danger)),
+          ),
+        ],
+      ),
+    );
+  }
+}

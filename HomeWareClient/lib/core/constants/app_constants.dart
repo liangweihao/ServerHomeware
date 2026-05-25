@@ -1,0 +1,73 @@
+/// 应用通用常量
+class AppConstants {
+  // 单位列表
+  static const List<String> units = [
+    '件',
+    '个',
+    '瓶',
+    '盒',
+    '包',
+    '箱',
+    '袋',
+    '罐',
+    '桶',
+    '条',
+    '支',
+    '本',
+    '双',
+    '套',
+    '组',
+    '卷',
+    '片',
+    '张',
+  ];
+
+  // 购买渠道列表
+  static const List<String> purchaseChannels = [
+    '京东',
+    '淘宝',
+    '拼多多',
+    '超市',
+    '便利店',
+    '农贸市场',
+    '其他',
+  ];
+
+  // 保质期选项（天数）
+  static const Map<String, int> shelfLifeOptions = {
+    '7天': 7,
+    '14天': 14,
+    '1个月': 30,
+    '3个月': 90,
+    '6个月': 180,
+    '1年': 365,
+    '2年': 730,
+    '3年': 1095,
+  };
+
+  // 过期提前提醒天数选项
+  static const List<int> expiryAlertDays = [
+    1,
+    3,
+    7,
+    14,
+    30,
+  ];
+
+  // 状态过滤选项
+  static const List<String> statusFilters = [
+    '全部',
+    '使用中',
+    '即将过期',
+    '已过期',
+    '已用完',
+  ];
+
+  // 排序选项
+  static const List<String> sortOptions = [
+    '过期时间近→远',
+    '录入时间新→旧',
+    '剩余数量少→多',
+    '价格高→低',
+  ];
+}

@@ -1,0 +1,705 @@
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:47:56,507", "level": "INFO"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 18:47:56,507", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,532", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,533", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,534", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,534", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,534", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,534", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,535", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,535", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,535", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,535", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,535", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,535", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,535", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,535", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,536", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,536", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,536", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,536", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,536", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,536", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,536", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,536", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA temp.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,537", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,537", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,537", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,537", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,537", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,537", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,537", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,537", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA temp.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,538", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,538", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "\nCREATE TABLE notification_preferences (\n\tuser_id INTEGER NOT NULL, \n\tpush_enabled BOOLEAN, \n\texpiry_alert BOOLEAN, \n\tstock_alert BOOLEAN, \n\tpurchase_alert BOOLEAN, \n\twarranty_alert BOOLEAN, \n\tquiet_start TIME, \n\tquiet_end TIME, \n\tPRIMARY KEY (user_id), \n\tFOREIGN KEY(user_id) REFERENCES users (id)\n)\n\n", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,538", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[no key 0.00006s] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,538", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "\nCREATE TABLE notifications (\n\tfamily_id INTEGER NOT NULL, \n\tuser_id INTEGER, \n\ttype VARCHAR(30) NOT NULL, \n\ttitle VARCHAR(100) NOT NULL, \n\tbody VARCHAR(500), \n\titem_id INTEGER, \n\tpriority VARCHAR(10), \n\tis_read BOOLEAN, \n\taction_url VARCHAR(200), \n\tid INTEGER NOT NULL, \n\tcreated_at DATETIME, \n\tupdated_at DATETIME, \n\tPRIMARY KEY (id), \n\tFOREIGN KEY(family_id) REFERENCES families (id), \n\tFOREIGN KEY(user_id) REFERENCES users (id)\n)\n\n", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,539", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[no key 0.00006s] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,539", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,540", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 18:47:56,540", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0010s", "taskName": "Task-6", "timestamp": "2026-05-22 18:48:06,188", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0005s", "taskName": "Task-11", "timestamp": "2026-05-22 18:48:10,204", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0009s", "taskName": "Task-16", "timestamp": "2026-05-22 18:48:13,147", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0006s", "taskName": "Task-21", "timestamp": "2026-05-22 18:48:21,500", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": null, "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:49:23,837", "level": "INFO"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": null, "timestamp": "2026-05-22 18:49:23,838", "level": "WARNING"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:51:30,916", "level": "INFO"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 18:51:30,916", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,941", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,944", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,944", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,944", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,946", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,946", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,947", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,947", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,947", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,947", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,947", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,947", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,947", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,947", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,947", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,947", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,948", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,948", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,948", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,948", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,948", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,948", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,948", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,948", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,949", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,949", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,949", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,949", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,949", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 18:51:30,949", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0009s", "taskName": "Task-5", "timestamp": "2026-05-22 18:51:41,209", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /openapi.json, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0230s", "taskName": "Task-11", "timestamp": "2026-05-22 18:51:49,399", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0009s", "taskName": "Task-17", "timestamp": "2026-05-22 18:51:59,331", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: HEAD, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0002s", "taskName": "Task-23", "timestamp": "2026-05-22 18:52:06,792", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0007s", "taskName": "Task-29", "timestamp": "2026-05-22 18:52:34,228", "level": "INFO"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:19,516", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:53:20,269", "level": "INFO"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 18:53:20,270", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,296", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,297", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,297", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,297", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,299", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,299", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,299", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,299", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,299", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,299", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,300", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,300", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,300", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,300", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,300", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,300", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,300", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,300", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,300", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,301", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,301", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,301", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,301", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,301", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,301", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,301", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,302", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,302", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,302", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:20,302", "level": "INFO"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:23,065", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:53:28,390", "level": "INFO"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 18:53:28,390", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,415", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,416", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,416", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,416", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,418", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,418", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,418", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,418", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,418", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,418", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,419", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,419", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,419", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,419", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,419", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,419", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,419", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,419", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,420", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,420", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,420", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,420", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,420", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,420", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,420", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,420", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,421", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,421", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,421", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 18:53:28,421", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0003s", "taskName": "Task-5", "timestamp": "2026-05-22 18:53:35,845", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0002s", "taskName": "Task-11", "timestamp": "2026-05-22 18:53:42,835", "level": "INFO"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:54:59,318", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:55:00,019", "level": "INFO"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 18:55:00,019", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,045", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,046", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,046", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,046", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,047", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,047", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,048", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,048", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,048", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,048", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,048", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,048", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,049", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,049", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,049", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,049", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,049", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,049", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,049", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,049", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,050", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,050", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,050", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,050", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,050", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,050", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,050", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,050", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,051", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:00,051", "level": "INFO"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,204", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:55:05,790", "level": "INFO"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 18:55:05,791", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,818", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,819", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,819", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,819", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,819", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,819", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,819", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,819", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,820", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,820", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,820", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,820", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,820", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,820", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,820", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,820", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,821", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,821", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,821", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,821", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,821", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,821", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,821", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,822", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,822", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,822", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,822", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,822", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,822", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:05,823", "level": "INFO"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:09,963", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:55:10,546", "level": "INFO"}
+{"name": "app.services.upload_service", "message": "PIL \u4e0d\u53ef\u7528\uff0c\u56fe\u7247\u5c06\u4e0d\u8fdb\u884c\u538b\u7f29\u5904\u7406", "taskName": "Task-1", "timestamp": "2026-05-22 18:55:10,546", "level": "WARNING"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 18:55:10,546", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,572", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,573", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,573", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,573", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,575", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,575", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,575", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,575", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,576", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,576", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,576", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,576", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,576", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,576", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,577", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,577", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,577", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,577", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,577", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,577", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,577", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,577", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,578", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,578", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,578", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,578", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,578", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,578", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,578", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:10,579", "level": "INFO"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:13,405", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:55:20,505", "level": "INFO"}
+{"name": "app.services.upload_service", "message": "PIL \u4e0d\u53ef\u7528\uff0c\u56fe\u7247\u5c06\u4e0d\u8fdb\u884c\u538b\u7f29\u5904\u7406", "taskName": "Task-1", "timestamp": "2026-05-22 18:55:20,505", "level": "WARNING"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 18:55:20,505", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,529", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,530", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,530", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,530", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,532", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,532", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,532", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,532", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,533", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,533", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,533", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,533", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,533", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,533", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,533", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,533", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,533", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,533", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,534", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,534", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,534", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,534", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,534", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,534", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,534", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,534", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,535", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,535", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,535", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:20,535", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0003s", "taskName": "Task-5", "timestamp": "2026-05-22 18:55:27,045", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0002s", "taskName": "Task-11", "timestamp": "2026-05-22 18:55:35,250", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0002s", "taskName": "Task-17", "timestamp": "2026-05-22 18:55:35,264", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0004s", "taskName": "Task-23", "timestamp": "2026-05-22 18:55:43,948", "level": "INFO"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,161", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:55:52,901", "level": "INFO"}
+{"name": "app.services.upload_service", "message": "PIL \u4e0d\u53ef\u7528\uff0c\u56fe\u7247\u5c06\u4e0d\u8fdb\u884c\u538b\u7f29\u5904\u7406", "taskName": "Task-1", "timestamp": "2026-05-22 18:55:52,902", "level": "WARNING"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 18:55:52,902", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,928", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,929", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,929", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,929", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,931", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,931", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,932", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,932", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,932", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,932", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,933", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,933", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,933", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,933", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,934", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,934", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,934", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,934", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,934", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,934", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,934", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,935", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,935", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,935", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,935", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,935", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,935", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,935", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,936", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 18:55:52,936", "level": "INFO"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:06,488", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:58:07,186", "level": "INFO"}
+{"name": "app.services.upload_service", "message": "PIL \u4e0d\u53ef\u7528\uff0c\u56fe\u7247\u5c06\u4e0d\u8fdb\u884c\u538b\u7f29\u5904\u7406", "taskName": "Task-1", "timestamp": "2026-05-22 18:58:07,186", "level": "WARNING"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 18:58:07,186", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,211", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,212", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,212", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,212", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,213", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,214", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,214", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,214", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,214", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,214", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,214", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,214", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,214", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,214", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,215", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,215", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,215", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,215", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,215", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,215", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,215", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,215", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,216", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,216", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,216", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,216", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,216", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,217", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,217", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:07,217", "level": "INFO"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:19,344", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:58:20,026", "level": "INFO"}
+{"name": "app.services.upload_service", "message": "PIL \u4e0d\u53ef\u7528\uff0c\u56fe\u7247\u5c06\u4e0d\u8fdb\u884c\u538b\u7f29\u5904\u7406", "taskName": "Task-1", "timestamp": "2026-05-22 18:58:20,026", "level": "WARNING"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 18:58:20,026", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,054", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,055", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,055", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,055", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,056", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,057", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,057", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,057", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,057", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,057", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,057", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,057", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,058", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,058", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,058", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,058", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,058", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,058", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,058", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,059", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,059", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,059", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,060", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,060", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,060", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,060", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,060", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,060", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,061", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:20,061", "level": "INFO"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:26,927", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:58:27,598", "level": "INFO"}
+{"name": "app.services.upload_service", "message": "PIL \u4e0d\u53ef\u7528\uff0c\u56fe\u7247\u5c06\u4e0d\u8fdb\u884c\u538b\u7f29\u5904\u7406", "taskName": "Task-1", "timestamp": "2026-05-22 18:58:27,599", "level": "WARNING"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 18:58:27,599", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,625", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,626", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,626", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,626", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,628", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,628", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,628", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,628", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,628", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,628", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,629", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,629", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,629", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,629", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,629", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,629", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,629", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,629", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,629", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,630", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,630", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,630", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,630", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,630", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,630", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,630", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,631", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,631", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,631", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:27,631", "level": "INFO"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:31,978", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:58:32,543", "level": "INFO"}
+{"name": "app.services.upload_service", "message": "PIL \u4e0d\u53ef\u7528\uff0c\u56fe\u7247\u5c06\u4e0d\u8fdb\u884c\u538b\u7f29\u5904\u7406", "taskName": "Task-1", "timestamp": "2026-05-22 18:58:32,543", "level": "WARNING"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 18:58:32,543", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,567", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,568", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,568", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,568", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,569", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,569", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,569", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,569", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,569", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,569", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,570", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,570", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,570", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,570", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,570", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,570", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,570", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,570", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,571", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,571", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,571", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,571", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,571", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,571", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,571", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,571", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,572", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,572", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,572", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:32,572", "level": "INFO"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,223", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 18:58:37,835", "level": "INFO"}
+{"name": "app.services.upload_service", "message": "PIL \u4e0d\u53ef\u7528\uff0c\u56fe\u7247\u5c06\u4e0d\u8fdb\u884c\u538b\u7f29\u5904\u7406", "taskName": "Task-1", "timestamp": "2026-05-22 18:58:37,835", "level": "WARNING"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 18:58:37,835", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,860", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,861", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,861", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,861", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,862", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,862", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,862", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,863", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,863", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,863", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,863", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,863", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,863", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,863", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,864", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,864", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,864", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,864", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,864", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,864", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,864", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,864", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,865", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,865", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,865", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,865", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,865", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,865", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,866", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 18:58:37,866", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0005s", "taskName": "Task-5", "timestamp": "2026-05-22 18:58:44,889", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-5", "timestamp": "2026-05-22 18:58:44,890", "level": "ERROR"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0006s", "taskName": "Task-13", "timestamp": "2026-05-22 18:58:50,788", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-13", "timestamp": "2026-05-22 18:58:50,789", "level": "ERROR"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0013s", "taskName": "Task-22", "timestamp": "2026-05-22 19:04:46,239", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-22", "timestamp": "2026-05-22 19:04:46,241", "level": "ERROR"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 19:05:25,111", "level": "INFO"}
+{"name": "app.services.upload_service", "message": "PIL \u4e0d\u53ef\u7528\uff0c\u56fe\u7247\u5c06\u4e0d\u8fdb\u884c\u538b\u7f29\u5904\u7406", "taskName": "Task-1", "timestamp": "2026-05-22 19:05:25,111", "level": "WARNING"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 19:05:25,111", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,152", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,156", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,156", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,156", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,158", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,158", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,159", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,159", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,159", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,159", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,159", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,159", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,159", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,159", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,160", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,160", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,160", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,160", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,160", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,160", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,160", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,160", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,161", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,161", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,161", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,161", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,162", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,162", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,162", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 19:05:25,163", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0005s", "taskName": "Task-6", "timestamp": "2026-05-22 19:05:29,212", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-6", "timestamp": "2026-05-22 19:05:29,213", "level": "ERROR"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0007s", "taskName": "Task-13", "timestamp": "2026-05-22 19:05:30,477", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-13", "timestamp": "2026-05-22 19:05:30,479", "level": "ERROR"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0010s", "taskName": "Task-21", "timestamp": "2026-05-22 19:05:30,971", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-21", "timestamp": "2026-05-22 19:05:30,972", "level": "ERROR"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0021s", "taskName": "Task-29", "timestamp": "2026-05-22 19:05:31,169", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-29", "timestamp": "2026-05-22 19:05:31,171", "level": "ERROR"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0005s", "taskName": "Task-37", "timestamp": "2026-05-22 19:05:31,382", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-37", "timestamp": "2026-05-22 19:05:31,382", "level": "ERROR"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0006s", "taskName": "Task-45", "timestamp": "2026-05-22 19:05:31,594", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-45", "timestamp": "2026-05-22 19:05:31,595", "level": "ERROR"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0008s", "taskName": "Task-53", "timestamp": "2026-05-22 19:05:31,817", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-53", "timestamp": "2026-05-22 19:05:31,817", "level": "ERROR"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0004s", "taskName": "Task-62", "timestamp": "2026-05-22 19:05:36,419", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-62", "timestamp": "2026-05-22 19:05:36,420", "level": "ERROR"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0012s", "taskName": "Task-70", "timestamp": "2026-05-22 19:29:37,533", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-70", "timestamp": "2026-05-22 19:29:37,535", "level": "ERROR"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0005s", "taskName": "Task-78", "timestamp": "2026-05-22 19:29:40,239", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-78", "timestamp": "2026-05-22 19:29:40,239", "level": "ERROR"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:04,092", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 19:30:14,162", "level": "INFO"}
+{"name": "app.services.upload_service", "message": "PIL \u4e0d\u53ef\u7528\uff0c\u56fe\u7247\u5c06\u4e0d\u8fdb\u884c\u538b\u7f29\u5904\u7406", "taskName": "Task-1", "timestamp": "2026-05-22 19:30:14,163", "level": "WARNING"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 19:30:14,163", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,188", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,189", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,189", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,189", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,190", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,190", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,190", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,190", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,191", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,191", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,191", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,191", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,191", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,191", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,191", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,191", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,192", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,192", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,192", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,192", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,192", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,192", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,193", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,193", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,193", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,193", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,193", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,193", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,193", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 19:30:14,194", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0005s", "taskName": "Task-6", "timestamp": "2026-05-22 19:30:19,411", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-6", "timestamp": "2026-05-22 19:30:19,412", "level": "ERROR"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0004s", "taskName": "Task-13", "timestamp": "2026-05-22 19:30:22,359", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-13", "timestamp": "2026-05-22 19:30:22,360", "level": "ERROR"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0004s", "taskName": "Task-21", "timestamp": "2026-05-22 19:30:30,510", "level": "INFO"}
+{"name": "app.main", "message": "\u5168\u5c40\u5f02\u5e38 - \u8def\u5f84: /docs, \u5f02\u5e38: Too little data for declared Content-Length", "taskName": "Task-21", "timestamp": "2026-05-22 19:30:30,511", "level": "ERROR"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:23,774", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 19:31:24,433", "level": "INFO"}
+{"name": "app.services.upload_service", "message": "PIL \u4e0d\u53ef\u7528\uff0c\u56fe\u7247\u5c06\u4e0d\u8fdb\u884c\u538b\u7f29\u5904\u7406", "taskName": "Task-1", "timestamp": "2026-05-22 19:31:24,433", "level": "WARNING"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 19:31:24,433", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,461", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,462", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,462", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,462", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,464", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,464", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,464", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,465", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,465", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,465", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,465", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,465", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,466", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,466", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,466", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,466", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,467", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,467", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,468", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,469", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,469", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,470", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,470", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,470", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,470", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,470", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,470", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,470", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,471", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 19:31:24,471", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0006s", "taskName": "Task-5", "timestamp": "2026-05-22 19:31:32,017", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: HEAD, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0003s", "taskName": "Task-13", "timestamp": "2026-05-22 19:31:36,127", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /openapi.json, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0176s", "taskName": "Task-21", "timestamp": "2026-05-22 19:31:42,420", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0004s", "taskName": "Task-29", "timestamp": "2026-05-22 19:31:42,439", "level": "INFO"}
+{"name": "app.main", "message": "\u5e94\u7528\u5173\u95ed\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:45,238", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 19:32:47,794", "level": "INFO"}
+{"name": "app.services.upload_service", "message": "PIL \u4e0d\u53ef\u7528\uff0c\u56fe\u7247\u5c06\u4e0d\u8fdb\u884c\u538b\u7f29\u5904\u7406", "taskName": "Task-1", "timestamp": "2026-05-22 19:32:47,794", "level": "WARNING"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 19:32:47,794", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,822", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,823", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,824", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,824", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,825", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,825", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,825", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,825", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,826", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,826", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,826", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,826", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,826", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,826", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,826", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,826", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,827", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,827", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,827", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,827", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,828", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,828", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,828", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,828", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,828", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,828", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,829", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,829", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,829", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 19:32:47,830", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0005s", "taskName": "Task-5", "timestamp": "2026-05-22 19:32:55,232", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: HEAD, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0003s", "taskName": "Task-13", "timestamp": "2026-05-22 19:33:00,672", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: HEAD, \u8def\u5f84: /openapi.json, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0199s", "taskName": "Task-21", "timestamp": "2026-05-22 19:33:00,702", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0004s", "taskName": "Task-29", "timestamp": "2026-05-22 19:33:00,715", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0073s", "taskName": "Task-38", "timestamp": "2026-05-22 19:35:55,908", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0078s", "taskName": "Task-46", "timestamp": "2026-05-22 19:36:40,655", "level": "INFO"}
+{"name": "root", "message": "Log system initialized", "taskName": "Task-1", "environment": "development", "log_level": "INFO", "timestamp": "2026-05-22 19:40:42,501", "level": "INFO"}
+{"name": "app.services.upload_service", "message": "PIL \u4e0d\u53ef\u7528\uff0c\u56fe\u7247\u5c06\u4e0d\u8fdb\u884c\u538b\u7f29\u5904\u7406", "taskName": "Task-1", "timestamp": "2026-05-22 19:40:42,502", "level": "WARNING"}
+{"name": "app.main", "message": "slowapi \u4e0d\u53ef\u7528\uff0c\u9650\u6d41\u529f\u80fd\u5df2\u7981\u7528", "taskName": "Task-1", "timestamp": "2026-05-22 19:40:42,502", "level": "WARNING"}
+{"name": "app.main", "message": "\u5e94\u7528\u542f\u52a8\u4e2d...", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,527", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "BEGIN (implicit)", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,528", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"users\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,528", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,528", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"families\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,528", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,528", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"family_members\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,529", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,529", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"items\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,529", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,529", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"item_images\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,529", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,529", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"categories\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,530", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,530", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"locations\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,530", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,530", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"usage_records\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,530", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,530", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"shopping_items\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,530", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,530", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notification_preferences\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,531", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,531", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"activity_logs\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,531", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,531", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"user_devices\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,531", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,531", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "PRAGMA main.table_info(\"notifications\")", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,531", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "[raw sql] ()", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,531", "level": "INFO"}
+{"name": "sqlalchemy.engine.Engine", "message": "COMMIT", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,532", "level": "INFO"}
+{"name": "app.main", "message": "\u6570\u636e\u5e93\u521d\u59cb\u5316\u6210\u529f", "taskName": "Task-2", "timestamp": "2026-05-22 19:40:42,532", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /docs, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0007s", "taskName": "Task-6", "timestamp": "2026-05-22 19:40:46,506", "level": "INFO"}
+{"name": "app.core.middleware", "message": "\u8bf7\u6c42\u65e5\u5fd7 - \u65b9\u6cd5: GET, \u8def\u5f84: /, \u72b6\u6001\u7801: 200, \u8017\u65f6: 0.0011s", "taskName": "Task-14", "timestamp": "2026-05-22 19:41:02,127", "level": "INFO"}

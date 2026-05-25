@@ -1,0 +1,71 @@
+"""
+物品数据访问层
+"""
+from typing import Dict, List, Optional
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
+
+from app.models.category import Category
+from app.models.item import Item
+from app.models.location import Location
+from app.repositories.base import BaseRepository
+
+
+class ItemRepository(BaseRepository[Item]):
+    """物品仓库"""
+    
+    def __init__(self, db: AsyncSession):
+        super().__init__(db, Item)
+    
+    async def get_by_id_with_relations(self, item_id: int) -> Optional[Item]:
+        """获取物品及其关联数据（分类、位置、图片）"""
+        result = await self.db.execute(
+            select(Item)
+            .options(joinedload(Item.category))
+            .options(joinedload(Item.location))
+            .options(joinedload(Item.images))
+            .filter(Item.id == item_id)
+        )
+        return result.unique().scalar_one_or_none()
+    
+    async def get_by_family_id(self, family_id: int) -> List[Item]:
+        """根据家庭ID获取物品列表"""
+        return await self.get_multi_by_field("family_id", family_id)
+    
+    async def get_by_category_id(self, category_id: int) -> List[Item]:
+        """根据分类ID获取物品列表"""
+        return await self.get_multi_by_field("category_id", category_id)
+    
+    async def get_by_location_id(self, location_id: int) -> List[Item]:
+        """根据位置ID获取物品列表"""
+        return await self.get_multi_by_field("location_id", location_id)
+    
+    async def get_by_barcode(self, barcode: str, family_id: int) -> Optional[Item]:
+        """根据条码查询物品"""
+        result = await self.db.execute(
+            select(Item).filter(
+                Item.barcode == barcode,
+                Item.family_id == family_id
+            )
+        )
+        return result.scalar_one_or_none()
+    
+    async def get_category_names(self, family_id: int) -> Dict[int, str]:
+        """获取分类ID到名称的映射"""
+        result = await self.db.execute(
+            select(Category.id, Category.name).filter(
+                (Category.family_id == family_id) | (Category.is_system == True)
+            )
+        )
+        return {row[0]: row[1] for row in result.all()}
+    
+    async def get_location_paths(self, family_id: int) -> Dict[int, str]:
+        """获取位置ID到完整路径的映射"""
+        result = await self.db.execute(
+            select(Location.id, Location.full_path).filter(
+                Location.family_id == family_id
+            )
+        )
+        return {row[0]: row[1] for row in result.all()}
