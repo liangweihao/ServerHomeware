@@ -23,22 +23,29 @@ void main() async {
   // 初始化 WidgetsFlutterBinding
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 初始化数据库并插入预设数据
-  final db = AppDatabase();
-  await db.seedData();
-
-  // 初始化通知服务
-  final notificationScheduler = NotificationScheduler();
-  await notificationScheduler.initialize();
-
-  // 每日检查任务：检查过期物品并更新状态
-  await notificationScheduler.checkAndUpdateExpiredItems(db);
-
-  // 重新调度所有通知
-  await notificationScheduler.rescheduleAllNotifications(db);
-
   // 设置中文区域
   Intl.defaultLocale = 'zh_CN';
+
+  // 初始化数据库并插入预设数据（后台执行，不阻塞 UI）
+  final db = AppDatabase();
+  db.seedData().catchError((error) {
+    debugPrint('Seed data error: $error');
+  });
+
+  // 初始化通知服务和相关任务（后台执行，不阻塞 UI）
+  final notificationScheduler = NotificationScheduler();
+  notificationScheduler.initialize().then((_) {
+    // 每日检查任务：检查过期物品并更新状态
+    notificationScheduler.checkAndUpdateExpiredItems(db).catchError((error) {
+      debugPrint('Check expired items error: $error');
+    });
+    // 重新调度所有通知
+    notificationScheduler.rescheduleAllNotifications(db).catchError((error) {
+      debugPrint('Reschedule notifications error: $error');
+    });
+  }).catchError((error) {
+    debugPrint('Notification initialization error: $error');
+  });
 
   runApp(
     ProviderScope(

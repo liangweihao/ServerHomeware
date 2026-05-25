@@ -32,6 +32,7 @@ class NotificationScheduler {
       settings: InitializationSettings(
         android: initializationSettingsAndroid,
         iOS: initializationSettingsDarwin,
+        macOS: initializationSettingsDarwin,
       ),
     );
 
