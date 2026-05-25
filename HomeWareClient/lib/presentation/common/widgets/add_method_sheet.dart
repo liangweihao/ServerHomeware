@@ -36,7 +36,7 @@ class AddMethodSheet extends StatelessWidget {
                 subtitle: '扫描商品条码快速添加',
                 onTap: () {
                   Navigator.pop(context);
-                  context.go('/items/scan');
+                  context.push('/items/scan');
                 },
               ),
               const SizedBox(height: 12),
@@ -47,7 +47,7 @@ class AddMethodSheet extends StatelessWidget {
                 subtitle: '完整填写商品信息',
                 onTap: () {
                   Navigator.pop(context);
-                  context.go('/items/add');
+                  context.push('/items/add');
                 },
               ),
             ],
