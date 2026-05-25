@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/services/notification_scheduler.dart';
@@ -25,6 +26,9 @@ void main() async {
 
   // 设置中文区域
   Intl.defaultLocale = 'zh_CN';
+  
+  // 初始化日期格式化的区域设置数据
+  await initializeDateFormatting('zh_CN');
 
   // 初始化数据库并插入预设数据
   final db = AppDatabase();
