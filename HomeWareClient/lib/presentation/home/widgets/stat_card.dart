@@ -25,6 +25,7 @@ class StatCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        constraints: const BoxConstraints(minHeight: 100),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: backgroundColor ?? AppColors.card,
@@ -56,7 +57,6 @@ class StatCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            // 数字变化动画
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
               transitionBuilder: (Widget child, Animation<double> animation) {
@@ -78,6 +78,7 @@ class StatCard extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             if (subtitle != null) ...[

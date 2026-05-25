@@ -39,11 +39,14 @@ class HomePage extends ConsumerWidget {
                       style: TextStyle(fontSize: 24),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      '我的家',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                    Flexible(
+                      child: Text(
+                        '我的家',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
@@ -132,14 +135,18 @@ class HomePage extends ConsumerWidget {
                           Row(
                             children: [
                               const Text('📅 ', style: TextStyle(fontSize: 18)),
-                              Text(
-                                '最近动态',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                              Flexible(
+                                child: Text(
+                                  '最近动态',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ],
                           ),
+                          const SizedBox(width: 8),
                           TextButton(
                             onPressed: () {
                               // TODO: 跳转到全部动态页面
