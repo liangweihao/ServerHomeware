@@ -262,14 +262,13 @@ class HomePage extends ConsumerWidget {
     return spacesAsync.when(
       data: (spaces) {
         if (spaces.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: AppEmptyState(
-              icon: '🏠',
-              title: '还没有空间',
-              subtitle: '去添加你的第一个空间吧',
-              actionLabel: '添加空间',
-              onAction: () => context.push('/locations'),
+          return const SizedBox(
+            height: 120,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Center(
+                child: Text('暂无空间'),
+              ),
             ),
           );
         }
@@ -292,22 +291,22 @@ class HomePage extends ConsumerWidget {
           ),
         );
       },
-      loading: () => SizedBox(
+      loading: () => const SizedBox(
         height: 120,
-        child: ListView.separated(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          scrollDirection: Axis.horizontal,
-          itemCount: 4,
-          separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (context, index) => const ShimmerSpaceCard(),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Center(
+            child: CircularProgressIndicator(),
+          ),
         ),
       ),
-      error: (error, stack) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: AppEmptyState(
-          icon: '❌',
-          title: '加载失败',
-          subtitle: error.toString(),
+      error: (error, stack) => const SizedBox(
+        height: 120,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Center(
+            child: Text('加载失败'),
+          ),
         ),
       ),
     );

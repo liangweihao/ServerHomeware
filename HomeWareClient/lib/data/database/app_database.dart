@@ -116,6 +116,15 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 1;
   
+  Future<void>? _seedDataFuture;
+  
+  Future<void> ensureInitialized() {
+    if (_seedDataFuture == null) {
+      _seedDataFuture = seedData();
+    }
+    return _seedDataFuture!;
+  }
+  
   static LazyDatabase _openConnection() {
     return LazyDatabase(() async {
       final dbFolder = await getApplicationDocumentsDirectory();

@@ -28,6 +28,8 @@ class HomeStats {
 final homeStatsProvider = FutureProvider<HomeStats>((ref) async {
   final db = ref.watch(databaseProvider);
   
+  await db.ensureInitialized();
+  
   // 获取过期预警数量（7天内过期）
   final sevenDaysLater = DateTime.now().add(const Duration(days: 7));
   final expiryItems = await (db.select(db.items)
@@ -122,6 +124,8 @@ class SpaceData {
 final spacesProvider = FutureProvider<List<SpaceData>>((ref) async {
   final db = ref.watch(databaseProvider);
   
+  await db.ensureInitialized();
+  
   final locations = await db.getTopLevelLocations();
   final spaces = <SpaceData>[];
   
@@ -149,6 +153,8 @@ class ActivityData {
 // 最近动态 Provider（最近5条）
 final recentActivitiesProvider = FutureProvider<List<ActivityData>>((ref) async {
   final db = ref.watch(databaseProvider);
+  
+  await db.ensureInitialized();
   
   final records = await (db.select(db.usageRecords)
         ..orderBy([(r) => OrderingTerm(expression: r.createdAt, mode: OrderingMode.desc)])

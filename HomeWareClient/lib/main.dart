@@ -26,25 +26,22 @@ void main() async {
   // 设置中文区域
   Intl.defaultLocale = 'zh_CN';
 
-  // 初始化数据库并插入预设数据（后台执行，不阻塞 UI）
+  // 初始化数据库并插入预设数据
   final db = AppDatabase();
-  db.seedData().catchError((error) {
-    debugPrint('Seed data error: $error');
-  });
+  await db.ensureInitialized();
 
-  // 初始化通知服务和相关任务（后台执行，不阻塞 UI）
+  // 初始化通知服务和相关任务
   final notificationScheduler = NotificationScheduler();
-  notificationScheduler.initialize().then((_) {
-    // 每日检查任务：检查过期物品并更新状态
-    notificationScheduler.checkAndUpdateExpiredItems(db).catchError((error) {
-      debugPrint('Check expired items error: $error');
-    });
-    // 重新调度所有通知
-    notificationScheduler.rescheduleAllNotifications(db).catchError((error) {
-      debugPrint('Reschedule notifications error: $error');
-    });
-  }).catchError((error) {
-    debugPrint('Notification initialization error: $error');
+  await notificationScheduler.initialize();
+  
+  // 每日检查任务：检查过期物品并更新状态
+  notificationScheduler.checkAndUpdateExpiredItems(db).catchError((error) {
+    debugPrint('Check expired items error: $error');
+  });
+  
+  // 重新调度所有通知
+  notificationScheduler.rescheduleAllNotifications(db).catchError((error) {
+    debugPrint('Reschedule notifications error: $error');
   });
 
   runApp(
