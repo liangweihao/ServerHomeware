@@ -86,7 +86,7 @@ class StatCard extends StatelessWidget {
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
                 child: Text(
-                  subtitle!,
+                  subtitle ?? '',
                   key: ValueKey(subtitle),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.textHint,

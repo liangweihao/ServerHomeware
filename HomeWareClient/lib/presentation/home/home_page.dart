@@ -215,9 +215,12 @@ class HomePage extends ConsumerWidget {
               emoji: '📊',
               title: '本月消费',
               count: '¥${stats.monthlyExpense.toStringAsFixed(2)}',
-              subtitle: stats.monthlyExpenseChange != null
-                  ? '比上月 ${stats.monthlyExpenseChange! > 0 ? '↑' : '↓'}${stats.monthlyExpenseChange!.abs().toStringAsFixed(0)}%'
-                  : null,
+              subtitle: () {
+                final change = stats.monthlyExpenseChange;
+                if (change == null || change == 0) return null;
+                final prefix = change.isNegative ? '↓' : '↑';
+                return '比上月 $prefix${change.abs().toStringAsFixed(0)}%';
+              }(),
               onTap: () => context.push('/statistics'),
               backgroundColor: AppColors.successLight,
             ),
