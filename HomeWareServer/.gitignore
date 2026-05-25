@@ -1,20 +1,22 @@
-./.env
-./.env.test
-./.env.development
-.pip
-./.pycache
-./.vscode
-./.idea
+# Environment files
+.env
+.env.test
+.env.development
+
+# IDE
+.vscode
+.idea
 
 # Python virtual environments
-./venv
-./.venv
+venv/
+.venv/
 
 # Python cache files
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.pip
 
 # Log files
 logs/
