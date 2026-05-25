@@ -17,6 +17,14 @@ import '../../presentation/shopping/shopping_list_page.dart';
 import '../../presentation/statistics/statistics_page.dart';
 import '../../presentation/search/search_page.dart';
 import '../../presentation/common/widgets/main_scaffold.dart';
+import '../../presentation/auth/splash_page.dart';
+import '../../presentation/auth/welcome_page.dart';
+import '../../presentation/auth/login_page.dart';
+import '../../presentation/auth/register_page.dart';
+import '../../presentation/auth/verify_code_page.dart';
+import '../../presentation/auth/forgot_password_page.dart';
+import '../../presentation/auth/create_family_page.dart';
+import '../../presentation/auth/join_family_page.dart';
 
 /// 自定义过渡动画 - 渐隐渐显
 class FadeTransitionPage<T> extends CustomTransitionPage<T> {
@@ -66,8 +74,66 @@ class SlideTransitionPage<T> extends CustomTransitionPage<T> {
 
 // 路由配置
 final appRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/splash',
   routes: [
+    // 认证相关路由
+    GoRoute(
+      path: '/splash',
+      name: 'splash',
+      pageBuilder: (context, state) => FadeTransitionPage(
+        child: const SplashPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/welcome',
+      name: 'welcome',
+      pageBuilder: (context, state) => FadeTransitionPage(
+        child: const WelcomePage(),
+      ),
+    ),
+    GoRoute(
+      path: '/login',
+      name: 'login',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const LoginPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/register',
+      name: 'register',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const RegisterPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/verify-code',
+      name: 'verifyCode',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const VerifyCodePage(),
+      ),
+    ),
+    GoRoute(
+      path: '/forgot-password',
+      name: 'forgotPassword',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const ForgotPasswordPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/create-family',
+      name: 'createFamily',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const CreateFamilyPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/join-family',
+      name: 'joinFamily',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const JoinFamilyPage(),
+      ),
+    ),
+
     // 带底部导航的路由（ShellRoute）
     ShellRoute(
       builder: (context, state, child) {

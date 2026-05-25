@@ -348,6 +348,137 @@ Auto Layout:
 └────────────────────────────────────────────┘
 ```
 
+### 2.7 手机号输入框 PhoneInput
+
+```
+组件名称：PhoneInput
+组件路径：Components/Atoms/PhoneInput
+
+┌────────────────────────────────────────────┐
+│ Component Properties:                       │
+├────────────────────────────────────────────┤
+│ State        │ Default / Focus / Error /   │
+│              │ Disabled                    │
+│──────────────┼─────────────────────────────┤
+│ ErrorText    │ String / Null               │
+│──────────────┼─────────────────────────────┤
+│ HintText     │ String (默认: "请输入手机号")│
+└────────────────────────────────────────────┘
+
+结构：
+┌─────────────────────────────────────────┐
+│ 🇨🇳 +86  [ 手机号输入框 ]                 │
+│ 请输入正确的手机号 (Error State)          │
+└─────────────────────────────────────────┘
+
+样式规格：
+- 高度: 48px
+- 边框: 1px Gray-300 / Focus: 2px Primary-500 / Error: 2px Danger
+- 圆角: radius-sm (8px)
+- 左侧国旗: 固定宽度 80px, 分隔线 1px Gray-200
+- 内部 Padding: 12px
+```
+
+### 2.8 验证码输入框 CodeInput
+
+```
+组件名称：CodeInput
+组件路径：Components/Atoms/CodeInput
+
+┌────────────────────────────────────────────┐
+│ Component Properties:                       │
+├────────────────────────────────────────────┤
+│ Length       │ Number (默认: 6)            │
+│──────────────┼─────────────────────────────┤
+│ State        │ Default / Focus / Error /   │
+│              │ Filled / Disabled           │
+│──────────────┼─────────────────────────────┤
+│ ErrorText    │ String / Null               │
+└────────────────────────────────────────────┘
+
+结构：
+┌─────────────────────────────────────────┐
+│ [ 1 ] [ 2 ] [ 3 ] [ 4 ] [ 5 ] [ 6 ]      │
+│ 请输入完整的验证码 (Error State)         │
+└─────────────────────────────────────────┘
+
+单个方格规格：
+- 尺寸: 40×48px
+- 边框: 1px Gray-300 / Focus: 2px Primary-500 / Error: 2px Danger
+- 圆角: radius-sm (8px)
+- 字体: 20px, Bold, Gray-900
+- 间距: 8px between boxes
+```
+
+### 2.9 密码输入框 PasswordInput
+
+```
+组件名称：PasswordInput
+组件路径：Components/Atoms/PasswordInput
+
+┌────────────────────────────────────────────┐
+│ Component Properties:                       │
+├────────────────────────────────────────────┤
+│ State        │ Default / Focus / Error /   │
+│              │ Disabled                    │
+│──────────────┼─────────────────────────────┤
+│ ShowStrength │ True / False (显示强度条)   │
+│──────────────┼─────────────────────────────┤
+│ ErrorText    │ String / Null               │
+│──────────────┼─────────────────────────────┤
+│ HintText     │ String                      │
+└────────────────────────────────────────────┘
+
+结构：
+┌─────────────────────────────────────────┐
+│ [ 密码输入框 ]                [👁️]       │
+│ [ ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ] (强度条)       │
+│ 密码至少6位 (Error State)               │
+└─────────────────────────────────────────┘
+
+密码强度条规格：
+- 高度: 4px
+- 圆角: radius-xs
+- 弱: 1/3 宽度, Danger色
+- 中: 2/3 宽度, Warning色
+- 强: 满宽度, Success色
+```
+
+### 2.10 认证按钮 AuthButton
+
+```
+组件名称：AuthButton
+组件路径：Components/Atoms/AuthButton
+
+┌────────────────────────────────────────────┐
+│ Component Properties:                       │
+├────────────────────────────────────────────┤
+│ Variant      │ Primary / Outline / Ghost   │
+│──────────────┼─────────────────────────────┤
+│ State        │ Default / Loading / Disabled│
+│──────────────┼─────────────────────────────┤
+│ Width        │ Fill / Hug                  │
+│──────────────┼─────────────────────────────┤
+│ LeftIcon     │ None / Icon                 │
+│──────────────┼─────────────────────────────┤
+│ RightIcon    │ None / Icon                 │
+└────────────────────────────────────────────┘
+
+样式规格：
+┌────────────────────────────────────────────────────────┐
+│ Variant   │ Background   │ Text    │ Border            │
+├───────────┼──────────────┼─────────┼───────────────────┤
+│ Primary   │ Primary-500  │ White   │ None              │
+│ Outline   │ Transparent  │ Primary │ Gray-300 1px      │
+│ Ghost     │ Transparent  │ Primary │ None              │
+└───────────┴──────────────┴─────────┴───────────────────┘
+
+尺寸:
+- 高度: 48px
+- 圆角: radius-sm (8px)
+- Padding: 水平 16px
+```
+
 ***
 
 ## 三、分子组件（Molecules）
@@ -1101,11 +1232,173 @@ Constraints & Responsiveness:
 │ │   │   └── Input (Type: Textarea)    │
 │ │   │                                   │
 │ │   └── Spacer (100px)                 │
-│ │                                       │
+│ │                                         │
 │ └── BottomBar (Fixed)                   │
 │     ├── Button: "保存入库" (Primary, Fill)│
 │     └── TextButton: "保存并继续添加"    │
 │                                         │
+└─────────────────────────────────────────┘
+```
+
+### 5.4 启动页模板 SplashPage
+
+```
+组件名称：Template/SplashPage
+组件路径：Templates/SplashPage
+
+层级结构：
+┌─────────────────────────────────────────┐
+│ Frame: SplashPage (375×812)             │
+│                                         │
+│ ├── Spacer (Top)                        │
+│ ├── 🏠📦 (Emoji, 64px)                │
+│ ├── Text: "HomeStock" (H2, Bold)       │
+│ ├── Text: "家庭物品管家" (Body, Gray-500)│
+│ ├── Spacer (Middle)                     │
+│ ├── Loading Indicator (Circular)       │
+│ ├── Spacer (Bottom)                     │
+│                                         │
+│ 背景: White                             │
+└─────────────────────────────────────────┘
+```
+
+### 5.5 欢迎页/引导页模板 WelcomePage
+
+```
+组件名称：Template/WelcomePage
+组件路径：Templates/WelcomePage
+
+层级结构：
+┌─────────────────────────────────────────┐
+│ Frame: WelcomePage (375×812)            │
+│                                         │
+│ ├── Top Row                             │
+│ │   └── TextButton: "跳过"              │
+│ │                                       │
+│ ├── PageView (3 pages)                  │
+│ │   ├── Page 1:                         │
+│ │   │   ├── Emoji: 📦 (80px)          │
+│ │   │   ├── Text: "知道家里有什么" (H3)│
+│ │   │   └── Text: "扫一扫就能轻松记录每件物品" (Body)│
+│ │   ├── Page 2:                         │
+│ │   │   ├── Emoji: 📍 (80px)          │
+│ │   │   ├── Text: "知道东西在哪里" (H3)│
+│ │   │   └── Text: "再也不用翻箱倒柜找东西" (Body)│
+│ │   └── Page 3:                         │
+│ │       ├── Emoji: ⏰ (80px)          │
+│ │       ├── Text: "知道什么时候该买" (H3)│
+│ │       └── Text: "过期提醒，智能补购" (Body)│
+│ │                                       │
+│ ├── Page Indicators (3 dots)            │
+│ ├── Spacer (24px)                       │
+│ └── AuthButton: "下一步" / "开始使用"  │
+│                                         │
+│ 背景: White                             │
+└─────────────────────────────────────────┘
+```
+
+### 5.6 登录页模板 LoginPage
+
+```
+组件名称：Template/LoginPage
+组件路径：Templates/LoginPage
+
+层级结构：
+┌─────────────────────────────────────────┐
+│ Frame: LoginPage (375×812)              │
+│                                         │
+│ ├── ScrollView (Padding: 24px)          │
+│ │   ├── Top Section:                    │
+│ │   │   ├── 🏠📦 (64px)               │
+│ │   │   ├── Text: "HomeStock" (H2)      │
+│ │   │   ├── Spacer (24px)               │
+│ │   │   ├── Text: "欢迎回来 👋" (H3)   │
+│ │   │   └── Text: "登录后同步你的家庭数据" (Body)│
+│ │   │                                 │
+│ │   ├── Form Section:                  │
+│ │   │   ├── PhoneInput                 │
+│ │   │   ├── Spacer (20px)              │
+│ │   │   ├── PasswordInput              │
+│ │   │   ├── Spacer (16px)              │
+│ │   │   └── AlignRight TextButton: "忘记密码?"│
+│ │   │                                 │
+│ │   ├── Buttons Section:               │
+│ │   │   ├── AuthButton: "登录" (Primary)│
+│ │   │   ├── Spacer (24px)              │
+│ │   │   ├── AuthButton: "📱 验证码登录" (Outline)│
+│ │   │   ├── Spacer (32px)              │
+│ │   │   ├── Divider + "或" + Divider  │
+│ │   │   ├── Spacer (24px)              │
+│ │   │   └── Row:                       │
+│ │   │       ├── Text: "还没有账号?"    │
+│ │   │       └── TextButton: "立即注册" │
+│ │   │                                 │
+│ │   └── Bottom Text: (协议)            │
+│ │       "登录即代表同意《用户协议》和《隐私政策》"│
+│                                         │
+│ 背景: White                             │
+└─────────────────────────────────────────┘
+```
+
+### 5.7 注册页模板 RegisterPage
+
+```
+组件名称：Template/RegisterPage
+组件路径：Templates/RegisterPage
+
+层级结构：
+┌─────────────────────────────────────────┐
+│ Frame: RegisterPage (375×812)           │
+│                                         │
+│ ├── NavBar (Back Button)                │
+│ ├── ScrollView (Padding: 24px)          │
+│ │   ├── Title: "创建账号" (H3)          │
+│ │   ├── Subtitle: "加入 HomeStock，开始管理你的家庭物品" (Body)│
+│ │   ├── Spacer (40px)                   │
+│ │   ├── PhoneInput                     │
+│ │   ├── Spacer (16px)                   │
+│ │   ├── Row:                            │
+│ │   │   ├── Expanded: AuthButton: "获取验证码" (Outline)│
+│ │   ├── (Code Sent 后显示)              │
+│ │   │   ├── Spacer (32px)              │
+│ │   │   ├── CodeInput                  │
+│ │   │   ├── Spacer (24px)              │
+│ │   │   ├── PasswordInput              │
+│ │   │   ├── Spacer (32px)              │
+│ │   │   ├── AuthButton: "注册" (Primary)│
+│ │   │   ├── Spacer (24px)              │
+│ │   │   └── (协议文字)                  │
+│                                         │
+│ 背景: White                             │
+└─────────────────────────────────────────┘
+```
+
+### 5.8 创建家庭页模板 CreateFamilyPage
+
+```
+组件名称：Template/CreateFamilyPage
+组件路径：Templates/CreateFamilyPage
+
+层级结构：
+┌─────────────────────────────────────────┐
+│ Frame: CreateFamilyPage (375×812)       │
+│                                         │
+│ ├── Spacer (Top, Flex 1)                │
+│ ├── Emoji: 🏠 (80px)                   │
+│ ├── Spacer (32px)                       │
+│ ├── Text: "创建你的家庭" (H3, Center)  │
+│ ├── Text: "创建一个家庭空间，邀请家人一起管理物品" (Body, Center)│
+│ ├── Spacer (40px)                       │
+│ ├── Input: "给你的家庭起个名字" (Large)│
+│ ├── Spacer (24px)                       │
+│ ├── AuthButton: "创建家庭" (Primary)   │
+│ ├── Spacer (24px)                       │
+│ ├── Row (Center):                       │
+│ │   ├── Text: "已有家庭?"              │
+│ │   └── TextButton: "加入家庭"         │
+│ ├── Spacer (Bottom, Flex 2)             │
+│                                         │
+│ 背景: White                             │
 └─────────────────────────────────────────┘
 ```
 

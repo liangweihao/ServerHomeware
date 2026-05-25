@@ -1,0 +1,263 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/services/auth_service.dart';
+import 'widgets/phone_input.dart';
+import 'widgets/code_input.dart';
+import 'widgets/auth_button.dart';
+
+/// 验证码登录页
+class VerifyCodePage extends ConsumerStatefulWidget {
+  const VerifyCodePage({super.key});
+
+  @override
+  ConsumerState<VerifyCodePage> createState() => _VerifyCodePageState();
+}
+
+class _VerifyCodePageState extends ConsumerState<VerifyCodePage> {
+  final _phoneController = TextEditingController();
+  final _codeController = TextEditingController();
+
+  String? _phoneError;
+  String? _codeError;
+  bool _isLoading = false;
+  bool _isSendingCode = false;
+  bool _codeSent = false;
+  int _countdown = 0;
+  Timer? _countdownTimer;
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _codeController.dispose();
+    _countdownTimer?.cancel();
+    super.dispose();
+  }
+
+  /// 发送验证码
+  Future<void> _sendCode() async {
+    final phone = _phoneController.text.trim();
+    if (phone.isEmpty) {
+      setState(() {
+        _phoneError = '请输入手机号';
+      });
+      return;
+    } else if (phone.length != 11 || !phone.startsWith('1')) {
+      setState(() {
+        _phoneError = '请输入正确的手机号';
+      });
+      return;
+    }
+
+    setState(() {
+      _isSendingCode = true;
+      _phoneError = null;
+    });
+
+    try {
+      await AuthService().sendVerifyCode(phone: phone, purpose: 'login');
+
+      setState(() {
+        _codeSent = true;
+        _countdown = 60;
+      });
+
+      _startCountdown();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSendingCode = false;
+        });
+      }
+    }
+  }
+
+  /// 开始倒计时
+  void _startCountdown() {
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown > 0) {
+        if (mounted) {
+          setState(() {
+            _countdown--;
+          });
+        }
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  /// 验证并登录
+  Future<void> _verifyAndLogin() async {
+    final code = _codeController.text;
+    if (code.isEmpty || code.length != 6) {
+      setState(() {
+        _codeError = '请输入完整的验证码';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _codeError = null;
+    });
+
+    try {
+      await ref.read(authProvider.notifier).loginWithVerifyCode(
+            phone: _phoneController.text.trim(),
+            code: code,
+          );
+
+      if (mounted) {
+        context.go('/');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 标题
+              _buildTitle(),
+              const SizedBox(height: 40),
+              // 手机号输入
+              PhoneInput(
+                controller: _phoneController,
+                errorText: _phoneError,
+                enabled: !_isLoading && !_isSendingCode,
+                onChanged: (_) {
+                  if (_phoneError != null) {
+                    setState(() {
+                      _phoneError = null;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              // 发送验证码按钮
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: (_codeSent && _countdown > 0) || _isLoading || _isSendingCode
+                          ? null
+                          : _sendCode,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _codeSent && _countdown > 0 ? AppColors.gray200 : AppColors.primary,
+                        disabledBackgroundColor: AppColors.gray300,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: _isSendingCode
+                          ? SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                  AppColors.white,
+                                ),
+                              ),
+                            )
+                          : Text(
+                              _countdown > 0 ? '${_countdown}s' : '获取验证码',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color:
+                                    _codeSent && _countdown > 0 ? AppColors.gray500 : AppColors.white,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+              if (_codeSent) ...[
+                const SizedBox(height: 32),
+                // 验证码输入
+                CodeInput(
+                  controller: _codeController,
+                  errorText: _codeError,
+                  enabled: !_isLoading,
+                  onCompleted: (_) {
+                    _verifyAndLogin();
+                  },
+                ),
+                const SizedBox(height: 24),
+                // 登录按钮
+                AuthButton(
+                  label: '登录',
+                  onPressed: _verifyAndLogin,
+                  isLoading: _isLoading,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitle() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '验证码登录',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.gray900,
+              ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '输入手机号，获取验证码',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppColors.gray500,
+              ),
+        ),
+      ],
+    );
+  }
+}
