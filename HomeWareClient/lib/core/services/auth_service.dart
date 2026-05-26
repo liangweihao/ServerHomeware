@@ -118,11 +118,11 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
+      id: (json['id'] as dynamic)?.toString() ?? '',
       phone: json['phone'],
       nickname: json['nickname'],
       avatar: json['avatar'],
-      familyId: json['family_id'],
+      familyId: (json['family_id'] as dynamic)?.toString(),
       familyRole: json['family_role'],
     );
   }
@@ -162,7 +162,7 @@ class Family {
 
   factory Family.fromJson(Map<String, dynamic> json) {
     return Family(
-      id: json['id'],
+      id: (json['id'] as dynamic)?.toString() ?? '',
       name: json['name'],
       inviteCode: json['invite_code'],
       memberCount: json['member_count'],
@@ -204,8 +204,8 @@ class FamilyMember {
 
   factory FamilyMember.fromJson(Map<String, dynamic> json) {
     return FamilyMember(
-      id: json['id'],
-      userId: json['user_id'],
+      id: (json['id'] as dynamic)?.toString() ?? '',
+      userId: (json['user_id'] as dynamic)?.toString() ?? '',
       nickname: json['nickname'],
       phone: json['phone'],
       role: json['role'],

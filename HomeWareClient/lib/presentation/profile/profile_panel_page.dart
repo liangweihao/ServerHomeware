@@ -111,7 +111,8 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
   Future<void> _refreshInviteCode() async {
     try {
       final familyService = FamilyService();
-      final familyId = _familyData?['id'] ?? '1';
+      // 服务端返回的 id 是 int 类型，需要转换为 String
+      final familyId = (_familyData?['id'] as int?)?.toString() ?? '1';
       final result = await familyService.refreshInviteCode(familyId: familyId);
       if (result.code == 200) {
         setState(() {
