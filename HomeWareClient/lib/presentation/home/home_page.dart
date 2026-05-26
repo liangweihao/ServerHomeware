@@ -3,13 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/home_provider.dart';
-import '../../core/providers/shopping_provider.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/services/auth_service.dart';
 import '../common/widgets/app_empty_state.dart';
 import '../common/widgets/shimmer_loading.dart';
 import 'widgets/stat_card.dart';
 import 'widgets/space_card.dart';
 import 'widgets/activity_item.dart';
-import 'widgets/home_shimmer.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -17,159 +17,153 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(homeStatsProvider);
-            ref.invalidate(spacesProvider);
-            ref.invalidate(recentActivitiesProvider);
-          },
-          child: CustomScrollView(
-            slivers: [
-              // AppBar
-              SliverAppBar(
-                floating: true,
-                backgroundColor: AppColors.background,
-                elevation: 0,
-                title: Row(
-                  children: [
-                    const Text(
-                      '🏠',
-                      style: TextStyle(fontSize: 24),
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        '我的家',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                        overflow: TextOverflow.ellipsis,
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(homeStatsProvider);
+              ref.invalidate(spacesProvider);
+              ref.invalidate(recentActivitiesProvider);
+            },
+            child: CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  floating: true,
+                  backgroundColor: AppColors.background,
+                  elevation: 0,
+                  title: Row(
+                    children: [
+                      const Text(
+                        '🏠',
+                        style: TextStyle(fontSize: 24),
                       ),
-                    ),
-                  ],
-                ),
-                actions: [
-                  // 搜索按钮
-                  IconButton(
-                    onPressed: () => context.push('/search'),
-                    icon: const Icon(Icons.search),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          '我的家',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                  // 头像
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: AppColors.primary.withOpacity(0.1),
-                      child: const Icon(
-                        Icons.person,
-                        size: 18,
-                        color: AppColors.primary,
-                      ),
+                  actions: [
+                    IconButton(
+                      onPressed: () => context.push('/search'),
+                      icon: const Icon(Icons.search),
                     ),
-                  ),
-                ],
-              ),
-
-              // 内容区域
-              SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-
-                    // 需要关注区域
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Stack(
                         children: [
-                          const Text('⚠️ ', style: TextStyle(fontSize: 18)),
-                          Text(
-                            '需要关注',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // 统计卡片网格
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _buildStatsGrid(context, ref),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // 快捷空间入口
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          const Text('📍 ', style: TextStyle(fontSize: 18)),
-                          Text(
-                            '快捷查看',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // 空间卡片列表
-                    _buildSpacesList(context, ref),
-
-                    const SizedBox(height: 24),
-
-                    // 最近动态
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                const Text('📅 ', style: TextStyle(fontSize: 18)),
-                                Flexible(
-                                  child: Text(
-                                    '最近动态',
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          TextButton(
+                          IconButton(
                             onPressed: () {
-                              // TODO: 跳转到全部动态页面
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('暂无新通知')),
+                              );
                             },
-                            child: const Text('查看全部 →'),
+                            icon: const Icon(Icons.notifications),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: AppColors.danger,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-
-                    // 动态列表
-                    _buildActivitiesList(context, ref),
-
-                    const SizedBox(height: 24),
+                    _buildAvatarButton(context, ref),
                   ],
                 ),
-              ),
-            ],
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            const Text('⚠️ ', style: TextStyle(fontSize: 18)),
+                            Text(
+                              '需要关注',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: _buildStatsGrid(context, ref),
+                      ),
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            const Text('📍 ', style: TextStyle(fontSize: 18)),
+                            Text(
+                              '快捷查看',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildSpacesList(context, ref),
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  const Text('📅 ', style: TextStyle(fontSize: 18)),
+                                  Flexible(
+                                    child: Text(
+                                      '最近动态',
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            TextButton(
+                              onPressed: () {},
+                              child: const Text('查看全部 →'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _buildActivitiesList(context, ref),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
     );
   }
 
@@ -358,6 +352,47 @@ class HomePage extends ConsumerWidget {
           icon: '❌',
           title: '加载失败',
           subtitle: error.toString(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarButton(BuildContext context, WidgetRef ref) {
+    final user = ref.read(authProvider.notifier).currentUser;
+    final avatarIndex = AuthService.getAvatarColorIndex(user?.phone ?? '');
+    final colors = AuthService.getAvatarColors(avatarIndex);
+    String displayChar = '?';
+    if (user?.nickname != null && user!.nickname!.isNotEmpty) {
+      displayChar = user.nickname![0].toUpperCase();
+    } else if (user?.phone != null) {
+      displayChar = user!.phone!.substring(user.phone!.length - 4);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 16),
+      child: GestureDetector(
+        onTap: () => context.push('/profile/panel'),
+        child: Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [Color(colors[0]), Color(colors[1])],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              displayChar,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ),
       ),
     );

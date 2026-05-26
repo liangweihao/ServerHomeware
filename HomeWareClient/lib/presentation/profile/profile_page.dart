@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
+import '../../core/providers/auth_provider.dart';
 import '../../core/providers/database_provider.dart';
+import '../../core/services/auth_service.dart';
 import '../../core/services/export_service.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -11,7 +13,8 @@ class ProfilePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final db = ref.watch(databaseProvider);
+    // 获取当前用户信息
+    final user = ref.watch(authProvider.notifier).currentUser;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -52,14 +55,9 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      CircleAvatar(
-                        radius: 32,
-                        backgroundColor: AppColors.primary.withOpacity(0.1),
-                        child: const Icon(
-                          Icons.person,
-                          size: 32,
-                          color: AppColors.primary,
-                        ),
+                      Hero(
+                        tag: 'user_avatar',
+                        child: _buildAvatar(user?.nickname ?? '?', user?.phone ?? 'default', 32),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -67,14 +65,14 @@ class ProfilePage extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '用户',
+                              user?.nickname ?? '用户',
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '管理员',
+                              _getRoleText(user?.familyRole),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppColors.textSecondary,
                                   ),
@@ -85,7 +83,7 @@ class ProfilePage extends ConsumerWidget {
                       IconButton(
                         icon: const Icon(Icons.edit_outlined),
                         onPressed: () {
-                          // TODO: 编辑个人信息
+                          context.push('/profile/edit');
                         },
                       ),
                     ],
@@ -331,5 +329,57 @@ class ProfilePage extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// 构建用户头像
+  Widget _buildAvatar(String nickname, String phone, double size) {
+    final avatarIndex = AuthService.getAvatarColorIndex(phone);
+    final colors = AuthService.getAvatarColors(avatarIndex);
+    
+    // 获取显示字符
+    String displayChar = '?';
+    if (nickname.isNotEmpty) {
+      displayChar = nickname[0].toUpperCase();
+    } else if (phone.length >= 4) {
+      displayChar = phone.substring(7, 11);
+    }
+    
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [
+            Color(colors[0]),
+            Color(colors[1]),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          displayChar,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: size * 0.4,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 获取角色文本
+  String _getRoleText(String? role) {
+    switch (role) {
+      case 'admin':
+        return '管理员';
+      case 'member':
+        return '成员';
+      default:
+        return '成员';
+    }
   }
 }

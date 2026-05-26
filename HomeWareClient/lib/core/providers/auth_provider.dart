@@ -55,17 +55,68 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     state = const AsyncLoading();
     
     try {
-      final user = await _authService.loginWithPassword(
+      final response = await _authService.loginWithPassword(
         phone: phone,
         password: password,
       );
       
-      await _saveUserInfo(user, 'token_${DateTime.now().millisecondsSinceEpoch}');
+      if (!response.isSuccess) {
+        throw Exception(response.message);
+      }
+      
+      final data = response.data;
+      if (data == null) {
+        throw Exception('登录失败');
+      }
+      
+      final userMap = data['user'] as Map<String, dynamic>;
+      final user = User.fromJson(userMap);
+      final accessToken = data['access_token'] as String? ?? '';
+      
+      await _saveUserInfo(user, accessToken);
       await _markFirstLaunchComplete();
       
       state = const AsyncData(AuthState.authenticated);
     } catch (e) {
       state = AsyncError(e, StackTrace.current);
+      rethrow;
+    }
+  }
+
+  /// 更新用户信息
+  Future<void> updateProfile({
+    String? nickname,
+    String? avatar,
+    String? familyNickname,
+  }) async {
+    try {
+      final userId = _prefs?.getString(_keyUserId);
+      if (userId == null) {
+        throw Exception('用户未登录');
+      }
+      
+      final response = await _authService.updateProfile(
+        userId: userId,
+        nickname: nickname,
+        avatar: avatar,
+        familyNickname: familyNickname,
+      );
+      
+      if (!response.isSuccess) {
+        throw Exception(response.message);
+      }
+      
+      final data = response.data;
+      if (data == null) {
+        throw Exception('更新失败');
+      }
+      
+      final userMap = data['user'] as Map<String, dynamic>;
+      final user = User.fromJson(userMap);
+      
+      // 更新本地存储的用户信息
+      await _saveUserInfo(user, _prefs?.getString(_keyToken) ?? '');
+    } catch (e) {
       rethrow;
     }
   }

@@ -8,6 +8,8 @@ import '../../presentation/items/edit_item_page.dart';
 import '../../presentation/items/scan_page.dart';
 import '../../presentation/alerts/alert_center_page.dart';
 import '../../presentation/profile/profile_page.dart';
+import '../../presentation/profile/profile_panel_page.dart';
+import '../../presentation/profile/edit_profile_page.dart';
 import '../../presentation/profile/category_management_page.dart';
 import '../../presentation/profile/family_management_page.dart';
 import '../../presentation/profile/notification_settings_page.dart';
@@ -255,6 +257,20 @@ final appRouter = GoRouter(
       name: 'notificationSettings',
       pageBuilder: (context, state) => SlideTransitionPage(
         child: const NotificationSettingsPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/profile/edit',
+      name: 'editProfile',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const EditProfilePage(),
+      ),
+    ),
+    GoRoute(
+      path: '/profile/panel',
+      name: 'profilePanel',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const ProfilePanelPage(),
       ),
     ),
   ],

@@ -138,7 +138,11 @@ class AuthService {
   }
 
   /// 密码登录
-  Future<User> loginWithPassword({
+  /// POST /api/v1/auth/login
+  /// Request: {phone, password}
+  /// Response: {code, message, data: {user, access_token, refresh_token}}
+  /// 逻辑：验证手机号密码 → 更新last_login_at → 返回token
+  Future<ApiResponse<Map<String, dynamic>>> loginWithPassword({
     required String phone,
     required String password,
   }) async {
@@ -146,20 +150,152 @@ class AuthService {
     
     // 模拟验证失败（手机号密码格式不对时）
     if (phone.length != 11 || !phone.startsWith('1')) {
-      throw Exception('请输入正确的手机号');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 400,
+        message: '请输入正确的手机号',
+        data: null,
+      );
     }
     if (password.length < 8) {
-      throw Exception('密码错误');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 401,
+        message: '密码错误',
+        data: null,
+      );
+    }
+    
+    // 模拟成功：创建用户并自动创建默认家庭
+    final userId = _generateId();
+    final familyId = _generateId();
+    final nickname = '用户${phone.substring(7)}';
+    
+    // 自动分配默认头像
+    final avatarColorIndex = phone.hashCode.abs() % avatarColors.length;
+    
+    final user = User(
+      id: userId,
+      phone: phone,
+      nickname: nickname,
+      avatar: 'avatar_$avatarColorIndex', // 存储头像颜色索引
+      familyId: familyId,
+      familyRole: 'admin',
+    );
+    
+    final token = Token(
+      accessToken: 'access_${_generateId()}',
+      refreshToken: 'refresh_${_generateId()}',
+    );
+    
+    return ApiResponse<Map<String, dynamic>>(
+      code: 200,
+      message: 'success',
+      data: {
+        'user': user.toJson(),
+        'access_token': token.accessToken,
+        'refresh_token': token.refreshToken,
+      },
+    );
+  }
+
+  /// 获取当前用户信息
+  /// GET /api/v1/users/me
+  /// 从请求 Header 提取 JWT → 解析 → 查数据库获取用户
+  Future<ApiResponse<Map<String, dynamic>>> getCurrentUser({
+    required String userId,
+  }) async {
+    await Future.delayed(_delay);
+    
+    // 模拟用户不存在
+    if (userId.isEmpty) {
+      return ApiResponse<Map<String, dynamic>>(
+        code: 404,
+        message: '用户不存在',
+        data: null,
+      );
+    }
+    
+    // 模拟成功（这里应该是从数据库获取，这里用模拟数据）
+    final user = User(
+      id: userId,
+      phone: '13800000000',
+      nickname: '用户0000',
+      avatar: 'avatar_0',
+      familyId: _generateId(),
+      familyRole: 'admin',
+    );
+    
+    return ApiResponse<Map<String, dynamic>>(
+      code: 200,
+      message: 'success',
+      data: {
+        'user': user.toJson(),
+      },
+    );
+  }
+
+  /// 更新用户信息
+  /// PUT /api/v1/users/me
+  Future<ApiResponse<Map<String, dynamic>>> updateProfile({
+    required String userId,
+    String? nickname,
+    String? avatar,
+    String? familyNickname,
+  }) async {
+    await Future.delayed(_delay);
+    
+    // 模拟用户不存在
+    if (userId.isEmpty) {
+      return ApiResponse<Map<String, dynamic>>(
+        code: 404,
+        message: '用户不存在',
+        data: null,
+      );
     }
     
     // 模拟成功
-    return User(
-      id: _generateId(),
-      phone: phone,
-      nickname: '用户${phone.substring(7)}',
-      familyId: null,
-      familyRole: null,
+    final user = User(
+      id: userId,
+      phone: '13800000000',
+      nickname: nickname ?? '用户',
+      avatar: avatar ?? 'avatar_0',
+      familyId: _generateId(),
+      familyRole: 'admin',
     );
+    
+    return ApiResponse<Map<String, dynamic>>(
+      code: 200,
+      message: 'success',
+      data: {
+        'user': user.toJson(),
+      },
+    );
+  }
+
+  /// 预设头像颜色列表（10种渐变色组合）
+  static const List<List<int>> avatarColors = [
+    [0xFF667eea, 0xFF764ba2], // 紫蓝渐变
+    [0xFFf093fb, 0xFFf5576c], // 粉红渐变
+    [0xFF4facfe, 0xFF00f2fe], // 蓝色渐变
+    [0xFF43e97b, 0xFF38f9d7], // 绿蓝渐变
+    [0xFFfa709a, 0xFFfee140], // 橙粉渐变
+    [0xFF30cfd0, 0xFF330867], // 深蓝渐变
+    [0xFFa8edea, 0xFFfed6e3], // 浅粉渐变
+    [0xFFffecd2, 0xFFfcb69f], // 暖橙渐变
+    [0xFFff9a9e, 0xFFfecfef], // 玫红渐变
+    [0xFFa18cd1, 0xFFfbc2eb], // 紫粉渐变
+  ];
+
+  /// 根据用户标识获取头像颜色索引
+  static int getAvatarColorIndex(String? identifier) {
+    if (identifier == null || identifier.isEmpty) {
+      return 0;
+    }
+    return identifier.hashCode.abs() % avatarColors.length;
+  }
+
+  /// 获取头像颜色对
+  static List<int> getAvatarColors(int index) {
+    return avatarColors[index.abs() % avatarColors.length];
   }
 
   /// 发送验证码
