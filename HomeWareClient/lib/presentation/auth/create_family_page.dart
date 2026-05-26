@@ -72,6 +72,15 @@ class _CreateFamilyPageState extends ConsumerState<CreateFamilyPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          onPressed: () => context.pop(),
+          color: AppColors.gray700,
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -131,6 +140,8 @@ class _CreateFamilyPageState extends ConsumerState<CreateFamilyPage> {
                     borderRadius: BorderRadius.circular(8),
                     borderSide: const BorderSide(color: AppColors.danger),
                   ),
+                  prefixIcon: const Icon(Icons.home_outlined),
+                  prefixIconColor: AppColors.gray400,
                 ),
                 onChanged: (_) {
                   if (_nameError != null) {
@@ -139,6 +150,15 @@ class _CreateFamilyPageState extends ConsumerState<CreateFamilyPage> {
                     });
                   }
                 },
+              ),
+              const SizedBox(height: 12),
+              // 提示文字
+              Text(
+                '家庭名称需要2-15个字符',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.gray400,
+                ),
               ),
               const SizedBox(height: 24),
               // 创建按钮

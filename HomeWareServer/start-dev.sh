@@ -4,7 +4,8 @@
 # 使用 SQLite 作为数据库，无需 PostgreSQL 和 Redis
 
 set -e
-
+kill -9 $(lsof -ti:8000) 2>/dev/null
+sleep 1
 echo "=========================================="
 echo "   HomeStock Server 开发模式启动脚本"
 echo "=========================================="

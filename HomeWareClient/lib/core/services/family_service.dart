@@ -5,7 +5,7 @@ import './auth_service.dart';
 
 /// 家庭信息服务
 class FamilyService {
-  static const _baseUrl = 'http://localhost:8080/api/v1';
+  static const _baseUrl = 'http://192.168.1.104:8000/api/v1';
   static const _keyToken = 'auth_token';
 
   /// 获取当前家庭信息
@@ -111,6 +111,84 @@ class FamilyService {
     }
   }
 
+  /// 创建家庭
+  /// 调用服务端 POST /api/v1/families 接口
+  /// Request: {name}
+  /// 逻辑：创建家庭 → 生成8位邀请码 → 创建family_member记录(role=owner) → 更新用户current_family_id
+  Future<ApiResponse<Map<String, dynamic>>> createFamily({
+    required String name,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        _log('ERROR: 未登录');
+        return ApiResponse<Map<String, dynamic>>(
+          code: 401,
+          message: '未登录',
+        );
+      }
+
+      _log('INFO: 调用 POST /api/v1/families');
+      final response = await http.post(
+        Uri.parse('$_baseUrl/families'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'name': name,
+        }),
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 创建家庭失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: '创建家庭失败: $e',
+      );
+    }
+  }
+
+  /// 加入家庭
+  /// 调用服务端 POST /api/v1/families/join 接口
+  /// Request: {invite_code}
+  /// 逻辑：查找邀请码对应的家庭 → 检查用户是否已在该家庭 → 创建family_member(role=member) → 更新用户current_family_id
+  Future<ApiResponse<Map<String, dynamic>>> joinFamily({
+    required String inviteCode,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        _log('ERROR: 未登录');
+        return ApiResponse<Map<String, dynamic>>(
+          code: 401,
+          message: '未登录',
+        );
+      }
+
+      _log('INFO: 调用 POST /api/v1/families/join');
+      final response = await http.post(
+        Uri.parse('$_baseUrl/families/join'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'invite_code': inviteCode,
+        }),
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 加入家庭失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: '加入家庭失败: $e',
+      );
+    }
+  }
+
   /// 从 SharedPreferences 获取 token
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -123,6 +201,9 @@ class FamilyService {
       final Map<String, dynamic> jsonData = json.decode(response.body);
       final code = jsonData['code'] ?? response.statusCode;
       final message = jsonData['message'] ?? 'success';
+      
+      // 打印完整的响应 JSON 日志
+      _log('RESPONSE: ${json.encode(jsonData)}');
 
       if (code != 200) {
         _log('WARN: 接口返回错误 - code: $code, message: $message');
@@ -134,7 +215,7 @@ class FamilyService {
         data: jsonData['data'],
       );
     } catch (e) {
-      _log('ERROR: 响应解析失败 - $e');
+      _log('ERROR: 响应解析失败 - $e, body: ${response.body}');
       return ApiResponse<Map<String, dynamic>>(
         code: response.statusCode,
         message: '解析错误: $e',

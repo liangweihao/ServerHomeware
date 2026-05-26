@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Token 模型类
 class Token {
@@ -126,11 +128,137 @@ class User {
   }
 }
 
-/// 认证服务（模拟 API）
+/// 家庭信息模型
+class Family {
+  final String id;
+  final String name;
+  final String inviteCode;
+  final int memberCount;
+  final int itemCount;
+  final List<FamilyMember> members;
+  final DateTime createdAt;
+
+  Family({
+    required this.id,
+    required this.name,
+    required this.inviteCode,
+    required this.memberCount,
+    required this.itemCount,
+    required this.members,
+    required this.createdAt,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'invite_code': inviteCode,
+      'member_count': memberCount,
+      'item_count': itemCount,
+      'members': members.map((m) => m.toJson()).toList(),
+      'created_at': createdAt.toIso8601String(),
+    };
+  }
+
+  factory Family.fromJson(Map<String, dynamic> json) {
+    return Family(
+      id: json['id'],
+      name: json['name'],
+      inviteCode: json['invite_code'],
+      memberCount: json['member_count'],
+      itemCount: json['item_count'],
+      members: (json['members'] as List).map((m) => FamilyMember.fromJson(m)).toList(),
+      createdAt: DateTime.parse(json['created_at']),
+    );
+  }
+}
+
+/// 家庭成员模型
+class FamilyMember {
+  final String id;
+  final String userId;
+  final String nickname;
+  final String phone;
+  final String role;
+  final DateTime joinedAt;
+
+  FamilyMember({
+    required this.id,
+    required this.userId,
+    required this.nickname,
+    required this.phone,
+    required this.role,
+    required this.joinedAt,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'nickname': nickname,
+      'phone': phone,
+      'role': role,
+      'joined_at': joinedAt.toIso8601String(),
+    };
+  }
+
+  factory FamilyMember.fromJson(Map<String, dynamic> json) {
+    return FamilyMember(
+      id: json['id'],
+      userId: json['user_id'],
+      nickname: json['nickname'],
+      phone: json['phone'],
+      role: json['role'],
+      joinedAt: DateTime.parse(json['joined_at']),
+    );
+  }
+}
+
+/// 认证服务
 class AuthService {
+  static const _baseUrl = 'http://192.168.1.104:8000/api/v1';
+  static const _keyToken = 'auth_token';
   static const _delay = Duration(seconds: 1);
-  static const _verifyDelay = Duration(milliseconds: 800);
   
+  /// 从 SharedPreferences 获取 token
+  Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyToken);
+  }
+
+  /// 日志记录
+  void _log(String message) {
+    print('[AuthService] $message');
+  }
+
+  /// 处理 HTTP 响应
+  ApiResponse<Map<String, dynamic>> _handleResponse(http.Response response) {
+    try {
+      final Map<String, dynamic> jsonData = json.decode(response.body);
+      final code = jsonData['code'] ?? response.statusCode;
+      final message = jsonData['message'] ?? 'success';
+      
+      // 打印完整的响应 JSON 日志
+      _log('RESPONSE: ${json.encode(jsonData)}');
+
+      if (code != 200) {
+        _log('WARN: 接口返回错误 - code: $code, message: $message');
+      }
+
+      return ApiResponse<Map<String, dynamic>>(
+        code: code,
+        message: message,
+        data: jsonData['data'],
+      );
+    } catch (e) {
+      _log('ERROR: 响应解析失败 - $e, body: ${response.body}');
+      return ApiResponse<Map<String, dynamic>>(
+        code: response.statusCode,
+        message: '解析错误: $e',
+      );
+    }
+  }
+
   /// 生成随机用户 ID
   String _generateId() {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -148,7 +276,6 @@ class AuthService {
   }) async {
     await Future.delayed(_delay);
     
-    // 模拟验证失败（手机号密码格式不对时）
     if (phone.length != 11 || !phone.startsWith('1')) {
       return ApiResponse<Map<String, dynamic>>(
         code: 400,
@@ -164,19 +291,16 @@ class AuthService {
       );
     }
     
-    // 模拟成功：创建用户并自动创建默认家庭
     final userId = _generateId();
     final familyId = _generateId();
     final nickname = '用户${phone.substring(7)}';
-    
-    // 自动分配默认头像
     final avatarColorIndex = phone.hashCode.abs() % avatarColors.length;
     
     final user = User(
       id: userId,
       phone: phone,
       nickname: nickname,
-      avatar: 'avatar_$avatarColorIndex', // 存储头像颜色索引
+      avatar: 'avatar_$avatarColorIndex',
       familyId: familyId,
       familyRole: 'admin',
     );
@@ -197,41 +321,7 @@ class AuthService {
     );
   }
 
-  /// 获取当前用户信息
-  /// GET /api/v1/users/me
-  /// 从请求 Header 提取 JWT → 解析 → 查数据库获取用户
-  Future<ApiResponse<Map<String, dynamic>>> getCurrentUser({
-    required String userId,
-  }) async {
-    await Future.delayed(_delay);
-    
-    // 模拟用户不存在
-    if (userId.isEmpty) {
-      return ApiResponse<Map<String, dynamic>>(
-        code: 404,
-        message: '用户不存在',
-        data: null,
-      );
-    }
-    
-    // 模拟成功（这里应该是从数据库获取，这里用模拟数据）
-    final user = User(
-      id: userId,
-      phone: '13800000000',
-      nickname: '用户0000',
-      avatar: 'avatar_0',
-      familyId: _generateId(),
-      familyRole: 'admin',
-    );
-    
-    return ApiResponse<Map<String, dynamic>>(
-      code: 200,
-      message: 'success',
-      data: {
-        'user': user.toJson(),
-      },
-    );
-  }
+
 
   /// 更新用户信息
   /// PUT /api/v1/users/me
@@ -241,48 +331,54 @@ class AuthService {
     String? avatar,
     String? familyNickname,
   }) async {
-    await Future.delayed(_delay);
-    
-    // 模拟用户不存在
-    if (userId.isEmpty) {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        _log('ERROR: 未登录');
+        return ApiResponse<Map<String, dynamic>>(
+          code: 401,
+          message: '未登录',
+        );
+      }
+
+      _log('INFO: 调用 PUT /api/v1/users/me');
+      
+      // 构造请求体
+      final Map<String, dynamic> body = {};
+      if (nickname != null) body['nickname'] = nickname;
+      if (avatar != null) body['avatar_url'] = avatar;
+
+      final response = await http.put(
+        Uri.parse('$_baseUrl/users/me'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(body),
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 更新用户信息失败 - $e');
       return ApiResponse<Map<String, dynamic>>(
-        code: 404,
-        message: '用户不存在',
-        data: null,
+        code: 500,
+        message: '更新用户信息失败: $e',
       );
     }
-    
-    // 模拟成功
-    final user = User(
-      id: userId,
-      phone: '13800000000',
-      nickname: nickname ?? '用户',
-      avatar: avatar ?? 'avatar_0',
-      familyId: _generateId(),
-      familyRole: 'admin',
-    );
-    
-    return ApiResponse<Map<String, dynamic>>(
-      code: 200,
-      message: 'success',
-      data: {
-        'user': user.toJson(),
-      },
-    );
   }
 
   /// 预设头像颜色列表（10种渐变色组合）
   static const List<List<int>> avatarColors = [
-    [0xFF667eea, 0xFF764ba2], // 紫蓝渐变
-    [0xFFf093fb, 0xFFf5576c], // 粉红渐变
-    [0xFF4facfe, 0xFF00f2fe], // 蓝色渐变
-    [0xFF43e97b, 0xFF38f9d7], // 绿蓝渐变
-    [0xFFfa709a, 0xFFfee140], // 橙粉渐变
-    [0xFF30cfd0, 0xFF330867], // 深蓝渐变
-    [0xFFa8edea, 0xFFfed6e3], // 浅粉渐变
-    [0xFFffecd2, 0xFFfcb69f], // 暖橙渐变
-    [0xFFff9a9e, 0xFFfecfef], // 玫红渐变
-    [0xFFa18cd1, 0xFFfbc2eb], // 紫粉渐变
+    [0xFF667eea, 0xFF764ba2],
+    [0xFFf093fb, 0xFFf5576c],
+    [0xFF4facfe, 0xFF00f2fe],
+    [0xFF43e97b, 0xFF38f9d7],
+    [0xFFfa709a, 0xFFfee140],
+    [0xFF30cfd0, 0xFF330867],
+    [0xFFa8edea, 0xFFfed6e3],
+    [0xFFffecd2, 0xFFfcb69f],
+    [0xFFff9a9e, 0xFFfecfef],
+    [0xFFa18cd1, 0xFFfbc2eb],
   ];
 
   /// 根据用户标识获取头像颜色索引
@@ -305,12 +401,10 @@ class AuthService {
   }) async {
     await Future.delayed(_delay);
     
-    // 模拟验证手机号
     if (phone.length != 11 || !phone.startsWith('1')) {
       throw Exception('请输入正确的手机号');
     }
     
-    // 模拟发送成功
     return;
   }
 
@@ -321,17 +415,14 @@ class AuthService {
   }) async {
     await Future.delayed(_delay);
     
-    // 模拟验证失败
     if (code.length != 6) {
       throw Exception('验证码格式不正确');
     }
     
-    // 模拟验证码错误
     if (code != '123456') {
       throw Exception('验证码错误，请重试');
     }
     
-    // 模拟成功
     return User(
       id: _generateId(),
       phone: phone,
@@ -353,7 +444,6 @@ class AuthService {
   }) async {
     await Future.delayed(_delay);
     
-    // 模拟验证
     if (phone.length != 11 || !phone.startsWith('1')) {
       return ApiResponse<Map<String, dynamic>>(
         code: 400,
@@ -376,7 +466,6 @@ class AuthService {
       );
     }
     
-    // 模拟成功：创建用户并自动创建默认家庭
     final userId = _generateId();
     final familyId = _generateId();
     
@@ -420,50 +509,5 @@ class AuthService {
     }
     
     return;
-  }
-
-  /// 创建家庭
-  Future<User> createFamily({
-    required String familyName,
-  }) async {
-    await Future.delayed(_delay);
-    
-    if (familyName.length < 2 || familyName.length > 15) {
-      throw Exception('家庭名称需要2-15个字符');
-    }
-    
-    // 模拟成功，返回更新的用户信息
-    return User(
-      id: _generateId(),
-      phone: '13800000000',
-      nickname: '用户',
-      familyId: _generateId(),
-      familyRole: 'admin',
-    );
-  }
-
-  /// 加入家庭
-  Future<User> joinFamily({
-    required String code,
-  }) async {
-    await Future.delayed(_delay);
-    
-    if (code.isEmpty) {
-      throw Exception('请输入邀请码');
-    }
-    
-    // 模拟邀请码无效
-    if (code != '12345678') {
-      throw Exception('邀请码无效，请确认后重试');
-    }
-    
-    // 模拟成功
-    return User(
-      id: _generateId(),
-      phone: '13800000000',
-      nickname: '用户',
-      familyId: _generateId(),
-      familyRole: 'member',
-    );
   }
 }

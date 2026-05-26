@@ -1,6 +1,11 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
+import '../services/family_service.dart';
+import '../services/api_service.dart';
+import '../exceptions/auth_exception.dart';
 
 /// 认证状态枚举
 enum AuthState {
@@ -47,7 +52,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     return AuthState.unauthenticated;
   }
 
-  /// 登录 - 密码方式
+  /// 登录 - 密码方式（调用真实 API）
   Future<void> loginWithPassword({
     required String phone,
     required String password,
@@ -55,32 +60,69 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     state = const AsyncLoading();
     
     try {
-      final response = await _authService.loginWithPassword(
-        phone: phone,
-        password: password,
-      );
+      _log('INFO: 开始登录 - 手机号: $phone');
       
-      if (!response.isSuccess) {
-        throw Exception(response.message);
+      // 调用真实的登录 API
+      final response = await _callLoginApi(phone: phone, password: password);
+      
+      if (response['code'] != 200) {
+        final message = response['message'] ?? '登录失败';
+        _log('ERROR: 登录失败 - $message');
+        throw Exception(message);
       }
       
-      final data = response.data;
+      final data = response['data'];
       if (data == null) {
         throw Exception('登录失败');
       }
       
       final userMap = data['user'] as Map<String, dynamic>;
-      final user = User.fromJson(userMap);
       final accessToken = data['access_token'] as String? ?? '';
+      final refreshToken = data['refresh_token'] as String?;
       
+      // 将服务端返回的 int 类型 id 转换为 String
+      if (userMap['id'] is int) {
+        userMap['id'] = userMap['id'].toString();
+      }
+      
+      // 保存用户信息
+      final user = User.fromJson(userMap);
       await _saveUserInfo(user, accessToken);
+      
+      // 同时保存 token（供其他服务使用）
+      await ApiService.saveToken(accessToken, refreshToken: refreshToken);
+      
       await _markFirstLaunchComplete();
+      
+      _log('INFO: 登录成功 - 用户ID: ${user.id}');
       
       state = const AsyncData(AuthState.authenticated);
     } catch (e) {
+      _log('ERROR: 登录异常 - $e');
       state = AsyncError(e, StackTrace.current);
       rethrow;
     }
+  }
+
+  /// 调用真实的登录 API
+  Future<Map<String, dynamic>> _callLoginApi({
+    required String phone,
+    required String password,
+  }) async {
+    final url = Uri.parse('http://192.168.1.104:8000/api/v1/auth/login');
+    
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'phone': phone,
+        'password': password,
+      }),
+    );
+    
+    final responseData = json.decode(response.body) as Map<String, dynamic>;
+    _log('RESPONSE: ${json.encode(responseData)}');
+    return responseData;
   }
 
   /// 更新用户信息
@@ -112,6 +154,12 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       }
       
       final userMap = data['user'] as Map<String, dynamic>;
+      
+      // 将服务端返回的 int 类型 id 转换为 String
+      if (userMap['id'] is int) {
+        userMap['id'] = userMap['id'].toString();
+      }
+      
       final user = User.fromJson(userMap);
       
       // 更新本地存储的用户信息
@@ -144,7 +192,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     }
   }
 
-  /// 注册
+  /// 注册（调用真实 API）
   Future<void> register({
     required String phone,
     required String password,
@@ -153,72 +201,181 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     state = const AsyncLoading();
     
     try {
-      final response = await _authService.register(
+      _log('INFO: 开始注册 - 手机号: $phone, 昵称: $nickname');
+      
+      // 调用真实的注册 API
+      final response = await _callRegisterApi(
         phone: phone,
         password: password,
         nickname: nickname,
       );
       
-      if (!response.isSuccess) {
-        throw Exception(response.message);
+      if (response['code'] != 200) {
+        final message = response['message'] ?? '注册失败';
+        _log('ERROR: 注册失败 - $message');
+        throw Exception(message);
       }
       
-      final data = response.data;
+      final data = response['data'];
       if (data == null) {
         throw Exception('注册失败');
       }
       
       final userMap = data['user'] as Map<String, dynamic>;
-      final user = User.fromJson(userMap);
       final accessToken = data['access_token'] as String? ?? '';
+      final refreshToken = data['refresh_token'] as String?;
       
+      // 将服务端返回的 int 类型 id 转换为 String
+      if (userMap['id'] is int) {
+        userMap['id'] = userMap['id'].toString();
+      }
+      
+      // 保存用户信息
+      final user = User.fromJson(userMap);
       await _saveUserInfo(user, accessToken);
+      
+      // 同时保存 token
+      await ApiService.saveToken(accessToken, refreshToken: refreshToken);
+      
       await _markFirstLaunchComplete();
       
-      // 注册成功后自动创建家庭，直接进入首页
+      _log('INFO: 注册成功 - 用户ID: ${user.id}');
+      
       state = const AsyncData(AuthState.authenticated);
     } catch (e) {
+      _log('ERROR: 注册异常 - $e');
       state = AsyncError(e, StackTrace.current);
       rethrow;
     }
   }
 
+  /// 调用真实的注册 API
+  Future<Map<String, dynamic>> _callRegisterApi({
+    required String phone,
+    required String password,
+    required String nickname,
+  }) async {
+    final url = Uri.parse('http://192.168.1.104:8000/api/v1/auth/register');
+    
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'phone': phone,
+        'password': password,
+        'nickname': nickname,
+      }),
+    );
+    
+    final responseData = json.decode(response.body) as Map<String, dynamic>;
+    _log('RESPONSE: ${json.encode(responseData)}');
+    return responseData;
+  }
+
   /// 创建家庭
+  /// POST /api/v1/families
+  /// 逻辑：创建家庭 → 生成8位邀请码 → 创建family_member记录(role=owner) → 更新用户current_family_id
   Future<void> createFamily({
     required String name,
   }) async {
     state = const AsyncLoading();
     
     try {
-      final user = await _authService.createFamily(
-        familyName: name,
+      final familyService = FamilyService();
+      
+      _log('INFO: 开始创建家庭 - $name');
+      
+      final response = await familyService.createFamily(
+        name: name,
       );
+      
+      if (!response.isSuccess) {
+        _log('ERROR: 创建家庭失败 - ${response.message}');
+        
+        if (isAuthError(response.code)) {
+          _log('WARN: Token无效，自动退出登录');
+          await logout();
+          throw AuthException(
+            message: response.message,
+            type: getAuthExceptionType(response.code),
+          );
+        }
+        
+        throw Exception(response.message);
+      }
+      
+      final data = response.data;
+      if (data == null) {
+        throw Exception('创建家庭失败');
+      }
+      
+      final userMap = data['user'] as Map<String, dynamic>;
+      final user = User.fromJson(userMap);
       
       await _saveFamilyInfo(user);
       
+      _log('INFO: 创建家庭成功');
+      
       state = const AsyncData(AuthState.authenticated);
     } catch (e) {
-      state = AsyncError(e, StackTrace.current);
+      _log('ERROR: 创建家庭异常 - $e');
+      if (e is! AuthException) {
+        state = AsyncError(e, StackTrace.current);
+      }
       rethrow;
     }
   }
 
   /// 加入家庭
+  /// POST /api/v1/families/join
+  /// 逻辑：查找邀请码对应的家庭 → 检查用户是否已在该家庭 → 创建family_member(role=member) → 更新用户current_family_id
   Future<void> joinFamily({
     required String code,
   }) async {
     state = const AsyncLoading();
     
     try {
-      final user = await _authService.joinFamily(
-        code: code,
+      final familyService = FamilyService();
+      
+      _log('INFO: 开始加入家庭 - 邀请码: $code');
+      
+      final response = await familyService.joinFamily(
+        inviteCode: code,
       );
+      
+      if (!response.isSuccess) {
+        _log('ERROR: 加入家庭失败 - ${response.message}');
+        
+        if (isAuthError(response.code)) {
+          _log('WARN: Token无效，自动退出登录');
+          await logout();
+          throw AuthException(
+            message: response.message,
+            type: getAuthExceptionType(response.code),
+          );
+        }
+        
+        throw Exception(response.message);
+      }
+      
+      final data = response.data;
+      if (data == null) {
+        throw Exception('加入家庭失败');
+      }
+      
+      final userMap = data['user'] as Map<String, dynamic>;
+      final user = User.fromJson(userMap);
       
       await _saveFamilyInfo(user);
       
+      _log('INFO: 加入家庭成功');
+      
       state = const AsyncData(AuthState.authenticated);
     } catch (e) {
-      state = AsyncError(e, StackTrace.current);
+      _log('ERROR: 加入家庭异常 - $e');
+      if (e is! AuthException) {
+        state = AsyncError(e, StackTrace.current);
+      }
       rethrow;
     }
   }
@@ -268,6 +425,11 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     await _prefs?.remove(_keyUserNickname);
     await _prefs?.remove(_keyFamilyId);
     await _prefs?.remove(_keyFamilyRole);
+  }
+
+  /// 日志记录
+  void _log(String message) {
+    print('[AuthNotifier] $message');
   }
 
   /// 获取当前用户信息

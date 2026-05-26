@@ -10,6 +10,7 @@ from app.api.v1 import (
     auth_router,
     barcode_router,
     categories_router,
+    contributions_router,
     devices_router,
     export_router,
     families_router,
@@ -32,6 +33,7 @@ api_router = APIRouter()
 api_router.include_router(auth_router)
 api_router.include_router(users_router)
 api_router.include_router(families_router)
+api_router.include_router(contributions_router)
 api_router.include_router(items_router)
 api_router.include_router(categories_router)
 api_router.include_router(locations_router)

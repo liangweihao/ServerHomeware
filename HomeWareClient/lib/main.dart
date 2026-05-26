@@ -6,6 +6,7 @@ import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/services/notification_scheduler.dart';
 import 'data/database/app_database.dart';
+import 'core/providers/auth_guard.dart';
 
 /// 全局错误观察者 - 监听 Provider 错误
 class AppProviderObserver extends ProviderObserver {
@@ -61,12 +62,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'HomeStock',
-      theme: AppTheme.lightTheme,
-      routerConfig: appRouter,
-      locale: const Locale('zh', 'CN'),
-      debugShowCheckedModeBanner: false,
+    return AuthGuard(
+      child: MaterialApp.router(
+        title: 'HomeStock',
+        theme: AppTheme.lightTheme,
+        routerConfig: appRouter,
+        locale: const Locale('zh', 'CN'),
+        debugShowCheckedModeBanner: false,
+      ),
     );
   }
 }

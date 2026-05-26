@@ -5,7 +5,7 @@ import './auth_service.dart';
 
 /// 贡献度服务
 class ContributionService {
-  static const _baseUrl = 'http://localhost:8080/api/v1';
+  static const _baseUrl = 'http://192.168.1.104:8000/api/v1';
   static const _keyToken = 'auth_token';
 
   /// 获取用户贡献数据
@@ -54,6 +54,9 @@ class ContributionService {
       final Map<String, dynamic> jsonData = json.decode(response.body);
       final code = jsonData['code'] ?? response.statusCode;
       final message = jsonData['message'] ?? 'success';
+      
+      // 打印完整的响应 JSON 日志
+      _log('RESPONSE: ${json.encode(jsonData)}');
 
       if (code != 200) {
         _log('WARN: 接口返回错误 - code: $code, message: $message');
@@ -65,7 +68,7 @@ class ContributionService {
         data: jsonData['data'],
       );
     } catch (e) {
-      _log('ERROR: 响应解析失败 - $e');
+      _log('ERROR: 响应解析失败 - $e, body: ${response.body}');
       return ApiResponse<Map<String, dynamic>>(
         code: response.statusCode,
         message: '解析错误: $e',

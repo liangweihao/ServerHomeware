@@ -13,8 +13,11 @@ from passlib.context import CryptContext
 
 from app.config import settings
 
-# 密码上下文
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+import hashlib
+import uuid
+
+# 密码上下文（使用 pbkdf2_sha256 替代 bcrypt 避免兼容性问题）
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 
 def get_password_hash(password: str) -> str:

@@ -4,6 +4,7 @@ API v1 版本路由初始化文件
 from app.api.v1.auth import router as auth_router
 from app.api.v1.users import router as users_router
 from app.api.v1.families import router as families_router
+from app.api.v1.contributions import router as contributions_router
 from app.api.v1.items import router as items_router
 from app.api.v1.categories import router as categories_router
 from app.api.v1.locations import router as locations_router
@@ -25,6 +26,7 @@ __all__ = [
     "auth_router",
     "users_router",
     "families_router",
+    "contributions_router",
     "items_router",
     "categories_router",
     "locations_router",
