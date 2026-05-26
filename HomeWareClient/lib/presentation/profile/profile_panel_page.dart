@@ -20,6 +20,8 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
   Map<String, dynamic>? _familyData;
   Map<String, dynamic>? _contributionData;
   String _inviteCode = '';
+  bool _familyNetworkError = false;
+  bool _contributionNetworkError = false;
 
   @override
   void initState() {
@@ -28,6 +30,12 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
   }
 
   Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _familyNetworkError = false;
+      _contributionNetworkError = false;
+    });
+
     try {
       final user = ref.read(authProvider.notifier).currentUser;
       final userId = user?.id ?? '1';
@@ -41,6 +49,10 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
           _familyData = familyResult.data;
           _inviteCode = familyResult.data?['invite_code'] ?? '';
         });
+      } else {
+        setState(() {
+          _familyData = null;
+        });
       }
 
       final contributionResult = await contributionService.getUserContribution(userId: userId);
@@ -48,9 +60,17 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
         setState(() {
           _contributionData = contributionResult.data;
         });
+      } else {
+        setState(() {
+          _contributionData = null;
+        });
       }
     } catch (e) {
       debugPrint('Failed to load data: $e');
+      setState(() {
+        _familyNetworkError = true;
+        _contributionNetworkError = true;
+      });
     } finally {
       setState(() => _isLoading = false);
     }
@@ -82,7 +102,6 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
 
   Future<void> _copyInviteCode() async {
     if (_inviteCode.isNotEmpty) {
-      // 模拟复制到剪贴板
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('邀请码已复制')),
       );
@@ -111,6 +130,8 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = screenWidth - 40;
     final user = ref.read(authProvider.notifier).currentUser;
     final avatarIndex = AuthService.getAvatarColorIndex(user?.phone ?? '');
     final colors = AuthService.getAvatarColors(avatarIndex);
@@ -130,121 +151,18 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.primary.withOpacity(0.1),
-                      Colors.white,
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [Color(colors[0]), Color(colors[1])],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            displayChar,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        user?.nickname ?? '用户',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        _maskPhone(user?.phone ?? ''),
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.gray500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              // 编辑资料按钮
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => context.push('/profile/edit'),
-                      child: Text(
-                        '编辑资料',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
+              _buildHeaderSection(colors, displayChar, user),
+              const SizedBox(height: 20),
+              _buildFamilySection(cardWidth),
               const SizedBox(height: 16),
-
-              // 当前家庭卡片
-              _buildFamilySection(),
-
+              _buildContributionSection(cardWidth),
               const SizedBox(height: 16),
-
-              // 我的贡献区域
-              _buildContributionSection(),
-
-              const SizedBox(height: 16),
-
-              // 功能入口列表
-              _buildFunctionList(),
-
-              const SizedBox(height: 16),
-
-              // 退出登录
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: TextButton(
-                  onPressed: _showLogoutConfirm,
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: Text(
-                    '🚪 退出登录',
-                    style: TextStyle(
-                      color: AppColors.danger,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
+              _buildFunctionList(cardWidth),
+              const SizedBox(height: 20),
+              _buildLogoutButton(),
             ],
           ),
         ),
@@ -252,14 +170,222 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
     );
   }
 
-  Widget _buildFamilySection() {
+  Widget _buildHeaderSection(List<int> colors, String displayChar, dynamic user) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withOpacity(0.08),
+            Colors.white,
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      child: Column(
+        children: [
+          Container(
+            width: 88,
+            height: 88,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [Color(colors[0]), Color(colors[1])],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                displayChar,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            user?.nickname ?? '用户',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _maskPhone(user?.phone ?? ''),
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.gray500,
+            ),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton(
+            onPressed: () => context.push('/profile/edit'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(120, 36),
+              side: BorderSide(color: AppColors.primary),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              '编辑资料',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFamilySection(double width) {
     if (_isLoading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 24),
+      return SizedBox(
+        width: width,
         child: Card(
-          child: Padding(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: AppColors.gray200),
+          ),
+          child: const Padding(
             padding: EdgeInsets.all(24),
             child: Center(child: CircularProgressIndicator()),
+          ),
+        ),
+      );
+    }
+
+    if (_familyNetworkError) {
+      return SizedBox(
+        width: width,
+        child: Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: AppColors.gray200),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                const Text(
+                  '🏠 当前家庭',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  '❌ 网络连接失败',
+                  style: TextStyle(color: Colors.red, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  '请检查网络后重试',
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadData,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(120, 40),
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('重新加载'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_familyData == null) {
+      return SizedBox(
+        width: width,
+        child: Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: AppColors.gray200),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                const Text(
+                  '🏠 当前家庭',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  '🏠 您还没有加入任何家庭',
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  '邀请家人一起管理物品吧！',
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => context.push('/create-family'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(120, 40),
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('创建家庭'),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: () => context.push('/join-family'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(120, 40),
+                      backgroundColor: Colors.grey[100],
+                      foregroundColor: Colors.grey[700],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('加入家庭'),
+                  ),
+                ],
+              ),
+              ],
+            ),
           ),
         ),
       );
@@ -268,9 +394,14 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
     final familyName = _familyData?['name'] ?? '未加入家庭';
     final members = _familyData?['members'] ?? [];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+    return SizedBox(
+      width: width,
       child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: AppColors.gray200),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -335,7 +466,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                   const SizedBox(width: 8),
                   Text(
                     _inviteCode.isNotEmpty ? _inviteCode : '暂无',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 2,
@@ -349,9 +480,12 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                   ElevatedButton(
                     onPressed: _copyInviteCode,
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      minimumSize: const Size(90, 36),
                       backgroundColor: AppColors.primaryLight,
                       foregroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                     ),
                     child: const Text('📋 复制'),
                   ),
@@ -359,9 +493,12 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                   ElevatedButton(
                     onPressed: _refreshInviteCode,
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      minimumSize: const Size(90, 36),
                       backgroundColor: AppColors.primaryLight,
                       foregroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                     ),
                     child: const Text('🔄 刷新'),
                   ),
@@ -372,11 +509,17 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                 children: [
                   TextButton(
                     onPressed: () => context.push('/profile/family'),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
                     child: const Text('👥 管理成员'),
                   ),
                   const SizedBox(width: 16),
                   TextButton(
                     onPressed: () => _showSwitchFamily(),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
                     child: const Text('🏠 切换家庭'),
                   ),
                 ],
@@ -423,14 +566,105 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
     );
   }
 
-  Widget _buildContributionSection() {
+  Widget _buildContributionSection(double width) {
     if (_isLoading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 24),
+      return SizedBox(
+        width: width,
         child: Card(
-          child: Padding(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: AppColors.gray200),
+          ),
+          child: const Padding(
             padding: EdgeInsets.all(24),
             child: Center(child: CircularProgressIndicator()),
+          ),
+        ),
+      );
+    }
+
+    if (_contributionNetworkError) {
+      return SizedBox(
+        width: width,
+        child: Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: AppColors.gray200),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                const Text(
+                  '📊 我的贡献（本月）',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  '❌ 获取数据失败',
+                  style: TextStyle(color: Colors.red, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  '请检查网络后重试',
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadData,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(120, 40),
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('重新加载'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_contributionData == null) {
+      return SizedBox(
+        width: width,
+        child: Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: AppColors.gray200),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                const Text(
+                  '📊 我的贡献（本月）',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  '📊 暂无贡献数据',
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  '加入家庭后即可记录贡献',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -440,9 +674,14 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
     final consumeCount = _contributionData?['consume_count'] ?? 0;
     final contribution = _contributionData?['contribution'] ?? 0;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+    return SizedBox(
+      width: width,
       child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: AppColors.gray200),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -460,7 +699,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                 children: [
                   Expanded(
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: AppColors.successLight,
                         borderRadius: BorderRadius.circular(8),
@@ -468,7 +707,8 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                       child: Column(
                         children: [
                           const Text('录入', style: TextStyle(fontSize: 12, color: AppColors.gray500)),
-                          Text('$recordCount 件', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text('$recordCount 件', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -476,7 +716,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: AppColors.infoLight,
                         borderRadius: BorderRadius.circular(8),
@@ -484,7 +724,8 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                       child: Column(
                         children: [
                           const Text('消耗记录', style: TextStyle(fontSize: 12, color: AppColors.gray500)),
-                          Text('$consumeCount 次', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text('$consumeCount 次', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -505,9 +746,9 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                   ),
                   Container(
                     height: 8,
-                    width: MediaQuery.of(context).size.width * 0.6 * (contribution / 100),
+                    width: width * 0.92 * (contribution / 100),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
+                      gradient: const LinearGradient(
                         colors: [AppColors.primary, AppColors.success],
                       ),
                       borderRadius: BorderRadius.circular(4),
@@ -516,16 +757,19 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                 ],
               ),
               const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  '$contribution%',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('你的操作占全家的比例'),
+                  Text(
+                    '$contribution%',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
                   ),
-                ),
+                ],
               ),
               const SizedBox(height: 8),
               const Text(
@@ -542,7 +786,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
     );
   }
 
-  Widget _buildFunctionList() {
+  Widget _buildFunctionList(double width) {
     final functions = [
       {'icon': '⚙️', 'title': '设置', 'route': '/profile/notification-settings'},
       {'icon': '📋', 'title': '盘点任务', 'route': null},
@@ -551,9 +795,14 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
       {'icon': '📱', 'title': '关于 HomeStock', 'route': null},
     ];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+    return SizedBox(
+      width: width,
       child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: AppColors.gray200),
+        ),
         child: Column(
           children: functions
               .map((func) => InkWell(
@@ -567,11 +816,11 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                       }
                     },
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                       child: Row(
                         children: [
-                          Text(func['icon']!, style: const TextStyle(fontSize: 20)),
-                          const SizedBox(width: 12),
+                          Text(func['icon']!, style: const TextStyle(fontSize: 22)),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Text(
                               func['title']!,
@@ -584,6 +833,29 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                     ),
                   ))
               .toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: TextButton(
+        onPressed: _showLogoutConfirm,
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.danger,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: const Text(
+          '🚪 退出登录',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );
