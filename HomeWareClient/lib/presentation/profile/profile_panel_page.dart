@@ -910,13 +910,37 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                   title: Text(family['name'] ?? '未命名'),
                   subtitle: Text('$memberCount人 · $itemCount件'),
                   leading: isCurrent ? const Icon(Icons.check, color: AppColors.success) : null,
-                  onTap: () {
-                    if (!isCurrent) {
+                  onTap: () async {
+                    if (isCurrent) {
+                      Navigator.pop(context);
+                      return;
+                    }
+                    
+                    // 调用API切换家庭
+                    final service = FamilyService();
+                    final res = await service.switchFamily(familyId: familyId ?? '');
+                    
+                    if (res.isSuccess) {
+                      // 切换成功，更新本地状态
+                      setState(() {
+                        _familyData = res.data;
+                        _inviteCode = res.data?['invite_code'] ?? '';
+                      });
+                      
+                      if (!mounted) return;
+                      Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('已切换到「${family['name']}」')),
                       );
+                    } else {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('切换失败: ${res.message}'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
                     }
-                    Navigator.pop(context);
                   },
                 );
               }),

@@ -183,7 +183,7 @@ class FamilyService {
   }
 
   /// 切换当前家庭
-  /// 调用服务端 PUT /api/v1/families/{familyId}/switch 接口
+  /// 调用服务端 POST /api/v1/families/{familyId}/switch 接口
   Future<ApiResponse<Map<String, dynamic>>> switchFamily({
     required String familyId,
   }) async {
@@ -197,8 +197,8 @@ class FamilyService {
         );
       }
 
-      _log('INFO: 调用 PUT /api/v1/families/$familyId/switch');
-      final response = await http.put(
+      _log('INFO: 调用 POST /api/v1/families/$familyId/switch');
+      final response = await http.post(
         Uri.parse('$_baseUrl/families/$familyId/switch'),
         headers: {
           'Authorization': 'Bearer $token',

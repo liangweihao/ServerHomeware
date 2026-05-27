@@ -537,23 +537,58 @@ class _UserPanelState extends ConsumerState<UserPanel> {
                 
                 return Column(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isCurrent ? AppColors.primary.withOpacity(0.1) : AppColors.card,
-                        borderRadius: BorderRadius.circular(8),
-                        border: isCurrent ? null : Border.all(color: AppColors.gray200),
-                      ),
-                      child: Row(
-                        children: [
-                          isCurrent ? const Icon(Icons.check, color: AppColors.primary) : const SizedBox(width: 24),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(family['name'] ?? '未命名')),
-                          Text(
-                            '$memberCount人 · $itemCount件',
-                            style: TextStyle(color: AppColors.gray500),
-                          ),
-                        ],
+                    GestureDetector(
+                      onTap: () async {
+                        if (isCurrent) {
+                          // 已是当前家庭，关闭弹窗
+                          Navigator.pop(context);
+                          return;
+                        }
+                        
+                        // 调用API切换家庭
+                        final service = FamilyService();
+                        final res = await service.switchFamily(familyId: familyId ?? '');
+                        
+                        if (res.isSuccess) {
+                          // 切换成功，更新本地状态
+                          setState(() {
+                            _familyData = res.data;
+                            _inviteCode = res.data?['invite_code'] ?? '';
+                          });
+                          
+                          if (!mounted) return;
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('已切换到「${family['name']}」')),
+                          );
+                        } else {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('切换失败: ${res.message}'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isCurrent ? AppColors.primary.withValues(alpha: 0.1) : AppColors.card,
+                          borderRadius: BorderRadius.circular(8),
+                          border: isCurrent ? null : Border.all(color: AppColors.gray200),
+                        ),
+                        child: Row(
+                          children: [
+                            isCurrent ? const Icon(Icons.check, color: AppColors.primary) : const SizedBox(width: 24),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text(family['name'] ?? '未命名')),
+                            Text(
+                              '$memberCount人 · $itemCount件',
+                              style: TextStyle(color: AppColors.gray500),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
