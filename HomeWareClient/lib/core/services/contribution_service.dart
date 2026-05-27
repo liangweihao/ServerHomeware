@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import './auth_service.dart';
+import './api_service.dart';
 
 /// 贡献度服务
 class ContributionService {
@@ -60,6 +60,12 @@ class ContributionService {
 
       if (code != 200) {
         _log('WARN: 接口返回错误 - code: $code, message: $message');
+        
+        // 检测认证错误并处理
+        if (code == 401 || code == 403) {
+          _log('WARN: Token无效或已过期，触发认证错误处理');
+          ApiService.handleAuthError(code, message);
+        }
       }
 
       return ApiResponse<Map<String, dynamic>>(

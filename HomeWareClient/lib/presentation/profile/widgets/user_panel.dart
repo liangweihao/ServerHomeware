@@ -6,6 +6,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/api_service.dart';
 import '../../../core/services/family_service.dart';
 import '../../../core/services/contribution_service.dart';
 
@@ -27,6 +28,7 @@ class _UserPanelState extends ConsumerState<UserPanel> {
   Map<String, dynamic>? _familyData;
   Map<String, dynamic>? _contributionData;
   String _inviteCode = '';
+  List<Map<String, dynamic>> _families = [];
 
   @override
   void initState() {
@@ -43,15 +45,26 @@ class _UserPanelState extends ConsumerState<UserPanel> {
       final contributionService = ContributionService();
       final userId = ''; // 实际应该从AuthProvider获取
       
-      final [familyRes, contributionRes] = await Future.wait([
+      final results = await Future.wait([
         familyService.getCurrentFamily(userId: userId),
         contributionService.getUserContribution(userId: userId),
+        familyService.getUserFamilies(),
       ]);
+      
+      final familyRes = results[0] as ApiResponse<Map<String, dynamic>>;
+      final contributionRes = results[1] as ApiResponse<Map<String, dynamic>>;
+      final familiesRes = results[2] as ApiResponse<List<dynamic>>;
       
       if (familyRes.isSuccess) {
         setState(() {
           _familyData = familyRes.data;
           _inviteCode = _familyData?['invite_code'] ?? '';
+        });
+      }
+      
+      if (familiesRes.isSuccess) {
+        setState(() {
+          _families = familiesRes.data?.cast<Map<String, dynamic>>() ?? [];
         });
       }
       
@@ -494,6 +507,8 @@ class _UserPanelState extends ConsumerState<UserPanel> {
 
   /// 切换家庭弹窗
   void _showSwitchFamilyDialog() {
+    final currentFamilyId = (_familyData?['id'] as dynamic)?.toString();
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -507,51 +522,50 @@ class _UserPanelState extends ConsumerState<UserPanel> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 当前家庭
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.check, color: AppColors.primary),
-                  const SizedBox(width: 8),
-                  const Expanded(child: Text('温馨小窝')),
-                  Text(
-                    '3人 · 95件',
-                    style: TextStyle(color: AppColors.gray500),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // 其他家庭
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.gray200),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 24),
-                  const Expanded(child: Text('老家')),
-                  Text(
-                    '2人 · 43件',
-                    style: TextStyle(color: AppColors.gray500),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
+            // 家庭列表
+            if (_families.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Text('暂无家庭'),
+              )
+            else
+              ..._families.map((family) {
+                final familyId = (family['id'] as dynamic)?.toString();
+                final isCurrent = familyId == currentFamilyId;
+                final memberCount = family['member_count'] ?? 0;
+                final itemCount = family['item_count'] ?? 0;
+                
+                return Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isCurrent ? AppColors.primary.withOpacity(0.1) : AppColors.card,
+                        borderRadius: BorderRadius.circular(8),
+                        border: isCurrent ? null : Border.all(color: AppColors.gray200),
+                      ),
+                      child: Row(
+                        children: [
+                          isCurrent ? const Icon(Icons.check, color: AppColors.primary) : const SizedBox(width: 24),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(family['name'] ?? '未命名')),
+                          Text(
+                            '$memberCount人 · $itemCount件',
+                            style: TextStyle(color: AppColors.gray500),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                );
+              }),
+            
             // 分隔线
-            Container(height: 1, color: AppColors.gray200),
-            const SizedBox(height: 16),
+            if (_families.isNotEmpty) ...[
+              Container(height: 1, color: AppColors.gray200),
+              const SizedBox(height: 16),
+            ],
 
             // 创建和加入按钮
             TextButton(

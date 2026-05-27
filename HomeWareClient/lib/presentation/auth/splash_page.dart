@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/services/auth_service.dart';
 
 /// 启动页
 class SplashPage extends ConsumerStatefulWidget {
@@ -14,35 +16,57 @@ class SplashPage extends ConsumerStatefulWidget {
 }
 
 class _SplashPageState extends ConsumerState<SplashPage> {
+  static const _keyToken = 'auth_token';
+
   @override
   void initState() {
     super.initState();
     _checkAuth();
   }
 
-  /// 检查认证状态
+  /// 检查认证状态并验证token
   Future<void> _checkAuth() async {
-    // 等待 1.5 秒
-    await Future.delayed(const Duration(milliseconds: 1500));
+    // 等待 500ms 显示启动画面
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    // 获取当前认证状态
-    final authState = await ref.read(authProvider.future);
+    // 首先检查本地是否有token
+    final hasToken = await _hasLocalToken();
+    
+    if (!mounted) return;
+
+    if (!hasToken) {
+      // 无token，跳转到欢迎页
+      context.go('/welcome');
+      return;
+    }
+
+    // 有token，验证token有效性
+    final authService = AuthService();
+    final tokenResult = await authService.validateToken();
 
     if (!mounted) return;
 
-    // 根据状态跳转
-    switch (authState) {
-      case AuthState.firstLaunch:
-        context.go('/welcome');
-        break;
-      case AuthState.authenticated:
-        context.go('/');
-        break;
-      case AuthState.unauthenticated:
-      case AuthState.needCompleteProfile:
-        context.go('/login');
-        break;
+    if (tokenResult.code == 200) {
+      // token有效，跳转到首页
+      context.go('/');
+    } else {
+      // token无效或过期，清除本地token并跳转到登录页
+      await _clearLocalToken();
+      if (!mounted) return;
+      context.go('/login');
     }
+  }
+
+  /// 检查本地是否有token
+  Future<bool> _hasLocalToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString(_keyToken);
+    return token != null && token.isNotEmpty;
+  }
+
+  /// 清除本地token
+  Future<void> _clearLocalToken() async {
+    await ref.read(authProvider.notifier).logout();
   }
 
   @override

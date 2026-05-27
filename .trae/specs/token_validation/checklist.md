@@ -1,0 +1,24 @@
+# Token有效性检测与过期处理 - 验证检查清单
+
+- [x] Checkpoint 1: AuthService添加了validateToken方法，调用GET /api/v1/users/me接口
+- [x] Checkpoint 2: validateToken方法正确处理200响应（token有效）
+- [x] Checkpoint 3: validateToken方法正确处理401响应（token无效）
+- [x] Checkpoint 4: SplashPage实现了token验证逻辑
+- [x] Checkpoint 5: 有有效token时正确跳转首页
+- [x] Checkpoint 6: token无效时正确跳转登录页并清除本地token
+- [x] Checkpoint 7: 无token时正确跳转欢迎页
+- [x] Checkpoint 8: 创建了统一的响应处理工具类
+- [x] Checkpoint 9: 响应处理工具类能自动检测401/403响应码
+- [x] Checkpoint 10: AuthService响应处理集成了认证错误处理
+- [x] Checkpoint 11: FamilyService响应处理集成了认证错误处理
+- [x] Checkpoint 12: ContributionService响应处理集成了认证错误处理
+- [x] Checkpoint 13: AuthGuard能正确处理认证状态变化
+- [x] Checkpoint 14: AuthGuard在已登录页面时不重复跳转
+- [x] Checkpoint 15: AuthGuard显示友好的token过期提示
+- [x] Checkpoint 16: AuthNotifier的logout方法正确清除本地token
+- [x] Checkpoint 17: AuthNotifier的logout方法正确更新认证状态
+- [x] Checkpoint 18: 所有API请求收到401时自动触发logout
+- [x] Checkpoint 19: 所有API请求收到403时自动触发logout
+- [x] Checkpoint 20: 代码遵循codestyle.mdc规范，添加了必要的注释和日志
+- [x] Checkpoint 21: flutter analyze通过，无错误
+- [x] Checkpoint 22: flutter build macos成功

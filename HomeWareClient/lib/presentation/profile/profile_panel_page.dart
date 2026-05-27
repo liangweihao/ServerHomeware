@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/api_service.dart';
 import '../../core/services/family_service.dart';
 import '../../core/services/contribution_service.dart';
 
@@ -22,6 +23,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
   String _inviteCode = '';
   bool _familyNetworkError = false;
   bool _contributionNetworkError = false;
+  List<Map<String, dynamic>> _families = [];
 
   @override
   void initState() {
@@ -43,7 +45,16 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
       final familyService = FamilyService();
       final contributionService = ContributionService();
 
-      final familyResult = await familyService.getCurrentFamily(userId: userId);
+      final results = await Future.wait([
+        familyService.getCurrentFamily(userId: userId),
+        contributionService.getUserContribution(userId: userId),
+        familyService.getUserFamilies(),
+      ]);
+
+      final familyResult = results[0] as ApiResponse<Map<String, dynamic>>;
+      final contributionResult = results[1] as ApiResponse<Map<String, dynamic>>;
+      final familiesResult = results[2] as ApiResponse<List<dynamic>>;
+
       if (familyResult.code == 200) {
         setState(() {
           _familyData = familyResult.data;
@@ -55,7 +66,6 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
         });
       }
 
-      final contributionResult = await contributionService.getUserContribution(userId: userId);
       if (contributionResult.code == 200) {
         setState(() {
           _contributionData = contributionResult.data;
@@ -63,6 +73,12 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
       } else {
         setState(() {
           _contributionData = null;
+        });
+      }
+
+      if (familiesResult.code == 200) {
+        setState(() {
+          _families = familiesResult.data?.cast<Map<String, dynamic>>() ?? [];
         });
       }
     } catch (e) {
@@ -863,6 +879,8 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
   }
 
   void _showSwitchFamily() {
+    final currentFamilyId = (_familyData?['id'] as dynamic)?.toString();
+    
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -875,22 +893,34 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
-            ListTile(
-              title: const Text('温馨小窝'),
-              subtitle: const Text('3人 · 95件'),
-              leading: const Icon(Icons.check, color: AppColors.success),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              title: const Text('老家'),
-              subtitle: const Text('2人 · 43件'),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('已切换到「老家」')),
+            
+            if (_families.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Text('暂无家庭'),
+              )
+            else
+              ..._families.map((family) {
+                final familyId = (family['id'] as dynamic)?.toString();
+                final isCurrent = familyId == currentFamilyId;
+                final memberCount = family['member_count'] ?? 0;
+                final itemCount = family['item_count'] ?? 0;
+                
+                return ListTile(
+                  title: Text(family['name'] ?? '未命名'),
+                  subtitle: Text('$memberCount人 · $itemCount件'),
+                  leading: isCurrent ? const Icon(Icons.check, color: AppColors.success) : null,
+                  onTap: () {
+                    if (!isCurrent) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('已切换到「${family['name']}」')),
+                      );
+                    }
+                    Navigator.pop(context);
+                  },
                 );
-                Navigator.pop(context);
-              },
-            ),
+              }),
+            
             const SizedBox(height: 16),
             const Divider(),
             TextButton(

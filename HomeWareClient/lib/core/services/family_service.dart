@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import './auth_service.dart';
+import './api_service.dart';
 
 /// 家庭信息服务
 class FamilyService {
@@ -150,6 +150,72 @@ class FamilyService {
     }
   }
 
+  /// 获取用户所有家庭列表
+  /// 调用服务端 GET /api/v1/families 接口
+  Future<ApiResponse<List<dynamic>>> getUserFamilies() async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        _log('ERROR: 未登录');
+        return ApiResponse<List<dynamic>>(
+          code: 401,
+          message: '未登录',
+        );
+      }
+
+      _log('INFO: 调用 GET /api/v1/families');
+      final response = await http.get(
+        Uri.parse('$_baseUrl/families'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      return _handleListResponse(response);
+    } catch (e) {
+      _log('ERROR: 获取家庭列表失败 - $e');
+      return ApiResponse<List<dynamic>>(
+        code: 500,
+        message: '获取家庭列表失败: $e',
+      );
+    }
+  }
+
+  /// 切换当前家庭
+  /// 调用服务端 PUT /api/v1/families/{familyId}/switch 接口
+  Future<ApiResponse<Map<String, dynamic>>> switchFamily({
+    required String familyId,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        _log('ERROR: 未登录');
+        return ApiResponse<Map<String, dynamic>>(
+          code: 401,
+          message: '未登录',
+        );
+      }
+
+      _log('INFO: 调用 PUT /api/v1/families/$familyId/switch');
+      final response = await http.put(
+        Uri.parse('$_baseUrl/families/$familyId/switch'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 切换家庭失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: '切换家庭失败: $e',
+      );
+    }
+  }
+
   /// 加入家庭
   /// 调用服务端 POST /api/v1/families/join 接口
   /// Request: {invite_code}
@@ -195,7 +261,7 @@ class FamilyService {
     return prefs.getString(_keyToken);
   }
 
-  /// 处理 HTTP 响应
+  /// 处理 HTTP 响应 (返回 Map)
   ApiResponse<Map<String, dynamic>> _handleResponse(http.Response response) {
     try {
       final Map<String, dynamic> jsonData = json.decode(response.body);
@@ -207,6 +273,12 @@ class FamilyService {
 
       if (code != 200) {
         _log('WARN: 接口返回错误 - code: $code, message: $message');
+        
+        // 检测认证错误并处理
+        if (code == 401 || code == 403) {
+          _log('WARN: Token无效或已过期，触发认证错误处理');
+          ApiService.handleAuthError(code, message);
+        }
       }
 
       return ApiResponse<Map<String, dynamic>>(
@@ -217,6 +289,40 @@ class FamilyService {
     } catch (e) {
       _log('ERROR: 响应解析失败 - $e, body: ${response.body}');
       return ApiResponse<Map<String, dynamic>>(
+        code: response.statusCode,
+        message: '解析错误: $e',
+      );
+    }
+  }
+
+  /// 处理 HTTP 响应 (返回 List)
+  ApiResponse<List<dynamic>> _handleListResponse(http.Response response) {
+    try {
+      final Map<String, dynamic> jsonData = json.decode(response.body);
+      final code = jsonData['code'] ?? response.statusCode;
+      final message = jsonData['message'] ?? 'success';
+      
+      // 打印完整的响应 JSON 日志
+      _log('RESPONSE: ${json.encode(jsonData)}');
+
+      if (code != 200) {
+        _log('WARN: 接口返回错误 - code: $code, message: $message');
+        
+        // 检测认证错误并处理
+        if (code == 401 || code == 403) {
+          _log('WARN: Token无效或已过期，触发认证错误处理');
+          ApiService.handleAuthError(code, message);
+        }
+      }
+
+      return ApiResponse<List<dynamic>>(
+        code: code,
+        message: message,
+        data: List<dynamic>.from(jsonData['data'] ?? []),
+      );
+    } catch (e) {
+      _log('ERROR: 响应解析失败 - $e, body: ${response.body}');
+      return ApiResponse<List<dynamic>>(
         code: response.statusCode,
         message: '解析错误: $e',
       );

@@ -381,9 +381,14 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   }
 
   /// 退出登录
+  /// 清除本地存储的所有用户信息和token，更新认证状态为unauthenticated
   Future<void> logout() async {
+    _log('INFO: 用户退出登录');
     await _clearUserInfo();
+    // 同时清除ApiService中的token
+    await ApiService.clearToken();
     state = const AsyncData(AuthState.unauthenticated);
+    _log('INFO: 退出登录完成，状态已更新为unauthenticated');
   }
 
   /// 完成首次启动标记
@@ -474,7 +479,7 @@ final authProvider = AsyncNotifierProvider<AuthNotifier, AuthState>(AuthNotifier
 
 /// 当前用户 Provider
 final currentUserProvider = Provider<User?>((ref) {
-  final authState = ref.watch(authProvider);
+  ref.watch(authProvider);
   final authNotifier = ref.read(authProvider.notifier);
   return authNotifier.currentUser;
 });

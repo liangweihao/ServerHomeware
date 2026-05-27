@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import './api_service.dart';
 
 /// Token 模型类
 class Token {
@@ -36,37 +37,6 @@ class Token {
       refreshToken: json['refresh_token'],
     );
   }
-}
-
-/// 统一响应模型类
-class ApiResponse<T> {
-  final int code;
-  final String message;
-  final T? data;
-
-  ApiResponse({
-    required this.code,
-    required this.message,
-    this.data,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'code': code,
-      'message': message,
-      'data': data,
-    };
-  }
-
-  factory ApiResponse.fromJson(Map<String, dynamic> json) {
-    return ApiResponse(
-      code: json['code'],
-      message: json['message'],
-      data: json['data'],
-    );
-  }
-
-  bool get isSuccess => code == 200;
 }
 
 /// 用户信息模型
@@ -243,6 +213,12 @@ class AuthService {
 
       if (code != 200) {
         _log('WARN: 接口返回错误 - code: $code, message: $message');
+        
+        // 检测认证错误并处理
+        if (code == 401 || code == 403) {
+          _log('WARN: Token无效或已过期，触发认证错误处理');
+          ApiService.handleAuthError(code, message);
+        }
       }
 
       return ApiResponse<Map<String, dynamic>>(
@@ -363,6 +339,49 @@ class AuthService {
       return ApiResponse<Map<String, dynamic>>(
         code: 500,
         message: '更新用户信息失败: $e',
+      );
+    }
+  }
+
+  /// 验证Token有效性
+  /// GET /api/v1/users/me
+  /// 通过调用用户信息接口来验证token是否有效
+  /// 返回200表示token有效，返回401/403表示token无效或过期
+  Future<ApiResponse<Map<String, dynamic>>> validateToken() async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        _log('ERROR: 未登录，无token');
+        return ApiResponse<Map<String, dynamic>>(
+          code: 401,
+          message: '未登录',
+        );
+      }
+
+      _log('INFO: 调用 GET /api/v1/users/me 验证token');
+      
+      final response = await http.get(
+        Uri.parse('$_baseUrl/users/me'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      final result = _handleResponse(response);
+      
+      if (result.code == 200) {
+        _log('INFO: Token验证成功');
+      } else if (result.code == 401 || result.code == 403) {
+        _log('WARN: Token无效或已过期 - code: ${result.code}');
+      }
+      
+      return result;
+    } catch (e) {
+      _log('ERROR: Token验证失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: 'Token验证失败: $e',
       );
     }
   }

@@ -49,6 +49,9 @@ class ApiResponse<T> {
   });
 
   bool get isSuccess => code == 200;
+  
+  /// 检查是否为认证错误
+  bool get isAuthError => code == 401 || code == 403;
 }
 
 /// API 服务基类
@@ -56,6 +59,14 @@ class ApiService {
   static const _baseUrl = 'http://192.168.1.104:8000/api/v1';
   static const _keyToken = 'auth_token';
   static const _keyRefreshToken = 'auth_refresh_token';
+  
+  /// 认证错误处理回调
+  static void Function()? onAuthError;
+
+  /// 设置认证错误处理回调
+  static void setAuthErrorCallback(void Function() callback) {
+    onAuthError = callback;
+  }
 
   /// 获取 token
   static Future<String?> getToken() async {
@@ -77,6 +88,17 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyToken);
     await prefs.remove(_keyRefreshToken);
+  }
+
+  /// 处理认证错误
+  static void handleAuthError(int code, String message) {
+    _log('AUTH ERROR: code=$code, message=$message');
+    onAuthError?.call();
+  }
+
+  /// 日志记录
+  static void _log(String message) {
+    print('[ApiService] $message');
   }
 
   /// 发送 HTTP 请求
