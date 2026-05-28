@@ -2,6 +2,8 @@
 .env
 .env.test
 .env.development
+.env.dev
+.env.production
 
 # IDE
 .vscode
@@ -11,13 +13,22 @@
 venv/
 .venv/
 
-# Python cache files
+# Python bytecode / cache
 __pycache__/
+*.py[cod]
+*$py.class
 *.pyc
 *.pyo
 *.pyd
-.pip
+.Python
 
 # Log files
 logs/
 *.log
+
+# Local SQLite DB (dev)
+homestock.db
+*.db-journal
+
+# Uploads (dev)
+uploads/
