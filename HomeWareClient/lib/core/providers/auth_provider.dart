@@ -309,13 +309,10 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       if (data == null) {
         throw Exception('创建家庭失败');
       }
-      
-      final userMap = data['user'] as Map<String, dynamic>;
-      final user = User.fromJson(userMap);
-      
-      await _saveFamilyInfo(user);
-      
-      _log('INFO: 创建家庭成功');
+
+      await _saveFamilyFromApiData(data, role: 'owner');
+
+      _log('INFO: 创建家庭成功 - familyId: ${data['id']}');
       
       state = const AsyncData(AuthState.authenticated);
     } catch (e) {
@@ -363,13 +360,10 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       if (data == null) {
         throw Exception('加入家庭失败');
       }
-      
-      final userMap = data['user'] as Map<String, dynamic>;
-      final user = User.fromJson(userMap);
-      
-      await _saveFamilyInfo(user);
-      
-      _log('INFO: 加入家庭成功');
+
+      await _saveFamilyFromApiData(data, role: 'member');
+
+      _log('INFO: 加入家庭成功 - familyId: ${data['id']}');
       
       state = const AsyncData(AuthState.authenticated);
     } catch (e) {
@@ -413,7 +407,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     }
   }
 
-  /// 保存家庭信息
+  /// 保存家庭信息（登录响应中的 user 字段）
   Future<void> _saveFamilyInfo(User user) async {
     if (user.familyId != null) {
       await _prefs?.setString(_keyFamilyId, user.familyId!);
@@ -421,6 +415,21 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     if (user.familyRole != null) {
       await _prefs?.setString(_keyFamilyRole, user.familyRole!);
     }
+  }
+
+  /// 根据创建/加入家庭接口返回的 FamilyResponse 更新本地缓存
+  Future<void> _saveFamilyFromApiData(
+    Map<String, dynamic> familyData, {
+    required String role,
+  }) async {
+    final familyId = familyData['id'];
+    if (familyId == null) {
+      _log('WARN: 家庭数据缺少 id，跳过本地 family 缓存');
+      return;
+    }
+    await _prefs?.setString(_keyFamilyId, familyId.toString());
+    await _prefs?.setString(_keyFamilyRole, role);
+    _log('INFO: 已更新本地家庭 - familyId: $familyId, role: $role');
   }
 
   /// 清除用户信息

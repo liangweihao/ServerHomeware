@@ -25,7 +25,6 @@ class StatCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 100),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: backgroundColor ?? AppColors.card,
@@ -39,11 +38,12 @@ class StatCard extends StatelessWidget {
           ],
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Text(emoji, style: const TextStyle(fontSize: 24)),
+                Text(emoji, style: const TextStyle(fontSize: 22)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -56,7 +56,7 @@ class StatCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
               transitionBuilder: (Widget child, Animation<double> animation) {
@@ -74,7 +74,7 @@ class StatCard extends StatelessWidget {
               child: Text(
                 count,
                 key: ValueKey(count),
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
@@ -82,7 +82,7 @@ class StatCard extends StatelessWidget {
               ),
             ),
             if (subtitle != null) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
                 child: Text(

@@ -91,7 +91,7 @@ class ShimmerItemCard extends StatelessWidget {
   }
 }
 
-/// 骨架屏统计卡片
+/// 骨架屏统计卡片（布局与 [StatCard] 一致，避免网格单元格溢出）
 class ShimmerStatCard extends StatelessWidget {
   const ShimmerStatCard({super.key});
 
@@ -104,14 +104,26 @@ class ShimmerStatCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          ShimmerLoading(width: 40, height: 40, borderRadius: 8),
-          const SizedBox(height: 12),
-          ShimmerLoading(width: 60, height: 24, borderRadius: 4),
+          Row(
+            children: [
+              const ShimmerLoading(width: 22, height: 22, borderRadius: 4),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ShimmerLoading(
+                  width: MediaQuery.sizeOf(context).width * 0.2,
+                  height: 12,
+                  borderRadius: 4,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
-          ShimmerLoading(width: 80, height: 14, borderRadius: 4),
+          const ShimmerLoading(width: 56, height: 20, borderRadius: 4),
+          const SizedBox(height: 2),
+          const ShimmerLoading(width: 72, height: 12, borderRadius: 4),
         ],
       ),
     );

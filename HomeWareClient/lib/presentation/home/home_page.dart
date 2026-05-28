@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/home_provider.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/providers/family_provider.dart';
 import '../../core/services/auth_service.dart';
 import '../common/widgets/app_empty_state.dart';
 import '../common/widgets/shimmer_loading.dart';
@@ -16,11 +18,14 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentFamilyAsync = ref.watch(currentFamilyProvider);
+
     return Scaffold(
         backgroundColor: AppColors.background,
         body: SafeArea(
           child: RefreshIndicator(
             onRefresh: () async {
+              ref.invalidate(currentFamilyProvider);
               ref.invalidate(homeStatsProvider);
               ref.invalidate(spacesProvider);
               ref.invalidate(recentActivitiesProvider);
@@ -39,13 +44,7 @@ class HomePage extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Flexible(
-                        child: Text(
-                          '我的家',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        child: _buildFamilyTitle(context, currentFamilyAsync),
                       ),
                     ],
                   ),
@@ -167,6 +166,43 @@ class HomePage extends ConsumerWidget {
     );
   }
 
+  /// 首页 AppBar 标题：展示当前选中家庭名称
+  Widget _buildFamilyTitle(
+    BuildContext context,
+    AsyncValue<Map<String, dynamic>?> currentFamilyAsync,
+  ) {
+    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.bold,
+        );
+
+    return currentFamilyAsync.when(
+      data: (family) {
+        final name = family?['name']?.toString();
+        if (name == null || name.isEmpty) {
+          debugPrint('[HomePage] WARN: 当前无家庭，显示占位标题');
+        }
+        return Text(
+          (name != null && name.isNotEmpty) ? name : '未加入家庭',
+          style: titleStyle,
+          overflow: TextOverflow.ellipsis,
+        );
+      },
+      loading: () => Text(
+        '…',
+        style: titleStyle,
+        overflow: TextOverflow.ellipsis,
+      ),
+      error: (error, _) {
+        debugPrint('[HomePage] ERROR: 加载家庭名称失败 - $error');
+        return Text(
+          '未加入家庭',
+          style: titleStyle,
+          overflow: TextOverflow.ellipsis,
+        );
+      },
+    );
+  }
+
   Widget _buildStatsGrid(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(homeStatsProvider);
 
@@ -178,7 +214,7 @@ class HomePage extends ConsumerWidget {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
-          childAspectRatio: 1.3,
+          childAspectRatio: 1.38,
           children: [
             StatCard(
               emoji: '🔴',
@@ -229,9 +265,9 @@ class HomePage extends ConsumerWidget {
         physics: const NeverScrollableScrollPhysics(),
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 1.3,
-        children: const [
-          ShimmerStatCard(),
+          childAspectRatio: 1.38,
+          children: const [
+            ShimmerStatCard(),
           ShimmerStatCard(),
           ShimmerStatCard(),
           ShimmerStatCard(),
