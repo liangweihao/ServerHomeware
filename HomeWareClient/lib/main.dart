@@ -62,14 +62,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AuthGuard(
-      child: MaterialApp.router(
-        title: 'HomeStock',
-        theme: AppTheme.lightTheme,
-        routerConfig: appRouter,
-        locale: const Locale('zh', 'CN'),
-        debugShowCheckedModeBanner: false,
-      ),
+    return MaterialApp.router(
+      title: 'HomeStock',
+      theme: AppTheme.lightTheme,
+      routerConfig: appRouter,
+      locale: const Locale('zh', 'CN'),
+      debugShowCheckedModeBanner: false,
+      builder: (context, child) => AuthGuard(child: child ?? const SizedBox.shrink()),
     );
   }
 }

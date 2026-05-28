@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_env.dart';
+import '../exceptions/auth_exception.dart';
 
 /// 登录请求模型
 class LoginRequest {
@@ -91,8 +92,12 @@ class ApiService {
     await prefs.remove(_keyRefreshToken);
   }
 
-  /// 处理认证错误
+  /// 处理认证错误（仅 token 失效等会话问题，不含「未加入家庭」等业务 401）
   static void handleAuthError(int code, String message) {
+    if (!shouldTriggerSessionLogout(code, message)) {
+      _log('SKIP SESSION LOGOUT: code=$code, message=$message');
+      return;
+    }
     _log('AUTH ERROR: code=$code, message=$message');
     onAuthError?.call();
   }

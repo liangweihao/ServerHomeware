@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import './api_service.dart';
 import '../config/app_env.dart';
+import '../exceptions/auth_exception.dart';
 
 /// 家庭信息服务
 class FamilyService {
@@ -351,10 +352,13 @@ class FamilyService {
       if (code != 200) {
         _log('WARN: 接口返回错误 - code: $code, message: $message');
         
-        // 检测认证错误并处理
         if (code == 401 || code == 403) {
-          _log('WARN: Token无效或已过期，触发认证错误处理');
-          ApiService.handleAuthError(code, message);
+          if (shouldTriggerSessionLogout(code, message)) {
+            _log('WARN: Token无效或已过期，触发认证错误处理');
+            ApiService.handleAuthError(code, message);
+          } else {
+            _log('INFO: 业务态 401/403，不退出登录 - $message');
+          }
         }
       }
 
@@ -385,10 +389,13 @@ class FamilyService {
       if (code != 200) {
         _log('WARN: 接口返回错误 - code: $code, message: $message');
         
-        // 检测认证错误并处理
         if (code == 401 || code == 403) {
-          _log('WARN: Token无效或已过期，触发认证错误处理');
-          ApiService.handleAuthError(code, message);
+          if (shouldTriggerSessionLogout(code, message)) {
+            _log('WARN: Token无效或已过期，触发认证错误处理');
+            ApiService.handleAuthError(code, message);
+          } else {
+            _log('INFO: 业务态 401/403，不退出登录 - $message');
+          }
         }
       }
 

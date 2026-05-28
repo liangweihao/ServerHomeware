@@ -293,7 +293,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       if (!response.isSuccess) {
         _log('ERROR: 创建家庭失败 - ${response.message}');
         
-        if (isAuthError(response.code)) {
+        if (shouldTriggerSessionLogout(response.code, response.message)) {
           _log('WARN: Token无效，自动退出登录');
           await logout();
           throw AuthException(
@@ -347,7 +347,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       if (!response.isSuccess) {
         _log('ERROR: 加入家庭失败 - ${response.message}');
         
-        if (isAuthError(response.code)) {
+        if (shouldTriggerSessionLogout(response.code, response.message)) {
           _log('WARN: Token无效，自动退出登录');
           await logout();
           throw AuthException(

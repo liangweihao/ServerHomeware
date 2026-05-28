@@ -52,8 +52,8 @@ class AuthGuard extends ConsumerWidget {
     // 清除认证状态
     ref.read(authProvider.notifier).logout();
     
-    // 显示友好提示
-    ScaffoldMessenger.of(context).showSnackBar(
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.showSnackBar(
       const SnackBar(
         content: Text('登录已过期，请重新登录'),
         backgroundColor: Colors.orange,
@@ -69,7 +69,7 @@ class AuthGuard extends ConsumerWidget {
   void _handleAuthError(BuildContext context, AuthException error) {
     switch (error.type) {
       case AuthExceptionType.tokenExpired:
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
           const SnackBar(
             content: Text('登录已过期，请重新登录'),
             backgroundColor: Colors.orange,
@@ -78,7 +78,7 @@ class AuthGuard extends ConsumerWidget {
         );
         break;
       case AuthExceptionType.tokenInvalid:
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
           const SnackBar(
             content: Text('登录无效，请重新登录'),
             backgroundColor: Colors.red,
@@ -87,7 +87,7 @@ class AuthGuard extends ConsumerWidget {
         );
         break;
       case AuthExceptionType.unauthorized:
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
           const SnackBar(
             content: Text('暂无权限，请重新登录'),
             backgroundColor: Colors.red,
@@ -115,7 +115,7 @@ class AuthGuard extends ConsumerWidget {
 extension AuthErrorHandling on WidgetRef {
   /// 处理 API 响应中的认证错误
   void handleApiAuthError(int code, String message) {
-    if (isAuthError(code)) {
+    if (shouldTriggerSessionLogout(code, message)) {
       // 获取 AuthNotifier 并调用退出登录
       read(authProvider.notifier).logout();
       
