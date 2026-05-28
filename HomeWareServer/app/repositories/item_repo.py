@@ -3,7 +3,7 @@
 """
 from typing import Dict, List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -33,6 +33,13 @@ class ItemRepository(BaseRepository[Item]):
     async def get_by_family_id(self, family_id: int) -> List[Item]:
         """根据家庭ID获取物品列表"""
         return await self.get_multi_by_field("family_id", family_id)
+
+    async def count_by_family_id(self, family_id: int) -> int:
+        """统计家庭物品数量（仅 COUNT，不拉列表）"""
+        result = await self.db.scalar(
+            select(func.count()).select_from(Item).where(Item.family_id == family_id)
+        )
+        return int(result or 0)
     
     async def get_by_category_id(self, category_id: int) -> List[Item]:
         """根据分类ID获取物品列表"""

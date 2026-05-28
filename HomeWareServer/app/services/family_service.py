@@ -352,10 +352,9 @@ class FamilyService:
         :return: 物品数量
         """
         from app.repositories.item_repo import ItemRepository
-        
+
         item_repo = ItemRepository(self.db)
-        items = await item_repo.get_list(family_id=family_id)
-        return items.get("total", 0)
+        return await item_repo.count_by_family_id(family_id)
     
     async def refresh_invite_code(self, family_id: int) -> str:
         """

@@ -45,6 +45,42 @@ class ItemService {
     }
   }
 
+  /// 更新物品
+  /// 调用服务端 PUT /api/v1/items/{id} 接口
+  Future<ApiResponse<Map<String, dynamic>>> updateItem({
+    required int itemId,
+    required Map<String, dynamic> body,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        _log('ERROR: 未登录');
+        return ApiResponse<Map<String, dynamic>>(
+          code: 401,
+          message: '未登录',
+        );
+      }
+
+      _log('INFO: 调用 PUT /api/v1/items/$itemId');
+      final response = await http.put(
+        Uri.parse('$_baseUrl/items/$itemId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(body),
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 更新物品失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: '更新物品失败: $e',
+      );
+    }
+  }
+
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyToken);

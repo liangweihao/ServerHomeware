@@ -5,6 +5,7 @@ import '../../presentation/items/item_list_page.dart';
 import '../../presentation/items/item_detail_page.dart';
 import '../../presentation/items/add_item_page.dart';
 import '../../presentation/items/edit_item_page.dart';
+import '../../presentation/items/usage_records_page.dart';
 import '../../presentation/items/scan_page.dart';
 import '../../presentation/alerts/alert_center_page.dart';
 import '../../presentation/profile/profile_page.dart';
@@ -189,17 +190,28 @@ final appRouter = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/items/:id',
-      name: 'itemDetail',
-      pageBuilder: (context, state) => SlideTransitionPage(
-        child: ItemDetailPage(id: int.parse(state.pathParameters['id']!)),
-      ),
-    ),
-    GoRoute(
       path: '/items/:id/edit',
       name: 'editItem',
       pageBuilder: (context, state) => SlideTransitionPage(
         child: EditItemPage(id: int.parse(state.pathParameters['id']!)),
+      ),
+    ),
+    GoRoute(
+      path: '/items/:id/records',
+      name: 'itemUsageRecords',
+      pageBuilder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        final name = state.uri.queryParameters['name'] ?? '物品';
+        return SlideTransitionPage(
+          child: UsageRecordsPage(itemId: id, itemName: name),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/items/:id',
+      name: 'itemDetail',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: ItemDetailPage(id: int.parse(state.pathParameters['id']!)),
       ),
     ),
     GoRoute(

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/providers/family_provider.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/family_service.dart';
@@ -18,7 +19,8 @@ class ProfilePanelPage extends ConsumerStatefulWidget {
 }
 
 class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
-  bool _isLoading = true;
+  bool _familyLoading = true;
+  bool _contributionLoading = true;
   Map<String, dynamic>? _familyData;
   Map<String, dynamic>? _contributionData;
   String _inviteCode = '';
@@ -32,49 +34,80 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
     _loadData();
   }
 
-  Future<void> _loadData() async {
+  Future<void> _loadData({bool forceRefreshFamily = false}) async {
     setState(() {
-      _isLoading = true;
+      _familyLoading = true;
+      _contributionLoading = true;
       _familyNetworkError = false;
       _contributionNetworkError = false;
     });
 
-    try {
-      final user = ref.read(authProvider.notifier).currentUser;
-      final userId = user?.id ?? '1';
-      
-      final familyService = FamilyService();
-      final contributionService = ContributionService();
+    final user = ref.read(authProvider.notifier).currentUser;
+    final userId = user?.id;
+    if (userId == null || userId.isEmpty) {
+      setState(() {
+        _familyData = null;
+        _familyLoading = false;
+        _contributionLoading = false;
+      });
+      return;
+    }
 
+    // 先用首页已拉取的缓存，家庭区块可立即展示
+    final cachedFamily = ref.read(currentFamilyProvider).valueOrNull;
+    if (cachedFamily != null && !forceRefreshFamily) {
+      setState(() {
+        _familyData = cachedFamily;
+        _inviteCode = cachedFamily['invite_code']?.toString() ?? '';
+        _familyLoading = false;
+      });
+    }
+
+    if (forceRefreshFamily) {
+      ref.invalidate(currentFamilyProvider);
+    }
+
+    final familyService = FamilyService();
+    final contributionService = ContributionService();
+
+    // 家庭：复用 Provider，与首页共用一次 GET /families/current
+    ref.read(currentFamilyProvider.future).then((family) {
+      if (!mounted) return;
+      setState(() {
+        _familyData = family;
+        _inviteCode = family?['invite_code']?.toString() ?? '';
+        _familyLoading = false;
+        _familyNetworkError = false;
+      });
+    }).catchError((e) {
+      debugPrint('Failed to load family: $e');
+      if (!mounted) return;
+      setState(() {
+        _familyData = null;
+        _familyLoading = false;
+        _familyNetworkError = true;
+      });
+    });
+
+    // 贡献度 + 家庭列表并行，不阻塞家庭区块展示
+    try {
       final results = await Future.wait([
-        familyService.getCurrentFamily(userId: userId),
         contributionService.getUserContribution(userId: userId),
         familyService.getUserFamilies(),
       ]);
 
-      final familyResult = results[0] as ApiResponse<Map<String, dynamic>>;
-      final contributionResult = results[1] as ApiResponse<Map<String, dynamic>>;
-      final familiesResult = results[2] as ApiResponse<List<dynamic>>;
+      final contributionResult = results[0] as ApiResponse<Map<String, dynamic>>;
+      final familiesResult = results[1] as ApiResponse<List<dynamic>>;
 
-      if (familyResult.code == 200) {
-        setState(() {
-          _familyData = familyResult.data;
-          _inviteCode = familyResult.data?['invite_code'] ?? '';
-        });
-      } else {
-        setState(() {
-          _familyData = null;
-        });
-      }
+      if (!mounted) return;
 
       if (contributionResult.code == 200) {
         setState(() {
           _contributionData = contributionResult.data;
+          _contributionNetworkError = false;
         });
       } else {
-        setState(() {
-          _contributionData = null;
-        });
+        setState(() => _contributionData = null);
       }
 
       if (familiesResult.code == 200) {
@@ -83,13 +116,13 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
         });
       }
     } catch (e) {
-      debugPrint('Failed to load data: $e');
-      setState(() {
-        _familyNetworkError = true;
-        _contributionNetworkError = true;
-      });
+      debugPrint('Failed to load contribution/families: $e');
+      if (!mounted) return;
+      setState(() => _contributionNetworkError = true);
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _contributionLoading = false);
+      }
     }
   }
 
@@ -275,7 +308,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
   }
 
   Widget _buildFamilySection(double width) {
-    if (_isLoading) {
+    if (_familyLoading) {
       return SizedBox(
         width: width,
         child: Card(
@@ -324,7 +357,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: _loadData,
+                  onPressed: () => _loadData(forceRefreshFamily: true),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(120, 40),
                     backgroundColor: AppColors.primary,
@@ -585,7 +618,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
   }
 
   Widget _buildContributionSection(double width) {
-    if (_isLoading) {
+    if (_contributionLoading) {
       return SizedBox(
         width: width,
         child: Card(
@@ -634,7 +667,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: _loadData,
+                  onPressed: () => _loadData(forceRefreshFamily: true),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(120, 40),
                     backgroundColor: AppColors.primary,
@@ -888,8 +921,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
       currentFamilyData: _familyData,
       userId: user?.id,
     ).then((_) {
-      // 弹窗关闭后刷新数据
-      _loadData();
+      _loadData(forceRefreshFamily: true);
     });
   }
 

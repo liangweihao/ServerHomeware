@@ -2,6 +2,8 @@
 依赖注入模块
 提供 FastAPI 依赖注入函数
 """
+import asyncio
+import logging
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -11,26 +13,35 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.exceptions import UnauthorizedException
+from app.core.exceptions import ForbiddenException, UnauthorizedException
 from app.core.redis import get_redis
 from app.core.security import decode_token
 from app.models.user import User
+from app.config import settings
 from app.repositories.user_repo import UserRepository
 
 oauth2_scheme = HTTPBearer(auto_error=False)
+
+logger = logging.getLogger(__name__)
+
+# Redis 不可达时避免阻塞整请求（Windows 下常见 ~4s TCP 超时）
+_REDIS_PING_TIMEOUT_SEC = 0.5
 
 
 async def get_redis_optional() -> Optional[Redis]:
     """
     获取 Redis 客户端（可选）
-    在开发模式下，如果 Redis 不可用，返回 None
+    开发环境默认跳过；其他环境带超时探测，不可用则降级为 None
     """
+    if settings.APP_ENV == "development":
+        return None
+
     try:
         redis = await get_redis()
-        # 测试连接
-        await redis.ping()
+        await asyncio.wait_for(redis.ping(), timeout=_REDIS_PING_TIMEOUT_SEC)
         return redis
-    except Exception:
+    except Exception as exc:
+        logger.debug("Redis 不可用，跳过令牌黑名单检查: %s", exc)
         return None
 
 

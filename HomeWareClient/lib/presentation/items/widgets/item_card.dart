@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
+import '../../../core/utils/item_image_storage.dart';
 import '../../../data/database/app_database.dart';
 
 class ItemCard extends StatefulWidget {
@@ -49,19 +52,7 @@ class _ItemCardState extends State<ItemCard> {
           ),
           child: Row(
             children: [
-              // 图片占位
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-                child: const Icon(
-                  Icons.inventory_2_outlined,
-                  color: AppColors.textHint,
-                ),
-              ),
+              _buildThumbnail(),
               const SizedBox(width: 12),
               // 信息
               Expanded(
@@ -133,6 +124,42 @@ class _ItemCardState extends State<ItemCard> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildThumbnail() {
+    final paths = ItemImageStorage.decodePaths(widget.item.images);
+    final decoration = BoxDecoration(
+      color: AppColors.background,
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+    );
+
+    if (paths.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        child: Image.file(
+          File(paths.first),
+          width: 56,
+          height: 56,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            width: 56,
+            height: 56,
+            decoration: decoration,
+            child: const Icon(Icons.broken_image_outlined, color: AppColors.textHint),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: decoration,
+      child: const Icon(
+        Icons.inventory_2_outlined,
+        color: AppColors.textHint,
       ),
     );
   }
