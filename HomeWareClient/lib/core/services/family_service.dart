@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import './api_service.dart';
+import '../config/app_env.dart';
 
 /// 家庭信息服务
 class FamilyService {
-  static const _baseUrl = 'http://192.168.1.104:8000/api/v1';
+  static String get _baseUrl => AppEnv.apiBaseUrl;
   static const _keyToken = 'auth_token';
 
   /// 获取当前家庭信息
@@ -212,6 +213,42 @@ class FamilyService {
       return ApiResponse<Map<String, dynamic>>(
         code: 500,
         message: '切换家庭失败: $e',
+      );
+    }
+  }
+
+  /// 更新家庭信息
+  /// 调用服务端 PUT /api/v1/families/{familyId} 接口（owner/admin）
+  Future<ApiResponse<Map<String, dynamic>>> updateFamily({
+    required String familyId,
+    required String name,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        _log('ERROR: 未登录');
+        return ApiResponse<Map<String, dynamic>>(
+          code: 401,
+          message: '未登录',
+        );
+      }
+
+      _log('INFO: 调用 PUT /api/v1/families/$familyId');
+      final response = await http.put(
+        Uri.parse('$_baseUrl/families/$familyId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'name': name}),
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 更新家庭失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: '更新家庭失败: $e',
       );
     }
   }

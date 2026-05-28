@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import './api_service.dart';
+import '../config/app_env.dart';
 
 /// 贡献度服务
 class ContributionService {
-  static const _baseUrl = 'http://192.168.1.104:8000/api/v1';
+  static String get _baseUrl => AppEnv.apiBaseUrl;
   static const _keyToken = 'auth_token';
 
   /// 获取用户贡献数据

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import './api_service.dart';
+import '../config/app_env.dart';
 
 /// Token 模型类
 class Token {
@@ -186,7 +187,7 @@ class FamilyMember {
 
 /// 认证服务
 class AuthService {
-  static const _baseUrl = 'http://192.168.1.104:8000/api/v1';
+  static String get _baseUrl => AppEnv.apiBaseUrl;
   static const _keyToken = 'auth_token';
   static const _delay = Duration(seconds: 1);
   

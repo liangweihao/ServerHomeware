@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/app_env.dart';
 
 /// 登录请求模型
 class LoginRequest {
@@ -56,7 +57,7 @@ class ApiResponse<T> {
 
 /// API 服务基类
 class ApiService {
-  static const _baseUrl = 'http://192.168.1.104:8000/api/v1';
+  static String get _baseUrl => AppEnv.apiBaseUrl;
   static const _keyToken = 'auth_token';
   static const _keyRefreshToken = 'auth_refresh_token';
   

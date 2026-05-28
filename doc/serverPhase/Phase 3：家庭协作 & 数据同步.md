@@ -66,6 +66,15 @@ Phase 1-2 已完成。认证系统和核心CRUD API就绪。
 逻辑：生成新邀请码替换旧的
 ```
 
+**PUT /api/v1/families/{family_id}**
+```
+说明：更新家庭信息（owner/admin 可操作）
+请求：{name}
+逻辑：
+- 鉴权：用户须为该家庭成员，且 role 为 owner 或 admin
+- 更新家庭名称（1–50 字符）
+```
+
 **PUT /api/v1/families/members/{member_id}/role**
 ```
 说明：修改成员角色（仅owner可操作）
@@ -104,8 +113,7 @@ Phase 1-2 已完成。认证系统和核心CRUD API就绪。
 逻辑：
 - 鉴权：仅 owner 角色可执行
 - 校验 confirm_name 与家庭实际名称完全匹配，不匹配返回 400
-- 检查该用户是否至少还有1个其他家庭（不允许删除最后一个家庭）
-- 检查该家庭不是用户当前 current_family_id（需先切换到其他家庭才能删）
+- 若删除的是 current_family_id，服务端自动将用户切换到其另一个可用家庭；若无其他家庭则置空
 - 软删除家庭：设置 families.deleted_at = now
 - 级联软删除该家庭下所有数据：
   - items.deleted_at = now
@@ -120,8 +128,6 @@ Phase 1-2 已完成。认证系统和核心CRUD API就绪。
 错误响应：
 - 403：非owner身份
 - 400 "confirm_name_mismatch"：输入名称不匹配
-- 400 "is_current_family"：不能删除当前正在使用的家庭
-- 400 "last_family"：不能删除唯一的家庭
 ```
 
 **POST /api/v1/families/{family_id}/transfer-ownership**
@@ -340,7 +346,7 @@ CREATE INDEX idx_activity_logs_family_created ON activity_logs(family_id, create
 3. ✅ 获取用户所有家庭列表
 4. ✅ 切换家庭后数据正确隔离
 5. ✅ 权限控制生效：member不能删除物品
-6. ✅ **删除家庭：owner可删除、需名称确认、不能删当前家庭、不能删最后一个家庭**
+6. ✅ **删除家庭：owner可删除、需名称确认、可删当前/唯一家庭（自动切换或置空 current_family_id）**
 7. ✅ **删除家庭后级联软删除所有子数据**
 8. ✅ **删除家庭后其他成员自动切换到可用家庭**
 9. ✅ **转让所有权正常工作**

@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../services/family_service.dart';
 import '../services/api_service.dart';
 import '../exceptions/auth_exception.dart';
+import '../config/app_env.dart';
 
 /// 认证状态枚举
 enum AuthState {
@@ -109,7 +110,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     required String phone,
     required String password,
   }) async {
-    final url = Uri.parse('http://192.168.1.104:8000/api/v1/auth/login');
+    final url = AppEnv.uri('/auth/login');
     
     final response = await http.post(
       url,
@@ -255,7 +256,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     required String password,
     required String nickname,
   }) async {
-    final url = Uri.parse('http://192.168.1.104:8000/api/v1/auth/register');
+    final url = AppEnv.uri('/auth/register');
     
     final response = await http.post(
       url,

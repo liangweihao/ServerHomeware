@@ -301,6 +301,36 @@ class FamilyService:
         
         logger.info(f"成员角色更新成功")
     
+    async def update_family(self, user_id: int, family_id: int, name: Optional[str] = None):
+        """
+        更新家庭信息（owner/admin 可操作）
+        :param user_id: 当前用户ID
+        :param family_id: 家庭ID
+        :param name: 家庭名称
+        """
+        logger.info(f"更新家庭信息 - 用户ID: {user_id}, 家庭ID: {family_id}")
+        
+        family = await self.family_repo.get_by_id(family_id)
+        if not family:
+            raise NotFoundException("家庭不存在")
+        
+        member = await self.family_member_repo.get_by_user_and_family(user_id, family_id)
+        if not member:
+            raise ForbiddenException("您不是该家庭成员")
+        if member.role not in ["owner", "admin"]:
+            raise ForbiddenException("仅家庭所有者或管理员可修改家庭设置")
+        
+        if name is not None:
+            name = name.strip()
+            if not name:
+                raise ConflictException("家庭名称不能为空")
+            if len(name) > 50:
+                raise ConflictException("家庭名称不能超过50个字符")
+            await self.family_repo.update(family_id, {"name": name})
+        
+        logger.info(f"家庭信息更新成功 - 家庭ID: {family_id}")
+        return await self.family_repo.get_by_id(family_id)
+    
     def _generate_invite_code(self) -> str:
         """生成8位邀请码"""
         import random
@@ -396,15 +426,6 @@ class FamilyService:
         # 检查名称是否匹配
         if family.name != confirm_name:
             raise ConflictException("输入的家庭名称不匹配")
-        
-        # 检查是否是最后一个家庭
-        user_families = await self.family_member_repo.get_by_user_id(user_id)
-        if len(user_families) <= 1:
-            raise ConflictException("不能删除唯一的家庭")
-        
-        # 获取用户信息（用于后续处理当前家庭删除）
-        user = await self.user_repo.get_by_id(user_id)
-        is_current_family = user and user.current_family_id == family_id
         
         # 级联软删除
         from datetime import datetime, timezone

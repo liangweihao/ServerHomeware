@@ -2,6 +2,9 @@
 
 # HomeStock Server 开发模式启动脚本
 # 使用 SQLite 作为数据库，无需 PostgreSQL 和 Redis
+#
+# Windows 用户请用 PowerShell 运行: .\start-dev.ps1
+# （.sh 需要 Git Bash / WSL / macOS / Linux，在 Windows 下双击通常无反应）
 
 set -e
 kill -9 $(lsof -ti:8000) 2>/dev/null

@@ -19,6 +19,7 @@ from app.schemas.family import (
     JoinFamilyRequest,
     TransferOwnershipRequest,
     UpdateFamilyMemberRequest,
+    UpdateFamilyRequest,
     UserFamilyResponse,
 )
 from app.services.family_service import FamilyService
@@ -219,6 +220,30 @@ async def refresh_invite_code(
     )
 
 
+@router.put("/{family_id}", summary="更新家庭信息")
+async def update_family(
+    family_id: int,
+    request: UpdateFamilyRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    更新家庭信息（owner/admin 可操作）
+    """
+    family_service = FamilyService(db)
+    family = await family_service.update_family(
+        user_id=current_user.id,
+        family_id=family_id,
+        name=request.name,
+    )
+    
+    return ResponseSchema(
+        code=200,
+        message="家庭信息更新成功",
+        data=FamilyResponse.from_orm(family)
+    )
+
+
 @router.delete("/{family_id}", summary="删除家庭")
 async def delete_family(
     family_id: int,
@@ -229,8 +254,7 @@ async def delete_family(
     """
     删除家庭（仅 owner 可操作）
     - 需要输入家庭名称进行确认
-    - 不能删除当前正在使用的家庭
-    - 不能删除唯一的家庭
+    - 若删除当前家庭，服务端自动切换到用户的其他家庭（若无其他家庭则 current_family_id 置空）
     """
     family_service = FamilyService(db)
     await family_service.delete_family(
