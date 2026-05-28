@@ -216,6 +216,46 @@ class FamilyService {
     }
   }
 
+  /// 删除家庭
+  /// 调用服务端 DELETE /api/v1/families/{familyId} 接口
+  /// Request: {confirm_name}
+  /// 逻辑：验证家庭名称是否匹配 → 删除家庭及其所有成员和相关数据
+  Future<ApiResponse<Map<String, dynamic>>> deleteFamily({
+    required String familyId,
+    required String confirmName,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        _log('ERROR: 未登录');
+        return ApiResponse<Map<String, dynamic>>(
+          code: 401,
+          message: '未登录',
+        );
+      }
+
+      _log('INFO: 调用 DELETE /api/v1/families/$familyId, confirmName: $confirmName');
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/families/$familyId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'confirm_name': confirmName,
+        }),
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 删除家庭失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: '删除家庭失败: $e',
+      );
+    }
+  }
+
   /// 加入家庭
   /// 调用服务端 POST /api/v1/families/join 接口
   /// Request: {invite_code}

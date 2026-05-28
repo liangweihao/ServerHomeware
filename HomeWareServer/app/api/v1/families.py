@@ -13,10 +13,13 @@ from app.models.user import User
 from app.schemas.common import ResponseSchema
 from app.schemas.family import (
     CreateFamilyRequest,
+    DeleteFamilyRequest,
     FamilyMemberResponse,
     FamilyResponse,
     JoinFamilyRequest,
+    TransferOwnershipRequest,
     UpdateFamilyMemberRequest,
+    UserFamilyResponse,
 )
 from app.services.family_service import FamilyService
 
@@ -29,12 +32,12 @@ async def get_user_families(
     db: AsyncSession = Depends(get_db)
 ):
     family_service = FamilyService(db)
-    families = await family_service.get_user_families(current_user.id)
+    families = await family_service.get_user_families_with_details(current_user.id)
     
     return ResponseSchema(
         code=200,
         message="success",
-        data=[FamilyResponse.from_orm(f) for f in families]
+        data=families
     )
 
 
@@ -213,4 +216,85 @@ async def refresh_invite_code(
         data={
             "invite_code": new_code
         }
+    )
+
+
+@router.delete("/{family_id}", summary="删除家庭")
+async def delete_family(
+    family_id: int,
+    request: DeleteFamilyRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    删除家庭（仅 owner 可操作）
+    - 需要输入家庭名称进行确认
+    - 不能删除当前正在使用的家庭
+    - 不能删除唯一的家庭
+    """
+    family_service = FamilyService(db)
+    await family_service.delete_family(
+        user_id=current_user.id,
+        family_id=family_id,
+        confirm_name=request.confirm_name
+    )
+    
+    return ResponseSchema(
+        code=200,
+        message="家庭删除成功",
+        data=None
+    )
+
+
+@router.delete("/{family_id}/members/{member_id}", summary="移除成员")
+async def remove_member(
+    family_id: int,
+    member_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    移除家庭成员
+    - owner 可移除任何人
+    - admin 可移除 member（不能移除 owner）
+    - member 不能移除任何人
+    - 不能移除自己
+    """
+    family_service = FamilyService(db)
+    await family_service.remove_member(
+        current_user_id=current_user.id,
+        family_id=family_id,
+        member_id=member_id
+    )
+    
+    return ResponseSchema(
+        code=200,
+        message="成员移除成功",
+        data=None
+    )
+
+
+@router.post("/{family_id}/transfer-ownership", summary="转让所有权")
+async def transfer_ownership(
+    family_id: int,
+    request: TransferOwnershipRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    转让家庭所有权（仅 owner 可操作）
+    - 当前 owner 降为 admin
+    - 目标成员升为 owner
+    """
+    family_service = FamilyService(db)
+    await family_service.transfer_ownership(
+        current_user_id=current_user.id,
+        family_id=family_id,
+        new_owner_id=request.new_owner_id
+    )
+    
+    return ResponseSchema(
+        code=200,
+        message="所有权转让成功",
+        data=None
     )

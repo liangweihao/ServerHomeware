@@ -52,6 +52,15 @@ class ItemRepository(BaseRepository[Item]):
         )
         return result.scalar_one_or_none()
     
+    async def soft_delete_by_family(self, family_id: int, deleted_at):
+        """软删除家庭的所有物品"""
+        await self.db.execute(
+            Item.__table__.update()
+            .where(Item.family_id == family_id)
+            .values(deleted_at=deleted_at)
+        )
+        await self.db.commit()
+    
     async def get_category_names(self, family_id: int) -> Dict[int, str]:
         """获取分类ID到名称的映射"""
         result = await self.db.execute(

@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.item import Item
 from app.models.shopping import ShoppingItem
-from app.repositories.shopping_repo import ShoppingRepository
+from app.repositories.shopping_repo import ShoppingItemRepository
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class ShoppingService:
 
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.repo = ShoppingRepository(db)
+        self.repo = ShoppingItemRepository(db)
 
     async def get_shopping_list(
         self,

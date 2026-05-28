@@ -14,9 +14,22 @@ class FamilyResponse(BaseModel):
     name: str = Field(..., description="家庭名称")
     invite_code: str = Field(..., description="邀请码")
     owner_id: int = Field(..., description="创建者ID")
+    icon: str = Field("🏠", description="家庭图标")
     created_at: datetime = Field(..., description="创建时间")
     
     model_config = {"from_attributes": True}
+
+
+class UserFamilyResponse(BaseModel):
+    """用户家庭列表响应模型（包含用户在家庭中的角色和统计信息）"""
+    
+    id: int = Field(..., description="家庭ID")
+    name: str = Field(..., description="家庭名称")
+    icon: str = Field("🏠", description="家庭图标")
+    member_count: int = Field(..., description="成员数量")
+    item_count: int = Field(..., description="物品数量")
+    role: str = Field(..., description="当前用户在家庭中的角色")
+    created_at: datetime = Field(..., description="创建时间")
 
 
 class FamilyMemberResponse(BaseModel):
@@ -55,3 +68,15 @@ class UpdateFamilyMemberRequest(BaseModel):
     
     role: Optional[str] = Field(None, description="角色")
     nickname_in_family: Optional[str] = Field(None, description="家庭内昵称")
+
+
+class DeleteFamilyRequest(BaseModel):
+    """删除家庭请求"""
+    
+    confirm_name: str = Field(..., description="家庭名称（用于确认）")
+
+
+class TransferOwnershipRequest(BaseModel):
+    """转让所有权请求"""
+    
+    new_owner_id: int = Field(..., description="新所有者用户ID")

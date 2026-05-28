@@ -62,3 +62,12 @@ class CategoryRepository(BaseRepository[Category]):
             select(func.count(Category.id)).filter(Category.parent_id == parent_id)
         )
         return result.scalar() or 0
+    
+    async def soft_delete_by_family(self, family_id: int, deleted_at):
+        """软删除家庭的所有自定义分类（非系统预设）"""
+        await self.db.execute(
+            Category.__table__.update()
+            .where(Category.family_id == family_id)
+            .values(deleted_at=deleted_at, is_active=False)
+        )
+        await self.db.commit()

@@ -345,3 +345,199 @@ class FamilyService:
         
         logger.info(f"邀请码刷新成功 - 新邀请码: {new_code}")
         return new_code
+    
+    async def get_user_families_with_details(self, user_id: int):
+        """
+        获取用户的所有家庭（包含角色和统计信息）
+        :param user_id: 用户ID
+        :return: 家庭列表（含角色、成员数、物品数）
+        """
+        members = await self.family_member_repo.get_by_user_id(user_id)
+        families = []
+        
+        for member in members:
+            family = await self.family_repo.get_by_id(member.family_id)
+            if family:
+                # 获取成员数量
+                member_count = await self.family_member_repo.count_by_family_id(family.id)
+                # 获取物品数量
+                item_count = await self.get_family_item_count(family.id)
+                
+                families.append({
+                    "id": family.id,
+                    "name": family.name,
+                    "icon": family.icon or "🏠",
+                    "role": member.role,
+                    "member_count": member_count,
+                    "item_count": item_count,
+                    "created_at": family.created_at,
+                })
+        
+        return families
+    
+    async def delete_family(self, user_id: int, family_id: int, confirm_name: str):
+        """
+        删除家庭（仅 owner 可操作）
+        :param user_id: 当前用户ID
+        :param family_id: 家庭ID
+        :param confirm_name: 确认的家庭名称
+        """
+        logger.info(f"删除家庭 - 用户ID: {user_id}, 家庭ID: {family_id}")
+        
+        # 获取家庭信息
+        family = await self.family_repo.get_by_id(family_id)
+        if not family:
+            raise NotFoundException("家庭不存在")
+        
+        # 检查是否是 owner
+        if family.owner_id != user_id:
+            raise ForbiddenException("仅家庭所有者可删除家庭")
+        
+        # 检查名称是否匹配
+        if family.name != confirm_name:
+            raise ConflictException("输入的家庭名称不匹配")
+        
+        # 检查是否是最后一个家庭
+        user_families = await self.family_member_repo.get_by_user_id(user_id)
+        if len(user_families) <= 1:
+            raise ConflictException("不能删除唯一的家庭")
+        
+        # 获取用户信息（用于后续处理当前家庭删除）
+        user = await self.user_repo.get_by_id(user_id)
+        is_current_family = user and user.current_family_id == family_id
+        
+        # 级联软删除
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        
+        # 软删除家庭
+        await self.family_repo.update(family_id, {"deleted_at": now})
+        
+        # 软删除物品
+        from app.repositories.item_repo import ItemRepository
+        item_repo = ItemRepository(self.db)
+        await item_repo.soft_delete_by_family(family_id, now)
+        
+        # 软删除位置
+        from app.repositories.location_repo import LocationRepository
+        location_repo = LocationRepository(self.db)
+        await location_repo.soft_delete_by_family(family_id, now)
+        
+        # 软删除分类
+        from app.repositories.category_repo import CategoryRepository
+        category_repo = CategoryRepository(self.db)
+        await category_repo.soft_delete_by_family(family_id, now)
+        
+        # 软删除购物清单
+        from app.repositories.shopping_repo import ShoppingItemRepository
+        shopping_repo = ShoppingItemRepository(self.db)
+        await shopping_repo.soft_delete_by_family(family_id, now)
+        
+        # 获取所有成员并处理
+        members = await self.family_member_repo.get_by_family_id(family_id)
+        for member in members:
+            # 更新成员的 current_family_id（包括当前用户）
+            other_families = await self.family_member_repo.get_by_user_id(member.user_id)
+            other_families = [f for f in other_families if f.family_id != family_id]
+            if other_families:
+                await self.user_repo.update(member.user_id, {"current_family_id": other_families[0].family_id})
+            else:
+                await self.user_repo.update(member.user_id, {"current_family_id": None})
+        
+        # 删除所有 family_member 关联记录
+        await self.family_member_repo.delete_by_family_id(family_id)
+        
+        logger.info(f"家庭删除成功 - 家庭ID: {family_id}")
+    
+    async def remove_member(self, current_user_id: int, family_id: int, member_id: int):
+        """
+        移除成员
+        :param current_user_id: 当前操作用户ID
+        :param family_id: 家庭ID
+        :param member_id: 要移除的成员ID
+        """
+        logger.info(f"移除成员 - 当前用户ID: {current_user_id}, 家庭ID: {family_id}, 成员ID: {member_id}")
+        
+        # 获取要移除的成员信息
+        member_to_remove = await self.family_member_repo.get_by_user_and_family(member_id, family_id)
+        if not member_to_remove:
+            raise NotFoundException("成员不存在")
+        
+        # 获取当前用户在家庭中的角色
+        current_member = await self.family_member_repo.get_by_user_and_family(current_user_id, family_id)
+        if not current_member:
+            raise ForbiddenException("您不是该家庭成员")
+        
+        # 不能移除自己
+        if current_user_id == member_id:
+            raise ForbiddenException("不能移除自己")
+        
+        # 获取家庭信息
+        family = await self.family_repo.get_by_id(family_id)
+        if not family:
+            raise NotFoundException("家庭不存在")
+        
+        # 权限检查
+        current_role = current_member.role
+        target_role = member_to_remove.role
+        
+        # owner 可以移除任何人
+        if current_role == "owner":
+            pass
+        # admin 可以移除 member，但不能移除 owner
+        elif current_role == "admin":
+            if target_role == "owner":
+                raise ForbiddenException("管理员不能移除家庭所有者")
+        # member 不能移除任何人
+        else:
+            raise ForbiddenException("普通成员不能移除其他成员")
+        
+        # 删除成员关系
+        await self.family_member_repo.delete(member_to_remove.id)
+        
+        # 如果被移除者的当前家庭是这个家庭，切换到其他家庭或清空
+        user = await self.user_repo.get_by_id(member_id)
+        if user and user.current_family_id == family_id:
+            other_families = await self.family_member_repo.get_by_user_id(member_id)
+            if other_families:
+                await self.user_repo.update(member_id, {"current_family_id": other_families[0].family_id})
+            else:
+                await self.user_repo.update(member_id, {"current_family_id": None})
+        
+        logger.info(f"成员移除成功 - 成员ID: {member_id}")
+    
+    async def transfer_ownership(self, current_user_id: int, family_id: int, new_owner_id: int):
+        """
+        转让家庭所有权
+        :param current_user_id: 当前所有者ID
+        :param family_id: 家庭ID
+        :param new_owner_id: 新所有者ID
+        """
+        logger.info(f"转让所有权 - 当前用户ID: {current_user_id}, 家庭ID: {family_id}, 新所有者ID: {new_owner_id}")
+        
+        # 获取家庭信息
+        family = await self.family_repo.get_by_id(family_id)
+        if not family:
+            raise NotFoundException("家庭不存在")
+        
+        # 检查当前用户是否是 owner
+        if family.owner_id != current_user_id:
+            raise ForbiddenException("仅家庭所有者可转让所有权")
+        
+        # 检查新所有者是否是家庭成员
+        new_owner_member = await self.family_member_repo.get_by_user_and_family(new_owner_id, family_id)
+        if not new_owner_member:
+            raise NotFoundException("新所有者不是家庭成员")
+        
+        # 更新家庭 owner_id
+        await self.family_repo.update(family_id, {"owner_id": new_owner_id})
+        
+        # 将新所有者角色改为 owner
+        await self.family_member_repo.update(new_owner_member.id, {"role": "owner"})
+        
+        # 将原所有者角色改为 admin
+        current_member = await self.family_member_repo.get_by_user_and_family(current_user_id, family_id)
+        if current_member:
+            await self.family_member_repo.update(current_member.id, {"role": "admin"})
+        
+        logger.info(f"所有权转让成功 - 家庭ID: {family_id}, 新所有者ID: {new_owner_id}")

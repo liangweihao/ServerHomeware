@@ -19,6 +19,8 @@ class Family(Base, BaseMixin):
     name = Column(String(50), nullable=False, comment="家庭名称")
     invite_code = Column(String(8), unique=True, nullable=False, index=True, comment="邀请码")
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False, comment="创建者ID")
+    icon = Column(String(10), default="🏠", comment="家庭图标")
+    deleted_at = Column(DateTime, nullable=True, comment="软删除时间")
     
     # 关系定义
     owner = relationship("User", foreign_keys=[owner_id])

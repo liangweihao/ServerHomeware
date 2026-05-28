@@ -67,3 +67,12 @@ class LocationRepository(BaseRepository[Location]):
             )
         )
         return result.scalar() or 0
+    
+    async def soft_delete_by_family(self, family_id: int, deleted_at):
+        """软删除家庭的所有位置"""
+        await self.db.execute(
+            Location.__table__.update()
+            .where(Location.family_id == family_id)
+            .values(deleted_at=deleted_at)
+        )
+        await self.db.commit()

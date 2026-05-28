@@ -1,4 +1,4 @@
-# HomeStock Server — Phase 3：家庭协作 & 数据同步
+# HomeStock Server — Phase 3：家庭协作 & 数据同步（修订版）
 
 ## 前置条件
 Phase 1-2 已完成。认证系统和核心CRUD API就绪。
@@ -26,6 +26,27 @@ Phase 1-2 已完成。认证系统和核心CRUD API就绪。
 ```
 说明：获取当前家庭信息
 响应：家庭基础信息 + 成员列表 + 邀请码 + 统计数据（物品总数等）
+```
+
+**GET /api/v1/families**
+```
+说明：获取用户所属的所有家庭列表
+响应：
+{
+  "current_family_id": 1,
+  "families": [
+    {
+      "id": 1,
+      "name": "温馨小窝",
+      "icon": "🏠",
+      "member_count": 3,
+      "item_count": 95,
+      "role": "owner",
+      "created_at": "2024-01-15T08:00:00Z"
+    },
+    ...
+  ]
+}
 ```
 
 **POST /api/v1/families/join**
@@ -61,14 +82,56 @@ Phase 1-2 已完成。认证系统和核心CRUD API就绪。
 说明：主动退出家庭
 逻辑：
 - owner不能退出（需先转让）
-- 退出后 current_family_id 置空
+- 退出后 current_family_id 置空或切换到用户的其他家庭
 ```
 
-**PUT /api/v1/families/current/switch**
+**PUT /api/v1/families/switch**
 ```
 说明：切换当前家庭（如果用户属于多个家庭）
 请求：{family_id}
 逻辑：检查用户确实属于该家庭，更新 current_family_id
+响应：
+{
+  "message": "已切换到「老家」",
+  "current_family": { ...新家庭完整信息 }
+}
+```
+
+**DELETE /api/v1/families/{family_id}**
+```
+说明：删除家庭（仅owner可操作）
+请求：{confirm_name}  ← 需要用户输入家庭名称作为二次确认
+逻辑：
+- 鉴权：仅 owner 角色可执行
+- 校验 confirm_name 与家庭实际名称完全匹配，不匹配返回 400
+- 检查该用户是否至少还有1个其他家庭（不允许删除最后一个家庭）
+- 检查该家庭不是用户当前 current_family_id（需先切换到其他家庭才能删）
+- 软删除家庭：设置 families.deleted_at = now
+- 级联软删除该家庭下所有数据：
+  - items.deleted_at = now
+  - locations.deleted_at = now
+  - categories.deleted_at = now（家庭自定义分类）
+  - shopping_list_items.deleted_at = now
+  - usage_records 保留不删（历史归档）
+- 删除所有 family_member 关联记录
+- 其他成员的 current_family_id 如果指向该家庭，置为他们的下一个可用家庭或 null
+- 记录 ActivityLog（action="delete_family"）
+
+错误响应：
+- 403：非owner身份
+- 400 "confirm_name_mismatch"：输入名称不匹配
+- 400 "is_current_family"：不能删除当前正在使用的家庭
+- 400 "last_family"：不能删除唯一的家庭
+```
+
+**POST /api/v1/families/{family_id}/transfer-ownership**
+```
+说明：转让家庭所有权（仅owner可操作）
+请求：{new_owner_id}
+逻辑：
+- 当前owner降为admin
+- 目标成员升为owner
+- 记录 ActivityLog
 ```
 
 ---
@@ -86,14 +149,16 @@ Phase 1-2 已完成。认证系统和核心CRUD API就绪。
 | 管理位置 | ✅ | ✅ | ❌ |
 | 管理分类 | ✅ | ✅ | ❌ |
 | 管理成员 | ✅ | ✅（不能改owner） | ❌ |
-| 删除家庭 | ✅ | ❌ | ❌ |
+| **删除家庭** | ✅ | ❌ | ❌ |
+| **转让所有权** | ✅ | ❌ | ❌ |
 | 修改家庭设置 | ✅ | ✅ | ❌ |
+| 刷新邀请码 | ✅ | ✅ | ❌ |
 
 ### 实现方式
 创建权限检查依赖：
-- require_member：只要是家庭成员即可
-- require_admin：需要admin或owner角色
-- require_owner：需要owner角色
+- `require_member`：只要是家庭成员即可
+- `require_admin`：需要admin或owner角色
+- `require_owner`：需要owner角色
 
 在对应接口中注入权限依赖。
 
@@ -105,18 +170,37 @@ Phase 1-2 已完成。认证系统和核心CRUD API就绪。
 
 所有操作自动记录 operator_id 和 operator_name（从当前登录用户获取）。
 
-### ActivityLog 模型（新增，可选）
+### ActivityLog 模型（新增）
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | id | Integer, PK | |
 | family_id | Integer, FK | |
 | user_id | Integer, FK | |
-| action | String(50) | create_item/use_item/delete_item/... |
-| target_type | String(50) | item/location/category/... |
+| action | String(50) | create_item/use_item/delete_item/delete_family/... |
+| target_type | String(50) | item/location/category/family/... |
 | target_id | Integer | |
 | target_name | String(100) | 冗余名称方便显示 |
 | detail | JSON, nullable | 额外信息 |
 | created_at | DateTime | |
+
+### action 枚举值
+
+| action | 说明 |
+|--------|------|
+| create_item | 新建物品 |
+| update_item | 修改物品 |
+| delete_item | 删除物品 |
+| use_item | 使用/消耗物品 |
+| create_location | 新建位置 |
+| delete_location | 删除位置 |
+| create_family | 创建家庭 |
+| **delete_family** | 删除家庭 |
+| join_family | 加入家庭 |
+| leave_family | 退出家庭 |
+| remove_member | 移除成员 |
+| change_role | 修改角色 |
+| transfer_ownership | 转让所有权 |
+| switch_family | 切换家庭 |
 
 ### 动态流 API
 
@@ -143,9 +227,9 @@ Flutter App 端记录上次同步时间（last_sync_at），请求时带上。
   "server_time": "2024-01-25T10:00:00Z",
   "changes": {
     "items": {
-      "created": [...],  // since 之后新建的
-      "updated": [...],  // since 之后修改的
-      "deleted": [id...] // since 之后删除的
+      "created": [...],
+      "updated": [...],
+      "deleted": [id...]
     },
     "categories": { ... },
     "locations": { ... },
@@ -173,19 +257,19 @@ Flutter App 端记录上次同步时间（last_sync_at），请求时带上。
     {"client_id": "temp_123", "server_id": 78, "status": "ok"},
     ...
   ],
-  "conflicts": [...] // 冲突记录（服务端也改了）
+  "conflicts": [...]
 }
 逻辑：
 - 逐条处理
-- 如果某物品在App离线期间服务端也被修改（updated_at更新）→ 标记冲突
-- 冲突策略：服务端数据优先，将冲突记录返回让App处理
+- 冲突策略：服务端数据优先，冲突记录返回让App处理
 ```
 
 ### 软删除支持
-为 Item、Location、Category 添加 deleted_at 字段：
+为 Item、Location、Category、**Family** 添加 deleted_at 字段：
 - 删除时不真正删除，设 deleted_at = now
 - 查询时默认过滤 deleted_at IS NULL
 - 同步接口需要返回已删除的 ID 列表
+- Family 软删除后，其邀请码失效（加入时需检查 deleted_at IS NULL）
 
 ---
 
@@ -215,15 +299,64 @@ Flutter App 端记录上次同步时间（last_sync_at），请求时带上。
 
 ---
 
+## 数据库变更（本阶段新增/修改）
+
+### 新增字段
+```sql
+-- families 表新增
+ALTER TABLE families ADD COLUMN deleted_at TIMESTAMP NULL;
+ALTER TABLE families ADD COLUMN icon VARCHAR(10) DEFAULT '🏠';
+
+-- items 表新增
+ALTER TABLE items ADD COLUMN deleted_at TIMESTAMP NULL;
+
+-- locations 表新增
+ALTER TABLE locations ADD COLUMN deleted_at TIMESTAMP NULL;
+
+-- categories 表新增
+ALTER TABLE categories ADD COLUMN deleted_at TIMESTAMP NULL;
+```
+
+### 新增表
+```sql
+-- activity_logs
+-- user_devices
+-- （结构见上方模型定义）
+```
+
+### 新增索引
+```sql
+CREATE INDEX idx_families_deleted_at ON families(deleted_at);
+CREATE INDEX idx_items_deleted_at ON items(deleted_at);
+CREATE INDEX idx_activity_logs_family_created ON activity_logs(family_id, created_at DESC);
+```
+
+---
+
 ## 验收标准
 
 1. ✅ 创建家庭并自动生成邀请码
 2. ✅ 通过邀请码成功加入家庭
-3. ✅ 切换家庭后数据正确隔离
-4. ✅ 权限控制生效：member不能删除物品
-5. ✅ 所有操作正确记录operator_id
-6. ✅ 动态流API返回正确的家庭操作记录
-7. ✅ 增量同步接口正确返回变更数据
-8. ✅ 批量推送接口正确处理并返回结果
-9. ✅ 设备注册接口正常
-10. ✅ 软删除机制正确（查询排除已删除，同步包含已删除ID）
+3. ✅ 获取用户所有家庭列表
+4. ✅ 切换家庭后数据正确隔离
+5. ✅ 权限控制生效：member不能删除物品
+6. ✅ **删除家庭：owner可删除、需名称确认、不能删当前家庭、不能删最后一个家庭**
+7. ✅ **删除家庭后级联软删除所有子数据**
+8. ✅ **删除家庭后其他成员自动切换到可用家庭**
+9. ✅ **转让所有权正常工作**
+10. ✅ 所有操作正确记录operator_id
+11. ✅ 动态流API返回正确的家庭操作记录
+12. ✅ 增量同步接口正确返回变更数据
+13. ✅ 批量推送接口正确处理并返回结果
+14. ✅ 设备注册接口正常
+15. ✅ 软删除机制正确（查询排除已删除，同步包含已删除ID）
+16. ✅ 已删除家庭的邀请码不可再使用
+
+---
+
+## 修订记录
+
+| 版本 | 日期 | 变更内容 |
+|------|------|----------|
+| v1.0 | - | 初始版本 |
+| **v1.1** | - | 新增 DELETE /api/v1/families/{family_id} 删除家庭接口；新增 GET /api/v1/families 家庭列表接口；新增 POST transfer-ownership 转让接口；families 表增加 deleted_at 和 icon 字段；完善验收标准 |

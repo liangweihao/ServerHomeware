@@ -8,6 +8,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/family_service.dart';
 import '../../core/services/contribution_service.dart';
+import 'widgets/switch_family_bottom_sheet.dart';
 
 class ProfilePanelPage extends ConsumerStatefulWidget {
   const ProfilePanelPage({super.key});
@@ -879,86 +880,17 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
   }
 
   void _showSwitchFamily() {
-    final currentFamilyId = (_familyData?['id'] as dynamic)?.toString();
-    
-    showModalBottomSheet(
+    final user = ref.read(authProvider.notifier).currentUser;
+    SwitchFamilyBottomSheet.show(
       context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              '选择家庭',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 16),
-            
-            if (_families.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Text('暂无家庭'),
-              )
-            else
-              ..._families.map((family) {
-                final familyId = (family['id'] as dynamic)?.toString();
-                final isCurrent = familyId == currentFamilyId;
-                final memberCount = family['member_count'] ?? 0;
-                final itemCount = family['item_count'] ?? 0;
-                
-                return ListTile(
-                  title: Text(family['name'] ?? '未命名'),
-                  subtitle: Text('$memberCount人 · $itemCount件'),
-                  leading: isCurrent ? const Icon(Icons.check, color: AppColors.success) : null,
-                  onTap: () async {
-                    if (isCurrent) {
-                      Navigator.pop(context);
-                      return;
-                    }
-                    
-                    // 调用API切换家庭
-                    final service = FamilyService();
-                    final res = await service.switchFamily(familyId: familyId ?? '');
-                    
-                    if (res.isSuccess) {
-                      // 切换成功，更新本地状态
-                      setState(() {
-                        _familyData = res.data;
-                        _inviteCode = res.data?['invite_code'] ?? '';
-                      });
-                      
-                      if (!mounted) return;
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('已切换到「${family['name']}」')),
-                      );
-                    } else {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('切换失败: ${res.message}'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  },
-                );
-              }),
-            
-            const SizedBox(height: 16),
-            const Divider(),
-            TextButton(
-              onPressed: () => context.push('/create-family'),
-              child: const Text('+ 创建新家庭'),
-            ),
-            TextButton(
-              onPressed: () => context.push('/join-family'),
-              child: const Text('🔗 加入其他家庭'),
-            ),
-          ],
-        ),
-      ),
-    );
+      families: _families,
+      currentFamilyId: (_familyData?['id'] as dynamic)?.toString(),
+      currentFamilyData: _familyData,
+      userId: user?.id,
+    ).then((_) {
+      // 弹窗关闭后刷新数据
+      _loadData();
+    });
   }
 
   String _maskPhone(String phone) {

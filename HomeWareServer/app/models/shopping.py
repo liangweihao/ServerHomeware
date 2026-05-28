@@ -25,6 +25,7 @@ class ShoppingItem(Base, BaseMixin):
     priority = Column(Integer, default=0, comment="优先级")
     purchased_at = Column(DateTime, nullable=True, comment="购买时间")
     purchased_by = Column(Integer, ForeignKey("users.id"), nullable=True, comment="购买者ID")
+    deleted_at = Column(DateTime, nullable=True, comment="软删除时间")
     
     # 关系定义
     family = relationship("Family")

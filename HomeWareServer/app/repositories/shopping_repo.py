@@ -11,11 +11,20 @@ from app.models.shopping import ShoppingItem
 from app.repositories.base import BaseRepository
 
 
-class ShoppingRepository(BaseRepository[ShoppingItem]):
+class ShoppingItemRepository(BaseRepository[ShoppingItem]):
     """购物清单仓库"""
     
     def __init__(self, db: AsyncSession):
         super().__init__(db, ShoppingItem)
+    
+    async def soft_delete_by_family(self, family_id: int, deleted_at):
+        """软删除家庭的所有购物项"""
+        await self.db.execute(
+            ShoppingItem.__table__.update()
+            .where(ShoppingItem.family_id == family_id)
+            .values(deleted_at=deleted_at)
+        )
+        await self.db.commit()
     
     async def get_by_family_id(self, family_id: int) -> List[ShoppingItem]:
         """根据家庭ID获取购物清单"""

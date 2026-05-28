@@ -56,3 +56,17 @@ class FamilyMemberRepository(BaseRepository[FamilyMember]):
     async def is_member(self, user_id: int, family_id: int) -> bool:
         """检查用户是否是家庭成员"""
         return (await self.get_by_user_and_family(user_id, family_id)) is not None
+    
+    async def count_by_family_id(self, family_id: int) -> int:
+        """统计家庭成员数量"""
+        result = await self.db.execute(
+            select(FamilyMember).filter(FamilyMember.family_id == family_id)
+        )
+        return len(result.scalars().all())
+    
+    async def delete_by_family_id(self, family_id: int):
+        """删除家庭的所有成员记录"""
+        await self.db.execute(
+            FamilyMember.__table__.delete().where(FamilyMember.family_id == family_id)
+        )
+        await self.db.commit()

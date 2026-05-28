@@ -9,7 +9,7 @@ from app.repositories.item_repo import ItemRepository
 from app.repositories.category_repo import CategoryRepository
 from app.repositories.location_repo import LocationRepository
 from app.repositories.usage_record_repo import UsageRecordRepository
-from app.repositories.shopping_repo import ShoppingRepository
+from app.repositories.shopping_repo import ShoppingItemRepository
 
 __all__ = [
     "BaseRepository",
@@ -20,5 +20,5 @@ __all__ = [
     "CategoryRepository",
     "LocationRepository",
     "UsageRecordRepository",
-    "ShoppingRepository",
+    "ShoppingItemRepository",
 ]
