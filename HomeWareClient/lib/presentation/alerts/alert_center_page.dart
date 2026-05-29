@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart';
+import '../../core/events/item_event_bus.dart';
 import '../../core/providers/database_provider.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_empty_state.dart';
@@ -107,6 +108,9 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
       remainingQuantity: newQuantity,
     ));
 
+    // 通知事件总线：物品使用量已更新
+    ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('已记录使用1件${item.name}')),
@@ -128,6 +132,9 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
       quantity: item.currentQuantity,
       remainingQuantity: 0,
     ));
+
+    // 通知事件总线：物品已丢弃
+    ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

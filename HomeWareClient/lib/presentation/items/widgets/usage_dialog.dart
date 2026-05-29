@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/events/item_event_bus.dart';
 import '../../../core/providers/database_provider.dart';
 import '../../../core/services/consumption_prediction_service.dart';
 import '../../../data/database/app_database.dart';
@@ -71,6 +72,9 @@ Future<void> _applyUsage({
       operatorName: operatorName != null ? Value(operatorName) : const Value.absent(),
     ),
   );
+
+  // 通知事件总线：物品使用量已更新
+  ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
 
   await ConsumptionPredictionService(db).onItemUsed(item.id);
   debugPrint(

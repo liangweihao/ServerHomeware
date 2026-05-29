@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/events/item_event_bus.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/providers/item_detail_provider.dart';
 import '../../core/services/item_service.dart';
@@ -101,6 +102,9 @@ class _EditItemPageState extends ConsumerState<EditItemPage> {
       final updated = _form.applyToExistingItem(_originalItem!);
       final db = ref.read(databaseProvider);
       await db.updateItem(updated);
+
+      // 通知事件总线：物品已更新
+      ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: widget.id);
 
       ref.invalidate(itemDetailProvider(widget.id));
       ref.invalidate(allItemsProvider);

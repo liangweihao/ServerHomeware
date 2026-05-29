@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
+import '../../core/events/item_event_bus.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/providers/item_detail_provider.dart';
 import '../../core/services/consumption_prediction_service.dart';
@@ -526,6 +527,10 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
       ),
     );
     await ConsumptionPredictionService(db).onItemUsed(item.id);
+
+    // 通知事件总线：物品状态已变更
+    ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
+
     debugPrint('[ItemDetailPage] INFO: 标记已用完 id=${item.id}');
     _refresh();
     if (mounted) {
@@ -600,6 +605,10 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
             notes: Value('移至 ${location.fullPath}'),
           ),
         );
+
+        // 通知事件总线：物品位置已变更
+        ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
+
         debugPrint('[ItemDetailPage] INFO: 移动位置 id=${item.id} -> ${location.fullPath}');
         _refresh();
         if (mounted) {
@@ -623,6 +632,10 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
         notes: Value('标记过期'),
       ),
     );
+
+    // 通知事件总线：物品状态已变更
+    ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
+
     _refresh();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -658,6 +671,10 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
         remainingQuantity: 0,
       ),
     );
+
+    // 通知事件总线：物品已丢弃
+    ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
+
     _refresh();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -684,6 +701,10 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     if (confirmed != true || !mounted) return;
 
     await ref.read(databaseProvider).deleteItem(item.id);
+
+    // 通知事件总线：物品已删除
+    ref.read(itemEventBusProvider.notifier).notifyDeleted(itemId: item.id);
+
     debugPrint('[ItemDetailPage] INFO: 删除物品 id=${item.id}');
     ref.invalidate(allItemsProvider);
     if (mounted) {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
+import '../../core/events/item_event_bus.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/services/item_service.dart';
 import '../../core/services/upload_service.dart';
@@ -146,6 +147,9 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
       imagePathsOverride: storedPaths,
     );
     final itemId = await db.insertItem(companion);
+
+    // 通知事件总线：物品已创建
+    ref.read(itemEventBusProvider.notifier).notifyCreated(itemId: itemId);
 
     await db.insertUsageRecord(
       UsageRecordsCompanion.insert(
