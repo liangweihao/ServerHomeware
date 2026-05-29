@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'add_method_sheet.dart';
 import '../../../core/providers/database_provider.dart';
 
 
@@ -53,11 +52,6 @@ class _MainScaffoldState extends State<MainScaffold> {
       },
       child: Scaffold(
         body: widget.child,
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => AddMethodSheet.show(context),
-          child: const Icon(Icons.add),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         bottomNavigationBar: Consumer(
           builder: (context, ref, child) {
             final alertCountAsync = ref.watch(alertCountProvider);
