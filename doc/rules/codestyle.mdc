@@ -5,6 +5,22 @@ alwaysApply: true
 
 # Project Rules
 
+尽可能使用中文
+提交信息 按照 总结 里面是 1 2 3 4 的格式
+
+提交信息不符合规范。
+标题格式要求：
+  [feat][scope]:<summary>
+  [fix][scope][bugid:<id>]:<summary>
+  [docs][scope]:<summary>
+  [perf][scope]:<summary>
+  [revert][scope]:<summary>
+  [refactor][scope]:<summary>
+示例（支持中文）:
+  [docs][rules]:补充模块说明与索引
+  [fix][ios][bugid:123456]:修复 Koin 初始化时序崩溃
+
+  
 ## 注解规范
 - 新增代码必须添加注释/注解
 - 修改代码必须同步更新对应注释/注解

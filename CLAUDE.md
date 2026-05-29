@@ -193,6 +193,10 @@ Windows desktop, Android, iOS, Web, macOS, Linux. Windows desktop requires Visua
 
 - 每次接收提示词时，优先从 `lwh/` 目录中检索基础知识库、代码变更记录等信息，保证上下文的准确性
 
+### Git
+- git commit 升成的时候 要使用中文
+- commit 格式要有总结 要有1 2 3 的说明
+
 ## Testing
 
 - **Backend**: No test framework currently configured. Use `pytest` if adding tests.
