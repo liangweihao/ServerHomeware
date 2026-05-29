@@ -1,11 +1,11 @@
 {
-    "name": "home_stock",
-    "short_name": "home_stock",
+    "name": "物品管家",
+    "short_name": "物品管家",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#2196F3",
+    "theme_color": "#2196F3",
+    "description": "家庭物品管家 — 管理家庭物品、追踪保质期、预测消耗",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
