@@ -6,6 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/providers/home_provider.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/family_provider.dart';
+import '../../core/router/app_router.dart';
 import '../../core/services/auth_service.dart';
 import '../common/widgets/app_empty_state.dart';
 import '../common/widgets/shimmer_loading.dart';
@@ -13,11 +14,41 @@ import 'widgets/stat_card.dart';
 import 'widgets/space_card.dart';
 import 'widgets/activity_item.dart';
 
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> with RouteAware {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 注册到 RouteObserver，监听页面可见性变化
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  /// 当其他页面 pop 后本页面重新可见时触发，刷新首页数据
+  @override
+  void didPopNext() {
+    debugPrint('[HomePage] 页面恢复可见，刷新首页数据');
+    ref.invalidate(currentFamilyProvider);
+    ref.invalidate(homeStatsProvider);
+    ref.invalidate(spacesProvider);
+    ref.invalidate(recentActivitiesProvider);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 监听 GoRouter 路由变化，确保 location 变化时触发重建
+    final _ = GoRouterState.of(context).uri;
     final currentFamilyAsync = ref.watch(currentFamilyProvider);
 
     return Scaffold(

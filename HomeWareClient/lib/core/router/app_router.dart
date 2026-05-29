@@ -29,6 +29,9 @@ import '../../presentation/auth/forgot_password_page.dart';
 import '../../presentation/auth/create_family_page.dart';
 import '../../presentation/auth/join_family_page.dart';
 
+/// 全局 RouteObserver，用于监听页面可见性变化
+final routeObserver = RouteObserver<ModalRoute>();
+
 /// 自定义过渡动画 - 渐隐渐显
 class FadeTransitionPage<T> extends CustomTransitionPage<T> {
   FadeTransitionPage({
@@ -77,6 +80,7 @@ class SlideTransitionPage<T> extends CustomTransitionPage<T> {
 
 // 路由配置
 final appRouter = GoRouter(
+  observers: [routeObserver],
   initialLocation: '/splash',
   routes: [
     // 认证相关路由
