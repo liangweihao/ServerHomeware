@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
@@ -11,7 +9,6 @@ import '../../core/constants/app_radius.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/providers/item_detail_provider.dart';
 import '../../core/services/consumption_prediction_service.dart';
-import '../../core/utils/item_image_storage.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_button.dart';
 import '../common/widgets/app_empty_state.dart';
@@ -19,6 +16,7 @@ import '../common/widgets/app_progress_bar.dart';
 import '../common/widgets/app_tag.dart';
 import '../common/widgets/location_picker.dart';
 import 'widgets/usage_dialog.dart';
+import 'widgets/item_image_tile.dart';
 
 /// 物品详情页（对齐 doc/原型图.md §四、Phase 2 任务4）
 class ItemDetailPage extends ConsumerStatefulWidget {
@@ -148,7 +146,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
 
   Widget _buildImageSection(ItemDetailData data) {
     final categoryIcon = data.category?.icon ?? '📦';
-    final imagePaths = ItemImageStorage.decodePaths(data.item.images);
+    final imageUrls = data.imageUrls;
 
     return Container(
       height: 200,
@@ -158,13 +156,15 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       clipBehavior: Clip.antiAlias,
-      child: imagePaths.isNotEmpty
+      child: imageUrls.isNotEmpty
           ? PageView.builder(
-              itemCount: imagePaths.length,
-              itemBuilder: (_, i) => Image.file(
-                File(imagePaths[i]),
+              itemCount: imageUrls.length,
+              itemBuilder: (_, i) => ItemImageTile(
+                source: imageUrls[i],
+                width: double.infinity,
+                height: 200,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _placeholderIcon(categoryIcon),
+                borderRadius: BorderRadius.zero,
               ),
             )
           : _placeholderIcon(categoryIcon),

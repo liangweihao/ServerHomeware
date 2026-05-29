@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/utils/item_image_storage.dart';
 import '../../../data/database/app_database.dart';
+import 'item_image_tile.dart';
 
 class ItemCard extends StatefulWidget {
   final Item item;
@@ -129,34 +128,24 @@ class _ItemCardState extends State<ItemCard> {
   }
 
   Widget _buildThumbnail() {
-    final paths = ItemImageStorage.decodePaths(widget.item.images);
-    final decoration = BoxDecoration(
-      color: AppColors.background,
-      borderRadius: BorderRadius.circular(AppRadius.sm),
-    );
+    final sources = ItemImageStorage.resolveDisplaySources(widget.item.images);
 
-    if (paths.isNotEmpty) {
-      return ClipRRect(
+    if (sources.isNotEmpty) {
+      return ItemImageTile(
+        source: sources.first,
+        width: 56,
+        height: 56,
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        child: Image.file(
-          File(paths.first),
-          width: 56,
-          height: 56,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-            width: 56,
-            height: 56,
-            decoration: decoration,
-            child: const Icon(Icons.broken_image_outlined, color: AppColors.textHint),
-          ),
-        ),
       );
     }
 
     return Container(
       width: 56,
       height: 56,
-      decoration: decoration,
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
       child: const Icon(
         Icons.inventory_2_outlined,
         color: AppColors.textHint,

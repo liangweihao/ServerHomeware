@@ -5,6 +5,9 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import '../config/app_env.dart';
+import '../services/upload_service.dart';
+
 /// 物品图片本地存储（paths 序列化为 items.images JSON 数组）
 class ItemImageStorage {
   static const _subdir = 'item_images';
@@ -42,20 +45,50 @@ class ItemImageStorage {
     return jsonEncode(paths);
   }
 
-  /// 数据库 JSON → 本地路径列表（过滤已删除文件）
-  static List<String> decodePaths(String? jsonStr) {
+  /// 数据库 JSON → 全部路径（含服务端 URL）
+  static List<String> decodeAllPaths(String? jsonStr) {
     if (jsonStr == null || jsonStr.isEmpty) return [];
     try {
       final decoded = jsonDecode(jsonStr);
       if (decoded is! List) return [];
-      return decoded
-          .map((e) => e.toString())
-          .where((path) => path.isNotEmpty && File(path).existsSync())
-          .toList();
+      return decoded.map((e) => e.toString()).where((p) => p.isNotEmpty).toList();
     } catch (e) {
       debugPrint('[ItemImageStorage] WARN: 解析图片 JSON 失败 $e');
       return [];
     }
+  }
+
+  /// 数据库 JSON → 本地路径列表（过滤已删除文件）
+  static List<String> decodePaths(String? jsonStr) {
+    return decodeAllPaths(jsonStr)
+        .where((path) => ItemImageRefs.isLocalFile(path))
+        .toList();
+  }
+
+  /// 用于展示的 URL：远程路径转完整 URL，本地转 file path
+  static List<String> resolveDisplaySources(String? jsonStr) {
+    return decodeAllPaths(jsonStr).map((path) {
+      if (ItemImageRefs.isRemotePath(path)) {
+        return AppEnv.resolveUploadUrl(path);
+      }
+      if (File(path).existsSync()) return path;
+      return null;
+    }).whereType<String>().toList();
+  }
+
+  /// 从服务端详情 images 字段解析 URL
+  static List<String> urlsFromServerImages(List<dynamic>? images) {
+    if (images == null || images.isEmpty) return [];
+    final urls = <String>[];
+    for (final raw in images) {
+      if (raw is Map) {
+        final url = raw['url']?.toString();
+        if (url != null && url.isNotEmpty) {
+          urls.add(AppEnv.resolveUploadUrl(url));
+        }
+      }
+    }
+    return urls;
   }
 
   /// 删除本地图片文件（可选，移除缩略图时调用）

@@ -91,7 +91,7 @@ class ItemFormController {
 
   String formatApiDate(DateTime date) => DateFormat('yyyy-MM-dd').format(date);
 
-  Map<String, dynamic> buildCreateApiBody() {
+  Map<String, dynamic> buildCreateApiBody({List<String>? imageUrls}) {
     final body = <String, dynamic>{
       'name': nameController.text.trim(),
       'category_id': selectedCategory!.id,
@@ -131,6 +131,9 @@ class ItemFormController {
     if (notesController.text.isNotEmpty) {
       body['notes'] = notesController.text.trim();
     }
+    if (imageUrls != null && imageUrls.isNotEmpty) {
+      body['image_urls'] = imageUrls;
+    }
     return body;
   }
 
@@ -138,10 +141,11 @@ class ItemFormController {
     return buildCreateApiBody();
   }
 
-  ItemsCompanion buildInsertCompanion({int? serverId}) {
-    final Value<String?> imagesJson = imagePaths.isEmpty
+  ItemsCompanion buildInsertCompanion({int? serverId, List<String>? imagePathsOverride}) {
+    final paths = imagePathsOverride ?? imagePaths;
+    final Value<String?> imagesJson = paths.isEmpty
         ? const Value.absent()
-        : Value(ItemImageStorage.encodePaths(imagePaths));
+        : Value(ItemImageStorage.encodePaths(paths));
 
     return ItemsCompanion(
       id: serverId != null ? Value(serverId) : const Value.absent(),

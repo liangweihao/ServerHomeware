@@ -47,6 +47,9 @@ class ItemService:
         # 处理数据
         item_data = data.copy()
         
+        # 关联图片 URL（Phase 6 上传接口返回的路径）
+        image_urls = item_data.pop("image_urls", None)
+        
         # 如果没传 current_quantity，默认等于 purchase_quantity
         if "current_quantity" not in item_data or item_data["current_quantity"] is None:
             item_data["current_quantity"] = item_data.get("purchase_quantity", 1)
@@ -67,6 +70,16 @@ class ItemService:
         item_data["created_by"] = user_id
         
         item = await self.item_repo.create(item_data)
+        
+        if image_urls:
+            from app.models.item import ItemImage
+            for sort_order, url in enumerate(image_urls):
+                self.db.add(ItemImage(
+                    item_id=item.id,
+                    url=url,
+                    sort_order=sort_order,
+                ))
+            await self.db.flush()
         
         # 插入一条 usage_record（type=0入库）
         await self.usage_repo.create({

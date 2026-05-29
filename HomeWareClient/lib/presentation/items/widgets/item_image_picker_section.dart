@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/utils/item_image_storage.dart';
+import 'item_image_tile.dart';
 
 /// 物品表单顶部图片选择区（添加/编辑共用）
 class ItemImagePickerSection extends StatelessWidget {
@@ -125,11 +124,10 @@ class ItemImagePickerSection extends StatelessWidget {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        child: Image.file(
-                          File(e.value),
+                        child: ItemImageTile(
+                          source: e.value,
                           width: 88,
                           height: 88,
-                          fit: BoxFit.cover,
                         ),
                       ),
                       Positioned(

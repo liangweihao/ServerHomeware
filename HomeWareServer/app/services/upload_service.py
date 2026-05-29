@@ -148,13 +148,15 @@ class UploadService:
             raise ValueError(f"文件大小超过限制（最大{settings.MAX_FILE_SIZE_MB}MB）")
 
         # 检查扩展名
-        filename = file.filename.lower()
+        filename = (file.filename or "").lower()
         if not filename.endswith(tuple(f".{ext}" for ext in ALLOWED_EXTENSIONS)):
             raise ValueError("不支持的文件格式，仅支持 jpg/jpeg/png/webp")
 
-        # 检查 MIME 类型
-        if file.content_type not in ALLOWED_MIME_TYPES:
-            raise ValueError("不支持的文件类型")
+        # 检查 MIME 类型（移动端常传 application/octet-stream，扩展名合法则放行）
+        content_type = (file.content_type or "").lower().split(";")[0].strip()
+        if content_type not in ALLOWED_MIME_TYPES:
+            if content_type not in ("application/octet-stream", "binary/octet-stream", ""):
+                raise ValueError("不支持的文件类型")
 
     def _process_image(self, file_content: bytes) -> bytes:
         """

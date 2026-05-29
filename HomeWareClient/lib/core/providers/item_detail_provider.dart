@@ -1,15 +1,19 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/services/item_service.dart';
+import '../../core/utils/item_image_storage.dart';
 import '../../data/database/app_database.dart';
 import 'database_provider.dart';
 
-/// 物品详情聚合数据（本地库）
+/// 物品详情聚合数据（本地库 + 服务端图片）
 class ItemDetailData {
   final Item item;
   final Category? category;
   final Category? parentCategory;
   final String? locationPath;
   final List<UsageRecord> recentRecords;
+  /// 可展示的图片 URL（优先服务端，已 resolve 为完整地址）
+  final List<String> imageUrls;
 
   const ItemDetailData({
     required this.item,
@@ -17,6 +21,7 @@ class ItemDetailData {
     this.parentCategory,
     this.locationPath,
     required this.recentRecords,
+    this.imageUrls = const [],
   });
 
   /// 分类展示：父级 · 子级 或单级名称
@@ -54,6 +59,28 @@ final itemDetailProvider =
 
   final recentRecords = await db.getUsageRecordsByItem(id, limit: 5);
 
+  // 优先从服务端拉取图片列表
+  List<String> imageUrls = [];
+  try {
+    final itemService = ItemService();
+    final remote = await itemService.getItemDetail(itemId: id);
+    if (remote.code == 200 && remote.data != null) {
+      final images = remote.data!['images'] as List<dynamic>?;
+      imageUrls = ItemImageStorage.urlsFromServerImages(images);
+      debugPrint('[ItemDetailProvider] INFO: 服务端图片 ${imageUrls.length} 张');
+    } else {
+      debugPrint(
+        '[ItemDetailProvider] WARN: 服务端详情失败 code=${remote.code}，使用本地图片',
+      );
+    }
+  } catch (e) {
+    debugPrint('[ItemDetailProvider] WARN: 拉取服务端图片异常 $e');
+  }
+
+  if (imageUrls.isEmpty) {
+    imageUrls = ItemImageStorage.resolveDisplaySources(item.images);
+  }
+
   debugPrint('[ItemDetailProvider] INFO: 加载物品详情 id=$id name=${item.name}');
   return ItemDetailData(
     item: item,
@@ -61,5 +88,6 @@ final itemDetailProvider =
     parentCategory: parentCategory,
     locationPath: locationPath,
     recentRecords: recentRecords,
+    imageUrls: imageUrls,
   );
 });

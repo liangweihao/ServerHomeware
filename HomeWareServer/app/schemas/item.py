@@ -117,6 +117,7 @@ class CreateItemRequest(BaseModel):
     
     # 其他
     notes: Optional[str] = Field(None, description="备注")
+    image_urls: Optional[List[str]] = Field(None, description="图片URL列表（先调用上传接口）")
 
 
 class UpdateItemRequest(BaseModel):

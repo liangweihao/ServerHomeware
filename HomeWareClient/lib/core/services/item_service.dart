@@ -81,6 +81,40 @@ class ItemService {
     }
   }
 
+  /// 获取物品详情（含图片列表）
+  /// 调用服务端 GET /api/v1/items/{id} 接口
+  Future<ApiResponse<Map<String, dynamic>>> getItemDetail({
+    required int itemId,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        _log('ERROR: 未登录');
+        return ApiResponse<Map<String, dynamic>>(
+          code: 401,
+          message: '未登录',
+        );
+      }
+
+      _log('INFO: 调用 GET /api/v1/items/$itemId');
+      final response = await http.get(
+        Uri.parse('$_baseUrl/items/$itemId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 获取物品详情失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: '获取物品详情失败: $e',
+      );
+    }
+  }
+
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyToken);

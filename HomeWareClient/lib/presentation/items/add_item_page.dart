@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../../core/providers/database_provider.dart';
 import '../../core/services/item_service.dart';
+import '../../core/services/upload_service.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_button.dart';
 import 'item_form_controller.dart';
@@ -68,7 +69,24 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
     setState(() => _isSaving = true);
 
     try {
-      final body = _form.buildCreateApiBody();
+      // 1. 上传本地图片到服务端
+      List<String> imageUrls = [];
+      if (_form.imagePaths.isNotEmpty) {
+        debugPrint('[AddItemPage] INFO: 开始上传 ${_form.imagePaths.length} 张图片');
+        final uploadService = UploadService();
+        imageUrls = await uploadService.uploadImages(_form.imagePaths);
+        if (imageUrls.length != _form.imagePaths.length) {
+          debugPrint('[AddItemPage] ERROR: 部分图片上传失败');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('图片上传失败，请重试')),
+            );
+          }
+          return false;
+        }
+      }
+
+      final body = _form.buildCreateApiBody(imageUrls: imageUrls);
       debugPrint('[AddItemPage] INFO: 创建物品 - ${body['name']}');
 
       final itemService = ItemService();
@@ -114,7 +132,19 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
         ? serverIdRaw
         : int.tryParse(serverIdRaw?.toString() ?? '');
 
-    final companion = _form.buildInsertCompanion(serverId: serverId);
+    // 从服务端响应提取图片 URL 写入本地
+    final serverImages = serverItem['images'] as List<dynamic>?;
+    final storedPaths = serverImages != null
+        ? serverImages
+            .map((e) => (e as Map<String, dynamic>)['url']?.toString() ?? '')
+            .where((u) => u.isNotEmpty)
+            .toList()
+        : null;
+
+    final companion = _form.buildInsertCompanion(
+      serverId: serverId,
+      imagePathsOverride: storedPaths,
+    );
     final itemId = await db.insertItem(companion);
 
     await db.insertUsageRecord(
