@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/events/item_event_bus.dart';
 import '../../core/providers/database_provider.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_empty_state.dart';
@@ -95,6 +96,11 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 监听物品变更事件，创建/更新/删除后自动刷新列表
+    ref.listen(itemEventBusProvider, (prev, next) {
+      ref.invalidate(filteredItemsProvider);
+    });
+
     final itemsAsync = ref.watch(filteredItemsProvider);
 
     return Scaffold(
