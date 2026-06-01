@@ -317,22 +317,36 @@ class ItemService:
     
     async def delete_item(self, user_id: int, item_id: int):
         """
-        删除物品
+        删除物品（同时清理关联的图片文件）
         :param user_id: 用户ID
         :param item_id: 物品ID
         """
         logger.info(f"删除物品 - 用户ID: {user_id}, 物品ID: {item_id}")
-        
-        item = await self.item_repo.get_by_id(item_id)
+
+        # 先获取物品及其图片信息（必须在物理删除前获取，否则级联删除会清除关联记录）
+        item = await self.item_repo.get_by_id_with_relations(item_id)
         if not item:
             raise NotFoundException("物品不存在")
-        
+
         await self._check_family_access(user_id, item.family_id)
-        
-        # 物理删除（因为有级联删除配置）
+
+        # 收集所有图片 URL，用于后续清理磁盘文件
+        image_urls = [img.url for img in item.images]
+
+        # 物理删除物品（级联删除 item_images 记录）
         await self.item_repo.hard_delete(item_id)
-        
-        logger.info(f"物品删除成功 - 物品ID: {item_id}")
+
+        # 删除磁盘上的图片文件
+        if image_urls:
+            from app.services.upload_service import UploadService
+            upload_service = UploadService()
+            for url in image_urls:
+                try:
+                    await upload_service.delete_image(url)
+                except Exception as e:
+                    logger.warning(f"删除物品图片文件失败（磁盘文件） - URL: {url}, 错误: {e}")
+
+        logger.info(f"物品删除成功（含 {len(image_urls)} 张图片） - 物品ID: {item_id}")
     
     async def use_item(self, user_id: int, item_id: int, quantity: float, operator_name: Optional[str] = None) -> Dict:
         """

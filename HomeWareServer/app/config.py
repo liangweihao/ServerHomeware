@@ -38,9 +38,9 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploads"
     MAX_FILE_SIZE_MB: int = 10
     
-    # Image Processing
-    MAX_IMAGE_WIDTH: int = 1080
-    IMAGE_QUALITY: int = 85
+    # Image Processing（720px + WebP 75% ≈ 60-100KB/张，50G 可存约 50 万张）
+    MAX_IMAGE_WIDTH: int = 720
+    IMAGE_QUALITY: int = 75
     
     # Rate Limit
     RATE_LIMIT_STORAGE_URL: str = "redis://localhost:6379/1"

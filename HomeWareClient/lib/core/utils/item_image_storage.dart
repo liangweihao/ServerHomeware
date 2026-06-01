@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -13,17 +14,46 @@ class ItemImageStorage {
   static const _subdir = 'item_images';
   static const maxImages = 5;
 
-  /// 将相册/相机文件复制到应用目录并返回本地路径
+  /// 客户端压缩参数（与服务端保持一致，减少上传流量和存储空间）
+  static const int compressMaxWidth = 720;
+  static const int compressQuality = 80;
+
+  /// 将相册/相机文件压缩后复制到应用目录并返回本地路径
   static Future<String?> persistPickedImage(XFile file) async {
     try {
       final dir = await _imageDir();
-      final ext = p.extension(file.path);
-      final safeExt = ext.isNotEmpty ? ext : '.jpg';
-      final dest = File(
-        p.join(dir.path, '${DateTime.now().millisecondsSinceEpoch}$safeExt'),
+
+      // 使用 flutter_image_compress 压缩图片
+      // 缩放到最大宽度 720px，质量 80%，格式保持与原文件一致
+      final compressed = await FlutterImageCompress.compressWithFile(
+        file.path,
+        minWidth: compressMaxWidth,
+        minHeight: compressMaxWidth, // 同时限制长宽，避免竖长图
+        quality: compressQuality,
+        format: CompressFormat.jpeg, // 统一转为 JPEG，兼容性最好
       );
-      await File(file.path).copy(dest.path);
-      debugPrint('[ItemImageStorage] INFO: 保存图片 ${dest.path}');
+
+      if (compressed == null) {
+        debugPrint('[ItemImageStorage] WARN: 压缩失败，使用原图');
+        // 压缩失败时降级：直接复制原文件
+        final ext = p.extension(file.path);
+        final safeExt = ext.isNotEmpty ? ext : '.jpg';
+        final dest = File(
+          p.join(dir.path, '${DateTime.now().millisecondsSinceEpoch}$safeExt'),
+        );
+        await File(file.path).copy(dest.path);
+        debugPrint('[ItemImageStorage] INFO: 保存原图 ${dest.path}');
+        return dest.path;
+      }
+
+      final dest = File(
+        p.join(dir.path, '${DateTime.now().millisecondsSinceEpoch}.jpg'),
+      );
+      await dest.writeAsBytes(compressed);
+      debugPrint(
+        '[ItemImageStorage] INFO: 压缩保存 ${dest.path} '
+        '(${compressed.length} bytes)',
+      );
       return dest.path;
     } catch (e) {
       debugPrint('[ItemImageStorage] ERROR: 保存图片失败 $e');
