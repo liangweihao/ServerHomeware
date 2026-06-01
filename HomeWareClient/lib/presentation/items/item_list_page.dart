@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/events/item_event_bus.dart';
 import '../../core/providers/database_provider.dart';
+import '../../core/services/item_sync_service.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_empty_state.dart';
 import 'widgets/item_card.dart';
@@ -25,6 +26,9 @@ final filteredItemsProvider = FutureProvider<List<Item>>((ref) async {
   final searchQuery = ref.watch(itemSearchQueryProvider);
   final categoryFilter = ref.watch(categoryFilterProvider);
   final statusFilter = ref.watch(statusFilterProvider);
+
+  // 从服务端同步物品到本地（缓存清理后可恢复）
+  await ItemSyncService(db).syncFromServer();
 
   List<Item> items = await db.getAllItems();
 

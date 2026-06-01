@@ -81,6 +81,71 @@ class ItemService {
     }
   }
 
+  /// 获取物品列表（分页）
+  /// 调用服务端 GET /api/v1/items 接口
+  Future<ApiResponse<Map<String, dynamic>>> getItems({
+    int page = 1,
+    int pageSize = 100,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        _log('ERROR: 未登录');
+        return ApiResponse<Map<String, dynamic>>(code: 401, message: '未登录');
+      }
+
+      _log('INFO: 调用 GET /api/v1/items?page=$page&page_size=$pageSize');
+      final response = await http.get(
+        Uri.parse('$_baseUrl/items?page=$page&page_size=$pageSize'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 获取物品列表失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: '获取物品列表失败: $e',
+      );
+    }
+  }
+
+  /// 获取全部服务端物品（自动翻页，用于同步）
+  Future<List<Map<String, dynamic>>> getAllItemsFromServer() async {
+    final allItems = <Map<String, dynamic>>[];
+    int page = 1;
+    const pageSize = 100;
+
+    while (true) {
+      final result = await getItems(page: page, pageSize: pageSize);
+      if (result.code != 200 || result.data == null) {
+        _log('WARN: 获取第 $page 页失败，停止翻页 code=${result.code}');
+        break;
+      }
+
+      final items = result.data!['items'] as List<dynamic>?;
+      if (items == null || items.isEmpty) break;
+
+      for (final item in items) {
+        if (item is Map<String, dynamic>) {
+          allItems.add(item);
+        }
+      }
+
+      final total = result.data!['total'] as int? ?? 0;
+      final pages = result.data!['pages'] as int? ?? 1;
+      if (page >= pages || allItems.length >= total) break;
+
+      page++;
+    }
+
+    _log('INFO: 从服务端拉取 ${allItems.length} 件物品');
+    return allItems;
+  }
+
   /// 获取物品详情（含图片列表）
   /// 调用服务端 GET /api/v1/items/{id} 接口
   Future<ApiResponse<Map<String, dynamic>>> getItemDetail({
