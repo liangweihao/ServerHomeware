@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/database/app_database.dart';
+import '../events/item_event_bus.dart';
 import 'database_provider.dart';
 
 // 首页统计数据
@@ -26,6 +27,7 @@ class HomeStats {
 
 // 首页统计数据 Provider
 final homeStatsProvider = FutureProvider<HomeStats>((ref) async {
+  ref.watch(itemEventBusProvider); // 物品变更时自动刷新统计
   final db = ref.watch(databaseProvider);
   
   await db.ensureInitialized();
@@ -122,6 +124,7 @@ class SpaceData {
 
 // 空间列表 Provider
 final spacesProvider = FutureProvider<List<SpaceData>>((ref) async {
+  ref.watch(itemEventBusProvider); // 物品变更时自动刷新空间数据
   final db = ref.watch(databaseProvider);
   
   await db.ensureInitialized();
@@ -152,6 +155,7 @@ class ActivityData {
 
 // 最近动态 Provider（最近5条）
 final recentActivitiesProvider = FutureProvider<List<ActivityData>>((ref) async {
+  ref.watch(itemEventBusProvider); // 物品变更时自动刷新动态
   final db = ref.watch(databaseProvider);
   
   await db.ensureInitialized();

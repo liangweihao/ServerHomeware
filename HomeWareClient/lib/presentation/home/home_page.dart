@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/events/item_event_bus.dart';
 import '../../core/providers/home_provider.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/family_provider.dart';
@@ -19,15 +18,6 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 监听物品变更事件总线，自动刷新首页数据
-    ref.listen(itemEventBusProvider, (prev, next) {
-      debugPrint('[HomePage] 收到物品变更通知，刷新首页数据');
-      ref.invalidate(currentFamilyProvider);
-      ref.invalidate(homeStatsProvider);
-      ref.invalidate(spacesProvider);
-      ref.invalidate(recentActivitiesProvider);
-    });
-
     final currentFamilyAsync = ref.watch(currentFamilyProvider);
 
     return Scaffold(
