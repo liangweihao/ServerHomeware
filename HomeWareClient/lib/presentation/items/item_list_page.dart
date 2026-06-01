@@ -19,6 +19,8 @@ final statusFilterProvider = StateProvider<int?>((ref) => null);
 
 // 过滤后的物品列表
 final filteredItemsProvider = FutureProvider<List<Item>>((ref) async {
+  // 监听事件总线版本号，创建/更新/删除/丢弃等任何变更自动触发重新查询
+  ref.watch(itemEventBusProvider);
   final db = ref.watch(databaseProvider);
   final searchQuery = ref.watch(itemSearchQueryProvider);
   final categoryFilter = ref.watch(categoryFilterProvider);
@@ -96,11 +98,6 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
 
   @override
   Widget build(BuildContext context) {
-    // 监听物品变更事件，创建/更新/删除后自动刷新列表
-    ref.listen(itemEventBusProvider, (prev, next) {
-      ref.invalidate(filteredItemsProvider);
-    });
-
     final itemsAsync = ref.watch(filteredItemsProvider);
 
     return Scaffold(
@@ -216,9 +213,15 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
             ),
             const SizedBox(width: 8),
             _buildFilterChip(
-              label: '已丢弃',
+              label: '已过期',
               isSelected: statusFilter == 2,
               onTap: () => ref.read(statusFilterProvider.notifier).state = 2,
+            ),
+            const SizedBox(width: 8),
+            _buildFilterChip(
+              label: '已丢弃',
+              isSelected: statusFilter == 3,
+              onTap: () => ref.read(statusFilterProvider.notifier).state = 3,
             ),
           ],
         ),
