@@ -33,6 +33,8 @@ class ItemSyncService {
       int inserted = 0;
       int skipped = 0;
 
+      int updatedImages = 0;
+
       for (final serverItem in serverItems) {
         final id = _parseId(serverItem['id']);
         if (id == null) continue;
@@ -40,8 +42,19 @@ class ItemSyncService {
         // 检查本地是否已存在
         final existing = await _db.getItemById(id);
         if (existing != null) {
+          // 已存在：如果本地没有图片但服务端有，补充图片
+          final preview = serverItem['preview_image']?.toString();
+          if (preview != null && preview.isNotEmpty &&
+              (existing.images == null || existing.images!.isEmpty)) {
+            final updated = existing.copyWith(
+              images: Value(jsonEncode([preview])),
+              updatedAt: DateTime.now(),
+            );
+            await _db.updateItem(updated);
+            updatedImages++;
+          }
           skipped++;
-          continue; // 本地已有，保持本地数据（更完整）
+          continue;
         }
 
         // 本地不存在，从服务端恢复
@@ -56,7 +69,7 @@ class ItemSyncService {
       final total = await _countLocalItems();
       debugPrint(
         '[ItemSync] INFO: 同步完成 — 新增 $inserted 件, '
-        '已存在 $skipped 件, 本地共 $total 件',
+        '已存在 $skipped 件, 补图 $updatedImages 件, 本地共 $total 件',
       );
       return total;
     } catch (e) {
