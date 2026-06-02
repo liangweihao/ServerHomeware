@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:drift/drift.dart' show Value;
 import '../../data/database/app_database.dart';
@@ -108,7 +109,10 @@ class ItemSyncService {
       notes: const Value.absent(),
       avgDailyConsumption: const Value.absent(),
       predictedEmptyDate: const Value.absent(),
-      images: const Value.absent(),
+      // 如果有预览图，以 JSON 数组格式存入本地
+      images: json['preview_image'] != null
+          ? Value(jsonEncode([json['preview_image']]))
+          : const Value.absent(),
     );
   }
 
