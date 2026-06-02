@@ -222,13 +222,17 @@ class ItemService:
         # 获取分类名称和位置路径映射
         category_names = await self.item_repo.get_category_names(family_id)
         location_paths = await self.item_repo.get_location_paths(family_id)
-        
+
+        # 批量获取物品缩略图（首张图片 URL）
+        item_ids = [item.id for item in result["items"]]
+        preview_images = await self.item_repo.get_preview_images(item_ids)
+
         # 处理返回数据
         items = []
         for item in result["items"]:
             # 计算 urgency
             urgency = self._calculate_urgency(item)
-            
+
             items.append({
                 "id": item.id,
                 "name": item.name,
@@ -242,6 +246,7 @@ class ItemService:
                 "status": item.status,
                 "expiry_date": item.expiry_date,
                 "urgency": urgency,
+                "preview_image": preview_images.get(item.id),
                 "created_at": item.created_at
             })
         

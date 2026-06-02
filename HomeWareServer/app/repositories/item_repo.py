@@ -85,3 +85,30 @@ class ItemRepository(BaseRepository[Item]):
             )
         )
         return {row[0]: row[1] for row in result.all()}
+
+    async def get_preview_images(self, item_ids: list[int]) -> Dict[int, str]:
+        """
+        批量获取物品首张预览图 URL
+        :param item_ids: 物品 ID 列表
+        :return: {item_id: first_image_url}
+        """
+        if not item_ids:
+            return {}
+
+        from app.models.item import ItemImage
+
+        # 使用子查询获取每个物品的第一张图片（最小 sort_order）
+        from sqlalchemy import and_
+        result = await self.db.execute(
+            select(ItemImage.item_id, ItemImage.url)
+            .filter(ItemImage.item_id.in_(item_ids))
+            .order_by(ItemImage.item_id, ItemImage.sort_order)
+        )
+
+        # 只取每个 item 的第一张（已按 sort_order 排序）
+        preview_map = {}
+        for row in result.all():
+            if row[0] not in preview_map:
+                preview_map[row[0]] = row[1]
+
+        return preview_map
