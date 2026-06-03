@@ -10,6 +10,7 @@ import '../../core/events/item_event_bus.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/providers/item_detail_provider.dart';
 import '../../core/services/consumption_prediction_service.dart';
+import '../../core/services/item_service.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_button.dart';
 import '../common/widgets/app_empty_state.dart';
@@ -528,6 +529,12 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     );
     await ConsumptionPredictionService(db).onItemUsed(item.id);
 
+    // 同步到服务端
+    ItemService().updateItem(
+      itemId: item.id,
+      body: {'status': 1, 'current_quantity': 0},
+    );
+
     // 通知事件总线：物品状态已变更
     ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
 
@@ -606,6 +613,12 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
           ),
         );
 
+        // 同步到服务端
+        ItemService().updateItem(
+          itemId: item.id,
+          body: {'location_id': location.id},
+        );
+
         // 通知事件总线：物品位置已变更
         ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
 
@@ -632,6 +645,9 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
         notes: Value('标记过期'),
       ),
     );
+
+    // 同步到服务端
+    ItemService().updateItem(itemId: item.id, body: {'status': 2});
 
     // 通知事件总线：物品状态已变更
     ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
@@ -672,6 +688,9 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
       ),
     );
 
+    // 同步到服务端
+    ItemService().updateItem(itemId: item.id, body: {'status': 3});
+
     // 通知事件总线：物品已丢弃
     ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
 
@@ -701,6 +720,9 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     if (confirmed != true || !mounted) return;
 
     await ref.read(databaseProvider).deleteItem(item.id);
+
+    // 同步到服务端
+    ItemService().deleteItem(itemId: item.id);
 
     // 通知事件总线：物品已删除
     ref.read(itemEventBusProvider.notifier).notifyDeleted(itemId: item.id);

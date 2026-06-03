@@ -235,6 +235,14 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
+  // 获取全部最近使用记录（用于同步去重）
+  Future<List<UsageRecord>> getRecentUsageRecords({int limit = 1000}) {
+    return (select(usageRecords)
+          ..orderBy([(r) => OrderingTerm(expression: r.createdAt, mode: OrderingMode.desc)])
+          ..limit(limit))
+        .get();
+  }
+
   // 插入使用记录
   Future<int> insertUsageRecord(UsageRecordsCompanion record) {
     return into(usageRecords).insert(record);

@@ -81,6 +81,37 @@ class ItemService {
     }
   }
 
+  /// 删除物品
+  /// 调用服务端 DELETE /api/v1/items/{id} 接口
+  Future<ApiResponse<Map<String, dynamic>>> deleteItem({
+    required int itemId,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        _log('ERROR: 未登录');
+        return ApiResponse<Map<String, dynamic>>(code: 401, message: '未登录');
+      }
+
+      _log('INFO: 调用 DELETE /api/v1/items/$itemId');
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/items/$itemId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 删除物品失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: '删除物品失败: $e',
+      );
+    }
+  }
+
   /// 获取物品列表（分页）
   /// 调用服务端 GET /api/v1/items 接口
   Future<ApiResponse<Map<String, dynamic>>> getItems({
@@ -144,6 +175,64 @@ class ItemService {
 
     _log('INFO: 从服务端拉取 ${allItems.length} 件物品');
     return allItems;
+  }
+
+  /// 获取家庭使用记录（分页，用于同步到本地）
+  /// 调用服务端 GET /api/v1/usage_records 接口
+  Future<ApiResponse<Map<String, dynamic>>> getUsageRecords({
+    int page = 1,
+    int pageSize = 100,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        return ApiResponse<Map<String, dynamic>>(code: 401, message: '未登录');
+      }
+
+      _log('INFO: 调用 GET /api/v1/usage_records?page=$page&page_size=$pageSize');
+      final response = await http.get(
+        Uri.parse('$_baseUrl/usage_records?page=$page&page_size=$pageSize'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 获取使用记录失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: '获取使用记录失败: $e',
+      );
+    }
+  }
+
+  /// 获取全部使用记录（自动翻页）
+  Future<List<Map<String, dynamic>>> getAllUsageRecordsFromServer() async {
+    final allRecords = <Map<String, dynamic>>[];
+    int page = 1;
+    const pageSize = 100;
+
+    while (true) {
+      final result = await getUsageRecords(page: page, pageSize: pageSize);
+      if (result.code != 200 || result.data == null) break;
+
+      final items = result.data!['items'] as List<dynamic>?;
+      if (items == null || items.isEmpty) break;
+
+      for (final item in items) {
+        if (item is Map<String, dynamic>) {
+          allRecords.add(item);
+        }
+      }
+
+      final total = result.data!['total'] as int? ?? 0;
+      if (allRecords.length >= total) break;
+      page++;
+    }
+
+    _log('INFO: 从服务端拉取 ${allRecords.length} 条使用记录');
+    return allRecords;
   }
 
   /// 获取物品详情（含图片列表）
@@ -220,7 +309,24 @@ class ItemService {
     }
   }
 
+  /// 长日志分段输出，避免 Flutter print 行长度截断
   void _log(String message) {
-    print('[ItemService] $message');
+    const maxLen = 960;
+    final prefix = '[ItemService] ';
+    if (message.length <= maxLen) {
+      print('$prefix$message');
+    } else {
+      // 分段打印，每段标记序号
+      int i = 1;
+      int start = 0;
+      while (start < message.length) {
+        final end = start + maxLen < message.length
+            ? start + maxLen
+            : message.length;
+        print('$prefix[$i] ${message.substring(start, end)}');
+        start = end;
+        i++;
+      }
+    }
   }
 }

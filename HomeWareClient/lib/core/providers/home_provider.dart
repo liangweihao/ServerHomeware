@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/database/app_database.dart';
 import '../events/item_event_bus.dart';
+import '../services/usage_record_sync_service.dart';
 import 'database_provider.dart';
 
 // 首页统计数据
@@ -157,13 +158,13 @@ class ActivityData {
 final recentActivitiesProvider = FutureProvider<List<ActivityData>>((ref) async {
   ref.watch(itemEventBusProvider); // 物品变更时自动刷新动态
   final db = ref.watch(databaseProvider);
-  
+
   await db.ensureInitialized();
-  
-  final records = await (db.select(db.usageRecords)
-        ..orderBy([(r) => OrderingTerm(expression: r.createdAt, mode: OrderingMode.desc)])
-        ..limit(5))
-      .get();
+
+  // 从服务端同步使用记录（缓存清理后可恢复）
+  await UsageRecordSyncService(db).syncFromServer();
+
+  final records = await db.getRecentUsageRecords(limit: 5);
   
   final activities = <ActivityData>[];
   

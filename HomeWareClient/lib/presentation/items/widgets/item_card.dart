@@ -35,7 +35,9 @@ class _ItemCardState extends State<ItemCard> {
         scale: _isPressed ? 0.98 : 1.0,
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        child: Container(
+        child: Opacity(
+          opacity: widget.item.status == 3 ? 0.55 : 1.0,
+          child: Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -114,7 +116,13 @@ class _ItemCardState extends State<ItemCard> {
                           color: AppColors.primary,
                         ),
                   ),
-                  if (widget.item.expiryDate != null) ...[
+                  if (widget.item.status == 3) ...[
+                    const SizedBox(height: 4),
+                    _buildStatusBadge('已丢弃', AppColors.danger),
+                  ] else if (widget.item.status == 1) ...[
+                    const SizedBox(height: 4),
+                    _buildStatusBadge('已用完', AppColors.textSecondary),
+                  ] else if (widget.item.expiryDate != null) ...[
                     const SizedBox(height: 4),
                     _buildExpiryBadge(context),
                   ],
@@ -122,6 +130,7 @@ class _ItemCardState extends State<ItemCard> {
               ),
             ],
           ),
+          )
         ),
       ),
     );
@@ -149,6 +158,24 @@ class _ItemCardState extends State<ItemCard> {
       child: const Icon(
         Icons.inventory_2_outlined,
         color: AppColors.textHint,
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          color: color,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
