@@ -51,7 +51,8 @@ class ItemFormController {
     purchaseChannel = item.purchaseChannel;
     expiryAlertDays = item.expiryAlertDays;
     safetyStock = item.safetyStock;
-    imagePaths = ItemImageStorage.decodePaths(item.images);
+    // 使用 decodeAllPaths 保留服务端 URL，避免编辑时已有图片丢失
+    imagePaths = ItemImageStorage.decodeAllPaths(item.images);
     editCurrentQuantity = item.currentQuantity;
   }
 

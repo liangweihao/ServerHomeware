@@ -237,7 +237,7 @@ Phase 1 已完成：项目骨架、数据库连接、用户认证系统就绪。
 - sort_order: asc/desc
 - expiring_within_days: 7（即将过期筛选，过期日期在N天内）
 - low_stock: true（库存低于safety_stock的）
-响应：分页列表，每个物品附带 category_name, location_full_path, urgency 字段
+响应：分页列表，每个物品附带 category_name, location_full_path, urgency, preview_image(首张缩略图URL) 字段
 ```
 
 **GET /api/v1/items/{id}**
@@ -266,8 +266,9 @@ Phase 1 已完成：项目骨架、数据库连接、用户认证系统就绪。
 
 **DELETE /api/v1/items/{id}**
 ```
-逻辑：软删除（status 不变，加 is_deleted 标记）或物理删除
-同时删除关联的 usage_records 和 item_images
+逻辑：物理删除物品及其关联数据
+同时删除关联的 usage_records 和 item_images 数据库记录
+同时删除磁盘上的图片文件（uploads/{family_id}/ 目录下）
 从 shopping_list 中解除关联
 ```
 
@@ -306,6 +307,28 @@ Phase 1 已完成：项目骨架、数据库连接、用户认证系统就绪。
 ```
 说明：根据条码查询物品（检查当前家庭是否已有该条码物品）
 响应：物品信息 或 404
+```
+
+---
+
+### 使用记录 API
+
+**GET /api/v1/usage_records**
+```
+说明：获取使用记录（不传 item_id=全家庭分页，传 item_id=单物品全部记录）
+参数：item_id(可选), page(默认1), page_size(默认20, 最大100)
+响应：分页列表，每条含 item_name, type(0入库/1使用/2丢弃/3移动/4调整), quantity, remaining_quantity, operator_name, created_at
+```
+
+**POST /api/v1/usage_records**
+```
+请求：{item_id, used_quantity, notes(可选)}
+逻辑：创建使用记录，used_by=当前用户
+```
+
+**DELETE /api/v1/usage_records/{record_id}**
+```
+说明：删除指定使用记录
 ```
 
 ---

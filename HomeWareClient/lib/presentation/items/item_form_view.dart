@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/utils/item_image_storage.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/category_selector.dart';
 import '../common/widgets/location_picker.dart';
@@ -311,27 +313,42 @@ class ItemFormView extends StatelessWidget {
     return _Section(
       title: '存放位置',
       children: [
-        GestureDetector(
-          onTap: () => LocationPicker.show(
-            context,
-            selectedLocation: c.selectedLocation,
-            onSelected: (location) {
-              c.selectedLocation = location;
-              onChanged();
-            },
-          ),
-          child: AbsorbPointer(
-            child: TextFormField(
-              decoration: const InputDecoration(
-                labelText: '存放位置（可选）',
-                suffixIcon: Icon(Icons.chevron_right),
-              ),
-              controller: TextEditingController(text: c.selectedLocation?.fullPath),
-              style: TextStyle(
-                color: c.selectedLocation != null ? null : AppColors.textSecondary,
+        Row(
+          children: [
+            // 位置选择
+            Expanded(
+              child: GestureDetector(
+                onTap: () => LocationPicker.show(
+                  context,
+                  selectedLocation: c.selectedLocation,
+                  onSelected: (location) {
+                    c.selectedLocation = location;
+                    onChanged();
+                  },
+                ),
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: '存放位置（可选）',
+                      suffixIcon: Icon(Icons.chevron_right),
+                    ),
+                    controller: TextEditingController(text: c.selectedLocation?.fullPath),
+                    style: TextStyle(
+                      color: c.selectedLocation != null ? null : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
+            const SizedBox(width: 12),
+            // 拍照记录位置
+            _LocationPhotoButton(
+              onPhotoTaken: (path) {
+                c.imagePaths = [...c.imagePaths, path];
+                onChanged();
+              },
+            ),
+          ],
         ),
       ],
     );
@@ -386,6 +403,65 @@ class ItemFormView extends StatelessWidget {
           onChanged: (_) => onChanged(),
         ),
       ],
+    );
+  }
+}
+
+/// 位置拍照按钮 — 拍照记录物品存放位置，方便日后查找
+class _LocationPhotoButton extends StatelessWidget {
+  final ValueChanged<String> onPhotoTaken;
+
+  const _LocationPhotoButton({required this.onPhotoTaken});
+
+  Future<void> _takePhoto(BuildContext context) async {
+    try {
+      final picker = ImagePicker();
+      final file = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+      if (file == null) return;
+
+      final path = await ItemImageStorage.persistPickedImage(file);
+      if (path != null) {
+        onPhotoTaken(path);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('位置照片已添加'),
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('拍照失败')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: '拍照记录存放位置',
+      child: Material(
+        color: AppColors.gray100,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => _takePhoto(context),
+          child: Container(
+            width: 48,
+            height: 48,
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.add_a_photo_outlined,
+              color: AppColors.primary,
+              size: 22,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

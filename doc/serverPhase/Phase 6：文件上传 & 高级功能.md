@@ -159,7 +159,8 @@ Phase 1-5 已完成。
 
 **PUT /api/v1/users/me**
 ```
-请求：{nickname, avatar_url, email}
+请求：{nickname, avatar_url, email, family_nickname}
+说明：family_nickname 写入 family_members.nickname_in_family（当前家庭内称呼）
 ```
 
 **PUT /api/v1/users/me/password**
