@@ -53,10 +53,11 @@ async def get_user(
 async def update_current_user(
     request: UpdateUserRequest,
     current_user: User = Depends(get_current_user),
+    current_family_id: int = Depends(get_current_family),
     db: AsyncSession = Depends(get_db)
 ):
     user_service = UserService(db)
-    user = await user_service.update_user(current_user.id, request.dict())
+    user = await user_service.update_user(current_user.id, request.dict(), current_family_id)
     
     return ResponseSchema(
         code=200,

@@ -32,26 +32,45 @@ class UserService:
             raise NotFoundException("用户不存在")
         return user
     
-    async def update_user(self, user_id: int, data: dict) -> User:
+    async def update_user(self, user_id: int, data: dict, family_id: int = None) -> User:
         """
         更新用户信息
         :param user_id: 用户ID
         :param data: 更新数据
+        :param family_id: 当前家庭ID（用于更新家庭内称呼）
         :return: 更新后的用户对象
         """
         logger.info(f"更新用户信息 - 用户ID: {user_id}")
-        
-        # 过滤无效字段
+
+        # 过滤 User 表允许的字段
         allowed_fields = ["nickname", "email", "avatar_url"]
         update_data = {k: v for k, v in data.items() if k in allowed_fields and v is not None}
-        
+
+        # 处理家庭内称呼（写入 family_members 表）
+        family_nickname = data.get("family_nickname")
+        if family_nickname is not None and family_id is not None:
+            from app.models.family import FamilyMember
+            from sqlalchemy import update as sql_update
+
+            await self.db.execute(
+                sql_update(FamilyMember)
+                .where(FamilyMember.user_id == user_id)
+                .where(FamilyMember.family_id == family_id)
+                .values(nickname_in_family=family_nickname)
+            )
+            await self.db.commit()
+            logger.info(f"家庭内称呼已更新 - 用户ID: {user_id}, 称呼: {family_nickname}")
+
         if not update_data:
+            if family_nickname is not None:
+                user = await self.user_repo.get_by_id(user_id)
+                return user
             raise NotFoundException("没有需要更新的字段")
-        
+
         user = await self.user_repo.update(user_id, update_data)
         if not user:
             raise NotFoundException("用户不存在")
-        
+
         logger.info(f"用户信息更新成功 - 用户ID: {user_id}")
         return user
     

@@ -30,6 +30,7 @@ class UpdateUserRequest(BaseModel):
     nickname: Optional[str] = Field(None, description="昵称")
     email: Optional[str] = Field(None, description="邮箱")
     avatar_url: Optional[str] = Field(None, description="头像URL")
+    family_nickname: Optional[str] = Field(None, description="家庭内称呼")
 
 
 class ChangePasswordRequest(BaseModel):

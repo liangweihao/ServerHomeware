@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/utils/error_handler.dart';
 import 'widgets/phone_input.dart';
 import 'widgets/password_input.dart';
 import 'widgets/auth_button.dart';
@@ -88,15 +89,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       if (mounted) {
         context.go('/');
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppColors.danger,
-          ),
-        );
-      }
+    } catch (e, stack) {
+      ErrorHandler.handle(
+        context,
+        e,
+        stack,
+        label: '[RegisterPage] _register',
+        userMessage: '注册失败，请稍后重试',
+      );
     } finally {
       if (mounted) {
         setState(() {

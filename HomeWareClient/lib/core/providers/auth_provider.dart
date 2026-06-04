@@ -153,8 +153,9 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       if (data == null) {
         throw Exception('更新失败');
       }
-      
-      final userMap = data['user'] as Map<String, dynamic>;
+
+      // 服务端 PUT /api/v1/users/me 返回 data 即为用户对象
+      final userMap = data;
       
       // 将服务端返回的 int 类型 id 转换为 String
       if (userMap['id'] is int) {

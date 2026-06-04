@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/utils/error_handler.dart';
 import 'widgets/phone_input.dart';
 import 'widgets/code_input.dart';
 import 'widgets/password_input.dart';
@@ -70,15 +71,14 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       });
 
       _startCountdown();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppColors.danger,
-          ),
-        );
-      }
+    } catch (e, stack) {
+      ErrorHandler.handle(
+        context,
+        e,
+        stack,
+        label: '[ForgotPasswordPage] _sendCode',
+        userMessage: '发送验证码失败，请稍后重试',
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -159,15 +159,14 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
         );
         context.go('/login');
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppColors.danger,
-          ),
-        );
-      }
+    } catch (e, stack) {
+      ErrorHandler.handle(
+        context,
+        e,
+        stack,
+        label: '[ForgotPasswordPage] _resetPassword',
+        userMessage: '重置密码失败，请稍后重试',
+      );
     } finally {
       if (mounted) {
         setState(() {

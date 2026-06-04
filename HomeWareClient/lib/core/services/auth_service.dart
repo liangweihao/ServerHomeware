@@ -324,6 +324,7 @@ class AuthService {
       final Map<String, dynamic> body = {};
       if (nickname != null) body['nickname'] = nickname;
       if (avatar != null) body['avatar_url'] = avatar;
+      if (familyNickname != null) body['family_nickname'] = familyNickname;
 
       final response = await http.put(
         Uri.parse('$_baseUrl/users/me'),

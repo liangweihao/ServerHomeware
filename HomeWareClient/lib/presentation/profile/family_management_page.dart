@@ -68,7 +68,9 @@ class FamilyManagementPage extends ConsumerWidget {
         color: AppColors.card,
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
-      child: ListTile(
+      child: Material(
+        color: Colors.transparent,
+        child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
           radius: 24,
@@ -109,6 +111,7 @@ class FamilyManagementPage extends ConsumerWidget {
             const PopupMenuItem(value: 'edit', child: Text('编辑')),
             const PopupMenuItem(value: 'delete', child: Text('删除')),
           ],
+          ),
         ),
       ),
     );

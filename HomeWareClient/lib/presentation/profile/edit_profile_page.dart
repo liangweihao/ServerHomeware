@@ -5,6 +5,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/utils/error_handler.dart';
 
 /// 编辑资料页
 class EditProfilePage extends ConsumerStatefulWidget {
@@ -101,15 +102,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         );
         context.pop();
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppColors.danger,
-          ),
-        );
-      }
+    } catch (e, stack) {
+      ErrorHandler.handle(
+        context,
+        e,
+        stack,
+        label: '[EditProfilePage] 保存资料',
+        userMessage: '保存失败，请稍后重试',
+      );
     } finally {
       if (mounted) {
         setState(() {

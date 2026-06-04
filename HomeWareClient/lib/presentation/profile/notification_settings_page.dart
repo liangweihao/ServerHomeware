@@ -62,14 +62,17 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
               color: AppColors.card,
               borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
-            child: SwitchListTile(
-              title: const Text('开启通知'),
-              subtitle: const Text('接收物品过期和库存不足提醒'),
-              value: notificationsEnabled,
-              onChanged: (value) {
-                ref.read(notificationsEnabledProvider.notifier).state = value;
-                _saveSettings();
-              },
+            child: Material(
+              color: Colors.transparent,
+              child: SwitchListTile(
+                title: const Text('开启通知'),
+                subtitle: const Text('接收物品过期和库存不足提醒'),
+                value: notificationsEnabled,
+                onChanged: (value) {
+                  ref.read(notificationsEnabledProvider.notifier).state = value;
+                  _saveSettings();
+                },
+              ),
             ),
           ),
 
@@ -81,11 +84,14 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
               color: AppColors.card,
               borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
-            child: ListTile(
-              title: const Text('过期提醒默认提前天数'),
-              subtitle: Text('提前 $defaultAlertDays 天提醒'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _showAlertDaysDialog(context, defaultAlertDays),
+            child: Material(
+              color: Colors.transparent,
+              child: ListTile(
+                title: const Text('过期提醒默认提前天数'),
+                subtitle: Text('提前 $defaultAlertDays 天提醒'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showAlertDaysDialog(context, defaultAlertDays),
+              ),
             ),
           ),
 
@@ -97,11 +103,14 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
               color: AppColors.card,
               borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
-            child: ListTile(
-              title: const Text('提醒时间段'),
-              subtitle: Text('${startHour.toString().padLeft(2, '0')}:00 - ${endHour.toString().padLeft(2, '0')}:00'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _showTimeRangeDialog(context, startHour, endHour),
+            child: Material(
+              color: Colors.transparent,
+              child: ListTile(
+                title: const Text('提醒时间段'),
+                subtitle: Text('${startHour.toString().padLeft(2, '0')}:00 - ${endHour.toString().padLeft(2, '0')}:00'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showTimeRangeDialog(context, startHour, endHour),
+              ),
             ),
           ),
 
