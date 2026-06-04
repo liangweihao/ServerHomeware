@@ -42,104 +42,106 @@ class AlertCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                bottomLeft: Radius.circular(12),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 4,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(icon, style: const TextStyle(fontSize: 24)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.name,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                            Text(
-                              title,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: color,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                            ),
-                          ],
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(icon, style: const TextStyle(fontSize: 24)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.name,
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                              Text(
+                                title,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: color,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    description,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildActionButtons(context),
-                ],
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      description,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildActionButtons(context),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   (Color, String, String, String) _getAlertInfo() {
     final today = DateTime.now();
-    
+
     switch (type) {
       case AlertType.expiry:
         if (item.expiryDate != null) {
           final daysLeft = item.expiryDate!.difference(today).inDays;
           if (daysLeft < 0) {
-            return (AppColors.danger, '🔴', '已过期', 
+            return (AppColors.danger, '🔴', '已过期',
                 '已过期${-daysLeft}天，存放于${item.locationId?.toString() ?? '未知位置'}');
           } else if (daysLeft <= 3) {
-            return (AppColors.danger, '🔴', '即将过期', 
+            return (AppColors.danger, '🔴', '即将过期',
                 '还剩$daysLeft天过期，尽快使用');
           } else if (daysLeft <= 7) {
-            return (AppColors.warning, '🟡', '注意', 
+            return (AppColors.warning, '🟡', '注意',
                 '还剩$daysLeft天过期');
           }
         }
         return (AppColors.warning, '🟡', '即将过期', '即将过期，请及时处理');
 
       case AlertType.stock:
-        return (AppColors.warning, '📦', '库存不足', 
+        return (AppColors.warning, '📦', '库存不足',
             '剩余${item.currentQuantity}${item.unit}，低于预警值${item.safetyStock}${item.unit}');
 
       case AlertType.restock:
-        final updatedDays = item.updatedAt != null 
-            ? today.difference(item.updatedAt!).inDays 
+        final updatedDays = item.updatedAt != null
+            ? today.difference(item.updatedAt!).inDays
             : 0;
-        return (AppColors.primary, '🛒', '已用完', 
+        return (AppColors.primary, '🛒', '已用完',
             '${updatedDays}天前用完，建议再次购买');
 
       case AlertType.warranty:
         if (item.warrantyDate != null) {
           final daysLeft = item.warrantyDate!.difference(today).inDays;
-          return (AppColors.info, '🔧', '保修即将到期', 
+          return (AppColors.info, '🔧', '保修即将到期',
               '还剩$daysLeft天保修到期');
         }
         return (AppColors.info, '🔧', '保修即将到期', '保修即将到期');
