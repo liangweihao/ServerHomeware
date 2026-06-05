@@ -35,3 +35,21 @@ final alertCountProvider = FutureProvider<int>((ref) async {
   final db = ref.watch(databaseProvider);
   return db.getAlertCount();
 });
+
+// 位置详情 Provider
+final locationByIdProvider = FutureProvider.family<Location?, int>((ref, id) async {
+  final db = ref.watch(databaseProvider);
+  return db.getLocationById(id);
+});
+
+// 子位置列表 Provider
+final childLocationsProvider = FutureProvider.family<List<Location>, int>((ref, parentId) async {
+  final db = ref.watch(databaseProvider);
+  return db.getChildLocations(parentId);
+});
+
+// 位置下物品列表 Provider
+final itemsInLocationProvider = FutureProvider.family<List<Item>, int>((ref, locationId) async {
+  final db = ref.watch(databaseProvider);
+  return db.getItemsInLocation(locationId);
+});

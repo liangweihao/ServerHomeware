@@ -24,85 +24,56 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final locationAsync = ref.watch(locationByIdProvider(widget.locationId));
+
     return Scaffold(
-      appBar: _buildAppBar(context),
-      body: Consumer(
-        builder: (context, ref, child) {
-          final locationAsync = FutureProvider((ref) => ref.read(databaseProvider).getLocationById(widget.locationId));
-          final location = ref.watch(locationAsync);
-          
-          return location.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Center(child: Text('加载失败: $error')),
-            data: (location) {
-              if (location == null) {
-                return const AppEmptyState(
-                  icon: '😕',
-                  title: '位置不存在',
-                  subtitle: '该位置可能已被删除',
-                );
-              }
-              return _buildContent(context, ref, location);
-            },
-          );
+      appBar: AppBar(
+        title: locationAsync.when(
+          loading: () => const Text('加载中...'),
+          error: (_, __) => const Text('位置详情'),
+          data: (loc) => Text(loc?.name ?? '位置详情'),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(_isEditMode ? Icons.check : Icons.edit),
+            onPressed: () => setState(() => _isEditMode = !_isEditMode),
+          ),
+        ],
+      ),
+      body: locationAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(child: Text('加载失败: $error')),
+        data: (location) {
+          if (location == null) {
+            return const AppEmptyState(
+              icon: '😕',
+              title: '位置不存在',
+              subtitle: '该位置可能已被删除',
+            );
+          }
+          return _buildContent(context, ref, location);
         },
       ),
       floatingActionButton: _isEditMode ? _buildEditFAB(context, ref) : null,
     );
   }
 
-  AppBar _buildAppBar(BuildContext context) {
-    return AppBar(
-      title: Consumer(
-        builder: (context, ref, child) {
-          final locationAsync = FutureProvider((ref) => ref.read(databaseProvider).getLocationById(widget.locationId));
-          final location = ref.watch(locationAsync);
-          return location.when(
-            loading: () => const Text('加载中...'),
-            error: (error, stack) => const Text('位置详情'),
-            data: (location) => Text(location?.name ?? '位置详情'),
-          );
-        },
-      ),
-      actions: [
-        IconButton(
-          icon: Icon(_isEditMode ? Icons.check : Icons.edit),
-          onPressed: () => setState(() => _isEditMode = !_isEditMode),
-        ),
-      ],
-    );
-  }
-
   Widget _buildContent(BuildContext context, WidgetRef ref, Location location) {
+    final itemsAsync = ref.watch(itemsInLocationProvider(widget.locationId));
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FutureBuilder<List<Location>>(
-            future: ref.read(databaseProvider).getChildLocations(widget.locationId),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const SizedBox(height: 16);
-              }
-              final children = snapshot.data!;
-              if (children.isNotEmpty) {
-                return _buildChildLocations(context, ref, children);
-              }
-              return const SizedBox(height: 8);
-            },
-          ),
-          FutureBuilder<List<Item>>(
-            future: ref.read(databaseProvider).getItemsInLocation(widget.locationId),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const SizedBox(height: 16);
-              }
-              final items = snapshot.data!;
-              if (items.isNotEmpty) {
-                return _buildItemList(context, items);
-              }
-              return _buildEmptyState(context);
+          _buildChildLocations(context, ref),
+          const SizedBox(height: 24),
+          itemsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Text('加载失败: $e'),
+            data: (items) {
+              if (items.isEmpty) return _buildEmptyState(context);
+              return _buildItemList(context, items);
             },
           ),
         ],
@@ -110,45 +81,53 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
     );
   }
 
-  Widget _buildChildLocations(BuildContext context, WidgetRef ref, List<Location> children) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '子位置',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 12),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.2,
-          ),
-          itemCount: children.length,
-          itemBuilder: (context, index) {
-            final child = children[index];
-            return FutureBuilder<int>(
-              future: ref.read(databaseProvider).getItemCountForLocation(child.id),
-              builder: (context, snapshot) {
-                final itemCount = snapshot.data ?? 0;
-                return LocationCard(
-                  name: child.name,
-                  icon: child.icon,
-                  itemCount: itemCount,
-                  onTap: () => context.go('/locations/${child.id}'),
-                  onDelete: _isEditMode ? () => _confirmDeleteLocation(context, ref, child) : null,
-                  showDelete: _isEditMode,
+  Widget _buildChildLocations(BuildContext context, WidgetRef ref) {
+    final childrenAsync = ref.watch(childLocationsProvider(widget.locationId));
+    final db = ref.read(databaseProvider);
+
+    return childrenAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (children) {
+        if (children.isEmpty) return const SizedBox(height: 8);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '子位置',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.2,
+              ),
+              itemCount: children.length,
+              itemBuilder: (context, index) {
+                final child = children[index];
+                return FutureBuilder<int>(
+                  future: db.getItemCountForLocation(child.id),
+                  builder: (context, snapshot) {
+                    return LocationCard(
+                      name: child.name,
+                      icon: child.icon,
+                      itemCount: snapshot.data ?? 0,
+                      onTap: () => context.push('/locations/${child.id}'),
+                      onDelete: _isEditMode ? () => _confirmDeleteLocation(context, ref, child) : null,
+                      showDelete: _isEditMode,
+                    );
+                  },
                 );
               },
-            );
-          },
-        ),
-        const SizedBox(height: 24),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
