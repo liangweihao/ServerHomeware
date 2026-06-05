@@ -1,14 +1,28 @@
 /// 应用运行环境配置（通过 --dart-define 注入）
 ///
-/// 示例：
+/// 示例（本地开发）：
 /// ```bash
 /// flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
+/// ```
+///
+/// 示例（生产环境，API 和静态资源分离）：
+/// ```bash
+/// flutter run \
+///   --dart-define=API_BASE_URL=https://api.example.com/api/v1 \
+///   --dart-define=STATIC_BASE_URL=https://oss.example.com
 /// ```
 class AppEnv {
   /// 后端 API 根地址，需包含 `/api/v1` 前缀
   static const String apiBaseUrl = String.fromEnvironment(
-    'http://192.168.1.98:8000/api/v1',
+    'API_BASE_URL',
     defaultValue: 'http://192.168.1.98:8000/api/v1',
+  );
+
+  /// 静态资源根地址（图片、上传文件等），默认从 apiBaseUrl 推导
+  /// 生产环境可指向独立 OSS/CDN
+  static const String _staticBaseUrl = String.fromEnvironment(
+    'STATIC_BASE_URL',
+    defaultValue: '',
   );
 
   static String get _normalizedBase {
@@ -22,8 +36,12 @@ class AppEnv {
     return Uri.parse('$_normalizedBase$normalizedPath');
   }
 
-  /// 服务端根地址（不含 `/api/v1`），用于静态资源如 `/uploads/...`
-  static String get serverOrigin {
+  /// 静态资源根地址：优先用 STATIC_BASE_URL，否则从 API_BASE_URL 推导
+  static String get staticBaseUrl {
+    if (_staticBaseUrl.isNotEmpty) {
+      final base = _staticBaseUrl.trim();
+      return base.endsWith('/') ? base.substring(0, base.length - 1) : base;
+    }
     final uri = Uri.parse(_normalizedBase);
     final port = uri.hasPort ? ':${uri.port}' : '';
     return '${uri.scheme}://${uri.host}$port';
@@ -35,6 +53,6 @@ class AppEnv {
       return path;
     }
     final normalized = path.startsWith('/') ? path : '/$path';
-    return '$serverOrigin$normalized';
+    return '$staticBaseUrl$normalized';
   }
 }

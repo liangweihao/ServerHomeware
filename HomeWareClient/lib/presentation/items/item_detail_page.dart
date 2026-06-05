@@ -11,6 +11,7 @@ import '../../core/providers/database_provider.dart';
 import '../../core/providers/item_detail_provider.dart';
 import '../../core/services/consumption_prediction_service.dart';
 import '../../core/services/item_service.dart';
+import '../../core/utils/item_image_storage.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_button.dart';
 import '../common/widgets/app_empty_state.dart';
@@ -151,7 +152,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     final imageUrls = data.imageUrls;
 
     return Container(
-      height: 200,
+      height: 280,
       width: double.infinity,
       decoration: BoxDecoration(
         color: AppColors.gray100,
@@ -161,12 +162,18 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
       child: imageUrls.isNotEmpty
           ? PageView.builder(
               itemCount: imageUrls.length,
-              itemBuilder: (_, i) => ItemImageTile(
-                source: imageUrls[i],
-                width: double.infinity,
-                height: 200,
-                fit: BoxFit.cover,
-                borderRadius: BorderRadius.zero,
+              itemBuilder: (_, i) => Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.zero,
+                ),
+                child: Image.network(
+                  imageUrls[i],
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.broken_image_outlined,
+                    color: AppColors.textHint,
+                  ),
+                ),
               ),
             )
           : _placeholderIcon(categoryIcon),
@@ -293,7 +300,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
       ),
       child: Column(
         children: [
-          _detailRow('📍', '存放位置', data.locationPath ?? '未设置'),
+          _buildLocationRow(context, data),
           _detailRow('💰', '购买价格', priceLine),
           _detailRow('🛒', '购买渠道', item.purchaseChannel ?? '—'),
           _detailRow('📅', '购买日期', _formatDate(item.purchaseDate)),
@@ -302,6 +309,57 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
           _detailRow('🔔', '提醒设置', _alertSettingsText(item)),
         ],
       ),
+    );
+  }
+
+  Widget _buildLocationRow(BuildContext context, ItemDetailData data) {
+    final locationPhotos = data.locationImageUrls;
+
+    return Column(
+      children: [
+        _detailRow('📍', '存放位置', data.locationPath ?? '未设置'),
+        if (locationPhotos.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 100,
+            child: ListView.builder(
+              padding: const EdgeInsets.only(left: 16),
+              scrollDirection: Axis.horizontal,
+              itemCount: locationPhotos.length,
+              itemBuilder: (_, i) => Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: GestureDetector(
+                  onTap: () {
+                    // 全屏预览
+                    showDialog(
+                      context: context,
+                      builder: (_) => Dialog(
+                        backgroundColor: Colors.transparent,
+                        child: GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Image.network(
+                            locationPhotos[i],
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: ItemImageTile(
+                      source: locationPhotos[i],
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 

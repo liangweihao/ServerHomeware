@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import '../../../core/config/app_env.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/services/upload_service.dart';
@@ -30,22 +32,23 @@ class ItemImageTile extends StatelessWidget {
     if (ItemImageRefs.isRemotePath(source) ||
         source.startsWith('http://') ||
         source.startsWith('https://')) {
+      // 将相对路径（/uploads/...）转为完整 URL
+      final url = AppEnv.resolveUploadUrl(source);
       image = Image.network(
-        source,
+        url,
         width: width,
         height: height,
         fit: fit,
-        loadingBuilder: (context, child, progress) {
-          if (progress == null) return child;
-          return SizedBox(
-            width: width,
-            height: height,
-            child: const Center(
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          );
+        cacheWidth: (width is double && width != double.infinity) ? width.toInt() : 720,
+        cacheHeight: (height is double && height != double.infinity) ? height.toInt() : null,
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (wasSynchronouslyLoaded) return child;
+          return child;
         },
-        errorBuilder: (_, __, ___) => _errorBox(),
+        errorBuilder: (_, error, stack) {
+          debugPrint('[ItemImageTile] ERROR: 加载失败 $url — $error');
+          return _errorBox();
+        },
       );
     } else {
       image = Image.file(

@@ -14,6 +14,8 @@ class ItemDetailData {
   final List<UsageRecord> recentRecords;
   /// 可展示的图片 URL（优先服务端，已 resolve 为完整地址）
   final List<String> imageUrls;
+  /// 存放位置参考照片
+  final List<String> locationImageUrls;
 
   const ItemDetailData({
     required this.item,
@@ -22,6 +24,7 @@ class ItemDetailData {
     this.locationPath,
     required this.recentRecords,
     this.imageUrls = const [],
+    this.locationImageUrls = const [],
   });
 
   /// 分类展示：父级 · 子级 或单级名称
@@ -81,7 +84,11 @@ final itemDetailProvider =
     imageUrls = ItemImageStorage.resolveDisplaySources(item.images);
   }
 
-  debugPrint('[ItemDetailProvider] INFO: 加载物品详情 id=$id name=${item.name}');
+  // 位置参考照片（从本地 images 字段解析 __loc__: 前缀）
+  final locationImageUrls = ItemImageStorage.resolveLocationDisplaySources(item.images);
+
+  debugPrint('[ItemDetailProvider] INFO: 加载物品详情 id=$id name=${item.name} '
+      'images=${imageUrls.length} locPhotos=${locationImageUrls.length}');
   return ItemDetailData(
     item: item,
     category: category,
@@ -89,5 +96,6 @@ final itemDetailProvider =
     locationPath: locationPath,
     recentRecords: recentRecords,
     imageUrls: imageUrls,
+    locationImageUrls: locationImageUrls,
   );
 });

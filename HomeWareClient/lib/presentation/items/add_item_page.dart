@@ -70,13 +70,18 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
     setState(() => _isSaving = true);
 
     try {
-      // 1. 上传本地图片到服务端
-      List<String> imageUrls = [];
-      if (_form.imagePaths.isNotEmpty) {
-        debugPrint('[AddItemPage] INFO: 开始上传 ${_form.imagePaths.length} 张图片');
-        final uploadService = UploadService();
-        imageUrls = await uploadService.uploadImages(_form.imagePaths);
-        if (imageUrls.length != _form.imagePaths.length) {
+      // 1. 上传本地图片到服务端（物品图片 + 位置照片）
+      final uploadService = UploadService();
+      final allLocalPaths = [
+        ..._form.imagePaths,
+        ..._form.locationImagePaths,
+      ];
+      List<String> allUploadedUrls = [];
+      if (allLocalPaths.isNotEmpty) {
+        debugPrint('[AddItemPage] INFO: 开始上传 ${allLocalPaths.length} 张图片'
+            '（物品${_form.imagePaths.length} + 位置${_form.locationImagePaths.length}）');
+        allUploadedUrls = await uploadService.uploadImages(allLocalPaths);
+        if (allUploadedUrls.length != allLocalPaths.length) {
           debugPrint('[AddItemPage] ERROR: 部分图片上传失败');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -86,8 +91,14 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
           return false;
         }
       }
+      // 分离物品图片和位置照片的 URL
+      final imageUrls = allUploadedUrls.sublist(0, _form.imagePaths.length);
+      final locationUrls = allUploadedUrls.sublist(_form.imagePaths.length);
 
-      final body = _form.buildCreateApiBody(imageUrls: imageUrls);
+      final body = _form.buildCreateApiBody(
+        imageUrls: imageUrls,
+        locationImageUrls: locationUrls,
+      );
       debugPrint('[AddItemPage] INFO: 创建物品 - ${body['name']}');
 
       final itemService = ItemService();

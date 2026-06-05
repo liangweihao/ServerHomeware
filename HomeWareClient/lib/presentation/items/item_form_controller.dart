@@ -25,6 +25,8 @@ class ItemFormController {
   int expiryAlertDays = 3;
   double safetyStock = 1;
   List<String> imagePaths = [];
+  /// 存放位置参考照片（独立于物品图片）
+  List<String> locationImagePaths = [];
 
   /// 编辑模式：当前剩余（只读展示，保存时不改）
   double? editCurrentQuantity;
@@ -52,7 +54,8 @@ class ItemFormController {
     expiryAlertDays = item.expiryAlertDays;
     safetyStock = item.safetyStock;
     // 使用 decodeAllPaths 保留服务端 URL，避免编辑时已有图片丢失
-    imagePaths = ItemImageStorage.decodeAllPaths(item.images);
+    imagePaths = ItemImageStorage.decodeItemImages(item.images);
+    locationImagePaths = ItemImageStorage.decodeLocationImages(item.images);
     editCurrentQuantity = item.currentQuantity;
   }
 
@@ -74,6 +77,7 @@ class ItemFormController {
     expiryAlertDays = 3;
     safetyStock = 1;
     imagePaths = [];
+    locationImagePaths = [];
     editCurrentQuantity = null;
   }
 
@@ -92,7 +96,17 @@ class ItemFormController {
 
   String formatApiDate(DateTime date) => DateFormat('yyyy-MM-dd').format(date);
 
-  Map<String, dynamic> buildCreateApiBody({List<String>? imageUrls}) {
+  Map<String, dynamic> buildCreateApiBody({
+    List<String>? imageUrls,
+    List<String>? locationImageUrls,
+  }) {
+    // 合并物品图片和位置照片，位置照片带 __loc__: 前缀
+    final allUrls = <String>[
+      if (imageUrls != null) ...imageUrls,
+      if (locationImageUrls != null)
+        for (final url in locationImageUrls) '${ItemImageStorage.locPrefix}$url',
+    ];
+
     final body = <String, dynamic>{
       'name': nameController.text.trim(),
       'category_id': selectedCategory!.id,
@@ -133,7 +147,9 @@ class ItemFormController {
       body['notes'] = notesController.text.trim();
     }
     if (imageUrls != null && imageUrls.isNotEmpty) {
-      body['image_urls'] = imageUrls;
+    if (allUrls.isNotEmpty) {
+      body['image_urls'] = allUrls;
+    }
     }
     return body;
   }
@@ -143,10 +159,18 @@ class ItemFormController {
   }
 
   ItemsCompanion buildInsertCompanion({int? serverId, List<String>? imagePathsOverride}) {
-    final paths = imagePathsOverride ?? imagePaths;
-    final Value<String?> imagesJson = paths.isEmpty
-        ? const Value.absent()
-        : Value(ItemImageStorage.encodePaths(paths));
+    // 如果有服务端 URL（已含 __loc__: 前缀），直接存储；否则合并本地路径并加前缀
+    final Value<String?> imagesJson;
+    if (imagePathsOverride != null && imagePathsOverride.isNotEmpty) {
+      imagesJson = Value(ItemImageStorage.encodePaths(imagePathsOverride));
+    } else if (imagePaths.isNotEmpty || locationImagePaths.isNotEmpty) {
+      imagesJson = Value(ItemImageStorage.encodeAllImages(
+        itemPaths: imagePaths,
+        locationPaths: locationImagePaths,
+      ));
+    } else {
+      imagesJson = const Value.absent();
+    }
 
     return ItemsCompanion(
       id: serverId != null ? Value(serverId) : const Value.absent(),
@@ -184,8 +208,12 @@ class ItemFormController {
 
   /// 编辑保存：保留原 currentQuantity、status、预测字段等
   Item applyToExistingItem(Item existing) {
-    final imagesJson =
-        imagePaths.isEmpty ? null : ItemImageStorage.encodePaths(imagePaths);
+    final imagesJson = (imagePaths.isEmpty && locationImagePaths.isEmpty)
+        ? null
+        : ItemImageStorage.encodeAllImages(
+            itemPaths: imagePaths,
+            locationPaths: locationImagePaths,
+          );
 
     return existing.copyWith(
       name: nameController.text.trim(),

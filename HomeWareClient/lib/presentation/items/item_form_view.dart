@@ -11,6 +11,7 @@ import '../common/widgets/location_picker.dart';
 import '../common/widgets/quantity_stepper.dart';
 import 'item_form_controller.dart';
 import 'widgets/item_image_picker_section.dart';
+import 'widgets/item_image_tile.dart';
 
 /// 添加/编辑物品共享表单 UI
 class ItemFormView extends StatelessWidget {
@@ -344,12 +345,58 @@ class ItemFormView extends StatelessWidget {
             // 拍照记录位置
             _LocationPhotoButton(
               onPhotoTaken: (path) {
-                c.imagePaths = [...c.imagePaths, path];
+                c.locationImagePaths = [...c.locationImagePaths, path];
                 onChanged();
               },
             ),
           ],
         ),
+        // 位置照片预览
+        if (c.locationImagePaths.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 80,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: c.locationImagePaths.length,
+              itemBuilder: (_, i) => Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: ItemImageTile(
+                        source: c.locationImagePaths[i],
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 2,
+                      right: 2,
+                      child: GestureDetector(
+                        onTap: () {
+                          c.locationImagePaths = List.from(c.locationImagePaths)..removeAt(i);
+                          onChanged();
+                        },
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          decoration: const BoxDecoration(
+                            color: AppColors.danger,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close, size: 14, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

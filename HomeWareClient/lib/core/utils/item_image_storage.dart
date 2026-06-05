@@ -70,12 +70,27 @@ class ItemImageStorage {
     return dir;
   }
 
-  /// 路径列表 → JSON 字符串写入数据库
+  static const locPrefix = '__loc__:';
+  static const _locPrefix = '__loc__:';
+
+  /// 路径列表 → JSON 字符串（简单编码，不处理前缀）
   static String encodePaths(List<String> paths) {
     return jsonEncode(paths);
   }
 
-  /// 数据库 JSON → 全部路径（含服务端 URL）
+  /// 路径列表 → JSON 字符串写入数据库（物品图片 + 位置照片）
+  static String encodeAllImages({
+    required List<String> itemPaths,
+    required List<String> locationPaths,
+  }) {
+    final all = <String>[
+      ...itemPaths,
+      for (final p in locationPaths) '$_locPrefix$p',
+    ];
+    return jsonEncode(all);
+  }
+
+  /// 数据库 JSON → 全部原始路径
   static List<String> decodeAllPaths(String? jsonStr) {
     if (jsonStr == null || jsonStr.isEmpty) return [];
     try {
@@ -95,9 +110,36 @@ class ItemImageStorage {
         .toList();
   }
 
+  /// 数据库 JSON → 物品图片路径（不含位置照片）
+  static List<String> decodeItemImages(String? jsonStr) {
+    return decodeAllPaths(jsonStr)
+        .where((p) => !p.startsWith(_locPrefix))
+        .toList();
+  }
+
+  /// 数据库 JSON → 位置照片路径（去掉 __loc__: 前缀）
+  static List<String> decodeLocationImages(String? jsonStr) {
+    return decodeAllPaths(jsonStr)
+        .where((p) => p.startsWith(_locPrefix))
+        .map((p) => p.substring(_locPrefix.length))
+        .toList();
+  }
+
   /// 用于展示的 URL：远程路径转完整 URL，本地转 file path
+  /// 只返回物品图片，不含位置照片
   static List<String> resolveDisplaySources(String? jsonStr) {
-    return decodeAllPaths(jsonStr).map((path) {
+    return decodeItemImages(jsonStr).map((path) {
+      if (ItemImageRefs.isRemotePath(path)) {
+        return AppEnv.resolveUploadUrl(path);
+      }
+      if (File(path).existsSync()) return path;
+      return null;
+    }).whereType<String>().toList();
+  }
+
+  /// 位置照片 → 可展示的 URL 列表
+  static List<String> resolveLocationDisplaySources(String? jsonStr) {
+    return decodeLocationImages(jsonStr).map((path) {
       if (ItemImageRefs.isRemotePath(path)) {
         return AppEnv.resolveUploadUrl(path);
       }
