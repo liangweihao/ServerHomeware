@@ -83,17 +83,47 @@ _do_migrate() {
     python -m alembic upgrade head
 }
 
-# --- Gunicorn 参数 ---
-_GUNICORN_ARGS=(
-    -m 007  # 新建文件的默认权限
-    --worker-class uvicorn.workers.UvicornWorker
-    --bind "$HOST:$PORT"
-    --workers "$WORKERS"
-    --access-logfile "$LOG_DIR/access.log"
-    --error-logfile "$LOG_DIR/error.log"
-    --log-level warning
-    --timeout 120
-)
+# --- 平台检测 ---
+_is_windows() {
+    case "$(uname -s 2>/dev/null || echo Windows)" in
+        CYGWIN*|MINGW*|MSYS*|Windows) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# --- 启动服务（自动选择 gunicorn / uvicorn） ---
+_start_server() {
+    local FG="${1:-0}"  # 1=前台, 0=后台
+
+    if _is_windows; then
+        echo "  (Windows 环境，使用 uvicorn 替代 gunicorn)"
+        if [ "$FG" = "1" ]; then
+            exec python -m uvicorn app.main:app --host "$HOST" --port "$PORT" --workers "$WORKERS"
+        else
+            nohup python -m uvicorn app.main:app --host "$HOST" --port "$PORT" --workers "$WORKERS" \
+                > "$LOG_DIR/access.log" 2> "$LOG_DIR/error.log" &
+            echo $! > "$PID_FILE"
+            echo "已启动 (PID: $(cat "$PID_FILE"))"
+        fi
+    else
+        local ARGS=(
+            -m 007
+            --worker-class uvicorn.workers.UvicornWorker
+            --bind "$HOST:$PORT"
+            --workers "$WORKERS"
+            --access-logfile "$LOG_DIR/access.log"
+            --error-logfile "$LOG_DIR/error.log"
+            --log-level warning
+            --timeout 120
+        )
+        if [ "$FG" = "1" ]; then
+            exec python -m gunicorn app.main:app "${ARGS[@]}"
+        else
+            python -m gunicorn app.main:app "${ARGS[@]}" --daemon --pid "$PID_FILE"
+            echo "已启动 (PID: $(cat "$PID_FILE" 2>/dev/null || echo 'unknown'))"
+        fi
+    fi
+}
 
 # --- 命令路由 ---
 case "${1:-start}" in
@@ -107,11 +137,7 @@ case "${1:-start}" in
         echo "  PID: $PID_FILE"
         echo "  停止: ./start-prod.sh stop"
         echo "=========================================="
-        python -m gunicorn app.main:app \
-            "${_GUNICORN_ARGS[@]}" \
-            --daemon \
-            --pid "$PID_FILE"
-        echo "已启动 (PID: $(cat "$PID_FILE" 2>/dev/null || echo 'unknown'))"
+        _start_server 0   # 后台
         ;;
 
     stop)
@@ -123,7 +149,7 @@ case "${1:-start}" in
             echo "已停止"
         else
             echo "未找到 PID 文件，尝试查找进程..."
-            pkill -f "gunicorn app.main:app" && echo "已停止" || echo "未找到运行中的进程"
+            pkill -f "uvicorn app.main:app" 2>/dev/null || pkill -f "gunicorn app.main:app" && echo "已停止" || echo "未找到运行中的进程"
         fi
         ;;
 
@@ -145,7 +171,7 @@ case "${1:-start}" in
                 exit 1
             fi
         else
-            if pgrep -f "gunicorn app.main:app" > /dev/null; then
+            if pgrep -f "uvicorn app.main:app" > /dev/null || pgrep -f "gunicorn app.main:app" > /dev/null; then
                 echo "HomeStock 运行中 (无 PID 文件)"
             else
                 echo "HomeStock 未运行"
@@ -163,7 +189,7 @@ case "${1:-start}" in
         echo "  地址: http://$HOST:$PORT"
         echo "  Workers: $WORKERS"
         echo "=========================================="
-        exec python -m gunicorn app.main:app "${_GUNICORN_ARGS[@]}"
+        _start_server 1   # 前台
         ;;
 
     start|"")
@@ -178,11 +204,7 @@ case "${1:-start}" in
         echo "  日志: $LOG_DIR/"
         echo "  停止: ./start-prod.sh stop"
         echo "=========================================="
-        python -m gunicorn app.main:app \
-            "${_GUNICORN_ARGS[@]}" \
-            --daemon \
-            --pid "$PID_FILE"
-        echo "已启动 (PID: $(cat "$PID_FILE" 2>/dev/null || echo 'unknown'))"
+        _start_server 0   # 后台
         ;;
 
     *)
