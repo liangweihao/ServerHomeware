@@ -13,6 +13,7 @@
 /// ```
 class AppEnv {
   /// 后端 API 根地址，需包含 `/api/v1` 前缀
+  /// // 正式服环境 82.156.91.220
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://192.168.1.98:8000/api/v1',
