@@ -63,18 +63,15 @@ else
 fi
 PYTHON="$VENV_PYTHON"
 
-# --- 依赖 ---
-echo "检查依赖..."
-if ! "$PYTHON" -c "import fastapi" &> /dev/null; then
-    echo "安装依赖（使用清华镜像源）..."
-    "$PYTHON" -m pip install --upgrade pip -q 2>/dev/null || true
-    "$PYTHON" -m pip install \
-        -i https://pypi.tuna.tsinghua.edu.cn/simple \
-        -r requirements.txt || {
-        echo "  清华源失败，使用默认源..."
-        "$PYTHON" -m pip install -r requirements.txt
-    }
-fi
+# --- 依赖（始终执行，pip 幂等） ---
+echo "安装/更新 Python 依赖..."
+"$PYTHON" -m pip install --upgrade pip -q 2>/dev/null || true
+"$PYTHON" -m pip install \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple \
+    -r requirements.txt 2>/dev/null || {
+    echo "  清华源不可用，使用默认源..."
+    "$PYTHON" -m pip install -r requirements.txt
+}
 
 # --- 设置开发环境变量 ---
 export ENV_FILE=.env.dev

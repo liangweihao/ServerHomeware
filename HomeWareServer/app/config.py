@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
 
     # CORS（环境变量用逗号分隔字符串，如 "http://a.com,http://b.com" 或 "*"）
-    CORS_ORIGINS_RAW: str = "*"
+    CORS_ORIGINS: str = "*"
 
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://postgres:password@localhost:5432/homestock"
@@ -158,7 +158,7 @@ class Settings(BaseSettings):
             if self.DEBUG:
                 raise ValueError("生产环境 DEBUG 必须设为 false")
             # CORS 不能为通配符
-            if self.CORS_ORIGINS == ["*"]:
+            if self.CORS_ORIGINS.strip() == "*":
                 warnings.warn(
                     "生产环境 CORS_ORIGINS 设为 '*' 存在安全风险，建议指定具体域名",
                     RuntimeWarning,
@@ -182,13 +182,17 @@ class Settings(BaseSettings):
         return self.APP_ENV == "production"
 
     @property
-    def CORS_ORIGINS(self) -> list[str]:
-        """将逗号分隔字符串转为 list"""
-        if self.CORS_ORIGINS_RAW.strip() == "*":
+    def CORS_ORIGIN_LIST(self) -> list[str]:
+        """将逗号分隔字符串转为 list（给 FastAPI CORSMiddleware 用）"""
+        if self.CORS_ORIGINS.strip() == "*":
             return ["*"]
-        return [s.strip() for s in self.CORS_ORIGINS_RAW.split(",") if s.strip()]
+        return [s.strip() for s in self.CORS_ORIGINS.split(",") if s.strip()]
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",  # 忽略 env 文件中已废弃的旧字段
+    )
 
 
 # 检查是否设置了 ENV_FILE 环境变量

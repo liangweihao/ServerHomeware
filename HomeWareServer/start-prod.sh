@@ -167,29 +167,28 @@ PY_CMD="python"
 [ "$VENV_OK" = "1" ] && [ -f ".venv/Scripts/python" ] && PY_CMD=".venv/Scripts/python"
 
 # ===========================================
-#  依赖安装
+#  依赖安装（始终执行，pip 幂等不会重复安装）
 # ===========================================
-echo "检查 Python 依赖..."
-if ! $PY_CMD -c "import fastapi" &> /dev/null; then
-    echo "安装依赖（使用清华镜像源）..."
-    $PY_CMD -m pip install --upgrade pip -q 2>/dev/null || true
-    $PY_CMD -m pip install \
-        -i https://pypi.tuna.tsinghua.edu.cn/simple \
-        -r requirements.txt || {
-        echo "  清华源失败，使用默认源重试..."
-        $PY_CMD -m pip install -r requirements.txt
-    }
-fi
+echo "安装/更新 Python 依赖..."
+$PY_CMD -m pip install --upgrade pip -q 2>/dev/null || true
+$PY_CMD -m pip install \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple \
+    -r requirements.txt 2>/dev/null || {
+    echo "  清华源不可用，使用默认源..."
+    $PY_CMD -m pip install -r requirements.txt
+}
 
 # ===========================================
-#  加载环境变量
+#  加载环境变量（production 优先，.env 不覆盖已设置的 prod 值）
 # ===========================================
-if [ -f ".env.production" ]; then
-    export $(grep -v '^#' .env.production | xargs)
-fi
 if [ -f ".env" ]; then
     export $(grep -v '^#' .env | xargs)
 fi
+if [ -f ".env.production" ]; then
+    export $(grep -v '^#' .env.production | xargs)
+fi
+# 强制使用生产配置文件（避免 config.py 默认读 .env）
+export ENV_FILE=".env.production"
 
 # ===========================================
 #  目录 & 端口清理
