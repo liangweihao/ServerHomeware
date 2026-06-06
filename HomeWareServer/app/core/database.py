@@ -34,10 +34,12 @@ if settings.DATABASE_TYPE == "sqlite":
             yield session
     
     async def init_db():
-        """初始化数据库表"""
-        async with async_engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-    
+        """初始化数据库表（已关闭 create_all，schema 由 Alembic 管理）"""
+        # 不再使用 create_all，避免绕过 Alembic 导致双轨建表冲突
+        # async with async_engine.begin() as conn:
+        #     await conn.run_sync(Base.metadata.create_all)
+        pass
+
     async def test_db_connection() -> bool:
         """测试数据库连接"""
         try:
@@ -57,24 +59,26 @@ else:
         max_overflow=20,
         echo=settings.DEBUG,
     )
-    
+
     # 创建异步会话工厂
     async_session_maker = sessionmaker(
         async_engine,
         class_=AsyncSession,
         expire_on_commit=False,
     )
-    
+
     async def get_db() -> AsyncSession:
         """FastAPI 依赖注入函数，提供数据库会话"""
         async with async_session_maker() as session:
             yield session
-    
+
     async def init_db():
-        """初始化数据库表"""
-        async with async_engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-    
+        """初始化数据库表（已关闭 create_all，schema 由 Alembic 管理）"""
+        # 不再使用 create_all，避免绕过 Alembic 导致双轨建表冲突
+        # async with async_engine.begin() as conn:
+        #     await conn.run_sync(Base.metadata.create_all)
+        pass
+
     async def test_db_connection() -> bool:
         """测试数据库连接"""
         try:

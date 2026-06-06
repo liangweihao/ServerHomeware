@@ -1,0 +1,31 @@
+[Unit]
+Description=HomeStock - 家庭物品管家 API 服务
+After=network.target postgresql.service redis.service
+Wants=postgresql.service redis.service
+
+[Service]
+Type=notify
+User=homestock
+Group=homestock
+WorkingDirectory=/opt/homestock/HomeWareServer
+EnvironmentFile=/opt/homestock/HomeWareServer/.env.production
+ExecStart=/opt/homestock/HomeWareServer/start-prod.sh foreground
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# 安全加固
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/homestock/HomeWareServer/uploads /opt/homestock/HomeWareServer/logs
+ReadOnlyPaths=/opt/homestock/HomeWareServer
+
+# 资源限制
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
