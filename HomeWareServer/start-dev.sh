@@ -12,22 +12,42 @@ echo "   HomeStock 开发环境启动"
 echo "=========================================="
 
 cd "$(dirname "$0")"
+SCRIPT_DIR="$(pwd)"
 
-# --- Python 检测 ---
-PYTHON=""
-if command -v python3 &> /dev/null; then
-    PYTHON="python3"
-elif command -v python &> /dev/null; then
-    PYTHON="python"
-else
-    echo "错误: 未找到 Python"
+# --- Python 环境检测（兼容腾讯云等各种环境） ---
+_FOUND_PYTHON=""
+_detect_python() {
+    for cmd in python3.12 python3.11 python3.10 python3.9 python3 python; do
+        if command -v "$cmd" &> /dev/null; then
+            local ver=$("$cmd" --version 2>&1) || continue
+            if echo "$ver" | grep -qi "python"; then
+                _FOUND_PYTHON="$cmd"
+                echo "  找到 Python: $cmd ($ver)"
+                return 0
+            fi
+        fi
+    done
+    return 1
+}
+
+if ! _detect_python; then
+    echo "错误: 未找到 Python，请安装 Python 3.9+"
     exit 1
+fi
+
+# 确保 pip
+if ! "$_FOUND_PYTHON" -m pip --version &> /dev/null; then
+    echo "安装 pip..."
+    "$_FOUND_PYTHON" -m ensurepip --upgrade 2>/dev/null || true
 fi
 
 # --- 虚拟环境 ---
 if [ ! -d ".venv" ]; then
     echo "创建虚拟环境..."
-    $PYTHON -m venv .venv
+    "$_FOUND_PYTHON" -m venv .venv 2>/dev/null || {
+        "$_FOUND_PYTHON" -m pip install virtualenv -q 2>/dev/null || true
+        "$_FOUND_PYTHON" -m virtualenv .venv
+    }
 fi
 
 echo "激活虚拟环境..."
@@ -46,8 +66,14 @@ PYTHON="$VENV_PYTHON"
 # --- 依赖 ---
 echo "检查依赖..."
 if ! "$PYTHON" -c "import fastapi" &> /dev/null; then
-    echo "安装依赖..."
-    pip install -r requirements.txt
+    echo "安装依赖（使用清华镜像源）..."
+    "$PYTHON" -m pip install --upgrade pip -q 2>/dev/null || true
+    "$PYTHON" -m pip install \
+        -i https://pypi.tuna.tsinghua.edu.cn/simple \
+        -r requirements.txt || {
+        echo "  清华源失败，使用默认源..."
+        "$PYTHON" -m pip install -r requirements.txt
+    }
 fi
 
 # --- 设置开发环境变量 ---
