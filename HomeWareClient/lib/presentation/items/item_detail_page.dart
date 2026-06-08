@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -160,24 +162,164 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
       ),
       clipBehavior: Clip.antiAlias,
       child: imageUrls.isNotEmpty
-          ? PageView.builder(
-              itemCount: imageUrls.length,
-              itemBuilder: (_, i) => Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.zero,
-                ),
-                child: Image.network(
-                  imageUrls[i],
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(
-                    Icons.broken_image_outlined,
-                    color: AppColors.textHint,
+          ? Stack(
+              children: [
+                PageView.builder(
+                  itemCount: imageUrls.length,
+                  itemBuilder: (_, i) => GestureDetector(
+                    onTap: () => _showFullScreenImage(context, imageUrls, i),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.zero,
+                      ),
+                      child: Image.network(
+                        imageUrls[i],
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.broken_image_outlined,
+                          color: AppColors.textHint,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                // 右下角查看/下载按钮
+                Positioned(
+                  right: 8,
+                  bottom: 8,
+                  child: Row(
+                    children: [
+                      _imageActionButton(
+                        Icons.fullscreen,
+                        '全屏查看',
+                        () => _showFullScreenImage(context, imageUrls, 0),
+                      ),
+                      const SizedBox(width: 4),
+                      _imageActionButton(
+                        Icons.download,
+                        '保存到本地',
+                        () => _downloadImage(context, imageUrls.first),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             )
           : _placeholderIcon(categoryIcon),
     );
+  }
+
+  Widget _imageActionButton(IconData icon, String tooltip, VoidCallback onTap) {
+    return Material(
+      color: Colors.black.withOpacity(0.5),
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(icon, color: Colors.white, size: 18),
+        ),
+      ),
+    );
+  }
+
+  void _showFullScreenImage(BuildContext context, List<String> urls, int initialIndex) {
+    int currentIndex = initialIndex;
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return Scaffold(
+              backgroundColor: Colors.black,
+              appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.white,
+                title: Text('${currentIndex + 1} / ${urls.length}'),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.download),
+                    tooltip: '保存到本地',
+                    onPressed: () => _downloadImage(ctx, urls[currentIndex]),
+                  ),
+                ],
+              ),
+              body: PageView.builder(
+                itemCount: urls.length,
+                controller: PageController(initialPage: initialIndex),
+                onPageChanged: (i) {
+                  setDialogState(() => currentIndex = i);
+                },
+                itemBuilder: (_, i) => InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  child: Center(
+                    child: Image.network(
+                      urls[i],
+                      fit: BoxFit.contain,
+                      loadingBuilder: (_, child, progress) {
+                        if (progress == null) return child;
+                        return const Center(child: CircularProgressIndicator(color: Colors.white));
+                      },
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.broken_image_outlined, color: Colors.white54, size: 64,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _downloadImage(BuildContext context, String url) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('正在下载...'), duration: Duration(seconds: 1)),
+      );
+
+      final httpClient = HttpClient();
+      final request = await httpClient.getUrl(Uri.parse(url));
+      final response = await request.close();
+      final bytes = await response.fold<List<int>>(
+        <int>[], (prev, chunk) => prev..addAll(chunk),
+      );
+      httpClient.close();
+
+      // 保存路径：优先 Download 目录，否则 App 文档目录
+      final fileName = 'HomeStock_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final downloadDir = Directory('/storage/emulated/0/Download');
+      Directory saveDir;
+      if (await downloadDir.exists()) {
+        saveDir = downloadDir;
+      } else {
+        saveDir = await getApplicationDocumentsDirectory();
+      }
+
+      final file = File('${saveDir.path}/$fileName');
+      await file.writeAsBytes(bytes);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('已保存: $fileName'),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('[ItemDetailPage] 下载失败: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('下载失败，请检查网络和存储权限')),
+        );
+      }
+    }
   }
 
   Widget _placeholderIcon(String emoji) {
