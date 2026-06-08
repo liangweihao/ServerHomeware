@@ -40,6 +40,8 @@ class Items extends Table {
   IntColumn get locationId => integer().nullable()();
   RealColumn get purchasePrice => real().nullable()();
   IntColumn get purchaseQuantity => integer().withDefault(const Constant(1))();
+  TextColumn get packageUnit => text().nullable()();
+  IntColumn get packageQuantity => integer().withDefault(const Constant(1))();
   RealColumn get currentQuantity => real().withDefault(const Constant(1))();
   TextColumn get unit => text().withDefault(const Constant('件'))();
   RealColumn get safetyStock => real().withDefault(const Constant(1))();

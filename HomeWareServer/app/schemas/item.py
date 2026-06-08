@@ -48,9 +48,11 @@ class ItemResponse(BaseModel):
     # 价格相关
     purchase_price: Optional[float] = Field(None, description="购买单价")
     total_price: Optional[float] = Field(None, description="总价")
-    purchase_quantity: int = Field(..., description="购买数量")
-    current_quantity: float = Field(..., description="当前数量")
-    unit: str = Field(..., description="单位")
+    purchase_quantity: int = Field(..., description="购买数量（包装数）")
+    package_unit: Optional[str] = Field(None, description="包装单位")
+    package_quantity: int = Field(1, description="一包装含多少基本单位")
+    current_quantity: float = Field(..., description="当前数量（总基本单位）")
+    unit: str = Field(..., description="基本单位")
     safety_stock: float = Field(..., description="安全库存")
     
     # 日期相关
@@ -96,11 +98,13 @@ class CreateItemRequest(BaseModel):
     
     # 价格相关
     purchase_price: Optional[float] = Field(None, description="购买单价")
-    purchase_quantity: int = Field(1, description="购买数量")
-    current_quantity: Optional[float] = Field(None, description="当前数量")
-    unit: str = Field("件", description="单位")
+    purchase_quantity: int = Field(1, description="购买数量（包装数）")
+    package_unit: Optional[str] = Field(None, description="包装单位（盒/箱/提）")
+    package_quantity: int = Field(1, description="一包装含多少基本单位")
+    current_quantity: Optional[float] = Field(None, description="当前数量（总基本单位）")
+    unit: str = Field("件", description="基本单位（片/瓶/个）")
     safety_stock: float = Field(1, description="安全库存")
-    
+
     # 日期相关
     purchase_date: Optional[date] = Field(None, description="购买日期")
     purchase_channel: Optional[str] = Field(None, description="购买渠道")
@@ -132,11 +136,13 @@ class UpdateItemRequest(BaseModel):
     
     # 价格相关
     purchase_price: Optional[float] = Field(None, description="购买单价")
-    purchase_quantity: Optional[int] = Field(None, description="购买数量")
-    current_quantity: Optional[float] = Field(None, description="当前数量")
-    unit: Optional[str] = Field(None, description="单位")
+    purchase_quantity: Optional[int] = Field(None, description="购买数量（包装数）")
+    package_unit: Optional[str] = Field(None, description="包装单位（盒/箱/提）")
+    package_quantity: Optional[int] = Field(None, description="一包装含多少基本单位")
+    current_quantity: Optional[float] = Field(None, description="当前数量（总基本单位）")
+    unit: Optional[str] = Field(None, description="基本单位（片/瓶/个）")
     safety_stock: Optional[float] = Field(None, description="安全库存")
-    
+
     # 日期相关
     purchase_date: Optional[date] = Field(None, description="购买日期")
     purchase_channel: Optional[str] = Field(None, description="购买渠道")

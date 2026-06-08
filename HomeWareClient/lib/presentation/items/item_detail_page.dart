@@ -798,7 +798,13 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
   // —— 文案 / 颜色 ——
 
   String _quantityText(Item item) {
-    return '${item.currentQuantity.toStringAsFixed(0)} / ${item.purchaseQuantity} ${item.unit}';
+    final base = '${item.currentQuantity.toStringAsFixed(0)} / ${item.purchaseQuantity} ${item.unit}';
+    // 如果有包装单位，追加包装信息
+    if (item.packageUnit != null && item.packageUnit!.isNotEmpty && item.packageQuantity > 1) {
+      final total = item.purchaseQuantity * item.packageQuantity;
+      return '$base\n(${item.purchaseQuantity} ${item.packageUnit} × ${item.packageQuantity} ${item.unit} = $total ${item.unit})';
+    }
+    return base;
   }
 
   Color _stockColor(Item item) {

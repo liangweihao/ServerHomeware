@@ -21,6 +21,10 @@ class ItemFormController {
   int? shelfLifeDays;
   double quantity = 1;
   String unit = '件';
+  /// 包装单位（盒/箱/提），null 表示无包装
+  String? packageUnit;
+  /// 一包装含多少基本单位，默认 1
+  int packageQuantity = 1;
   String? purchaseChannel;
   int expiryAlertDays = 3;
   double safetyStock = 1;
@@ -50,6 +54,8 @@ class ItemFormController {
     shelfLifeDays = item.shelfLifeDays;
     quantity = item.purchaseQuantity.toDouble();
     unit = item.unit;
+    packageUnit = item.packageUnit;
+    packageQuantity = item.packageQuantity;
     purchaseChannel = item.purchaseChannel;
     expiryAlertDays = item.expiryAlertDays;
     safetyStock = item.safetyStock;
@@ -73,6 +79,8 @@ class ItemFormController {
     shelfLifeDays = null;
     quantity = 1;
     unit = '件';
+    packageUnit = null;
+    packageQuantity = 1;
     purchaseChannel = null;
     expiryAlertDays = 3;
     safetyStock = 1;
@@ -113,6 +121,8 @@ class ItemFormController {
       'purchase_quantity': quantity.round(),
       'current_quantity': quantity,
       'unit': unit,
+      'package_unit': packageUnit,
+      'package_quantity': packageQuantity,
       'safety_stock': safetyStock,
       'expiry_alert_days': expiryAlertDays,
       'stock_alert': true,
@@ -186,6 +196,8 @@ class ItemFormController {
           ? const Value.absent()
           : Value(double.tryParse(priceController.text)),
       purchaseQuantity: Value(quantity.round()),
+      packageUnit: packageUnit != null ? Value(packageUnit!) : const Value.absent(),
+      packageQuantity: Value(packageQuantity),
       currentQuantity: Value(quantity),
       unit: Value(unit),
       safetyStock: Value(safetyStock),
@@ -228,6 +240,8 @@ class ItemFormController {
           ? const Value.absent()
           : Value(double.tryParse(priceController.text)),
       purchaseQuantity: quantity.round(),
+      packageUnit: packageUnit != null ? Value(packageUnit!) : const Value.absent(),
+      packageQuantity: Value(packageQuantity),
       unit: unit,
       safetyStock: safetyStock,
       purchaseDate: purchaseDate != null ? Value(purchaseDate!) : const Value.absent(),

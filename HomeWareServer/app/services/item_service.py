@@ -153,6 +153,8 @@ class ItemService:
             "purchase_price": float(item.purchase_price) if item.purchase_price else None,
             "total_price": float(item.total_price) if item.total_price else None,
             "purchase_quantity": item.purchase_quantity,
+            "package_unit": item.package_unit,
+            "package_quantity": item.package_quantity or 1,
             "current_quantity": float(item.current_quantity),
             "unit": item.unit,
             "safety_stock": float(item.safety_stock),
@@ -243,6 +245,8 @@ class ItemService:
                 "location_full_path": location_paths.get(item.location_id),
                 "current_quantity": float(item.current_quantity),
                 "unit": item.unit,
+                "package_unit": item.package_unit,
+                "package_quantity": item.package_quantity or 1,
                 "status": item.status,
                 "expiry_date": item.expiry_date,
                 "urgency": urgency,
@@ -300,7 +304,8 @@ class ItemService:
         update_data = {}
         allowed_fields = [
             "name", "brand", "specification", "barcode", "category_id", "location_id",
-            "purchase_price", "total_price", "purchase_quantity", "current_quantity",
+            "purchase_price", "total_price", "purchase_quantity", "package_unit",
+            "package_quantity", "current_quantity",
             "unit", "safety_stock", "purchase_date", "purchase_channel",
             "production_date", "expiry_date", "shelf_life_days", "opened_date",
             "after_open_days", "warranty_date", "expiry_alert_days", "stock_alert",

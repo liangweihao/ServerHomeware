@@ -25,9 +25,11 @@ class Item(Base, BaseMixin):
     # 价格相关
     purchase_price = Column(Numeric(10, 2), nullable=True, comment="购买单价")
     total_price = Column(Numeric(10, 2), nullable=True, comment="总价")
-    purchase_quantity = Column(Integer, default=1, comment="购买数量")
-    current_quantity = Column(Numeric(10, 2), default=1, comment="当前数量")
-    unit = Column(String(10), default="件", comment="单位")
+    purchase_quantity = Column(Integer, default=1, comment="购买数量（包装数）")
+    package_unit = Column(String(10), nullable=True, comment="包装单位（盒/箱/提）")
+    package_quantity = Column(Integer, default=1, comment="一包装含多少基本单位")
+    current_quantity = Column(Numeric(10, 2), default=1, comment="当前数量（总基本单位）")
+    unit = Column(String(10), default="件", comment="基本单位（片/瓶/个）")
     safety_stock = Column(Numeric(10, 2), default=1, comment="安全库存")
     
     # 日期相关

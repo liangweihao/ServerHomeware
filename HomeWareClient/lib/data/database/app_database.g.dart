@@ -1090,6 +1090,29 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     requiredDuringInsert: false,
     defaultValue: const Constant(1),
   );
+  static const VerificationMeta _packageUnitMeta = const VerificationMeta(
+    'packageUnit',
+  );
+  @override
+  late final GeneratedColumn<String> packageUnit = GeneratedColumn<String>(
+    'package_unit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _packageQuantityMeta = const VerificationMeta(
+    'packageQuantity',
+  );
+  @override
+  late final GeneratedColumn<int> packageQuantity = GeneratedColumn<int>(
+    'package_quantity',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   static const VerificationMeta _currentQuantityMeta = const VerificationMeta(
     'currentQuantity',
   );
@@ -1325,6 +1348,8 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     locationId,
     purchasePrice,
     purchaseQuantity,
+    packageUnit,
+    packageQuantity,
     currentQuantity,
     unit,
     safetyStock,
@@ -1419,6 +1444,24 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         purchaseQuantity.isAcceptableOrUnknown(
           data['purchase_quantity']!,
           _purchaseQuantityMeta,
+        ),
+      );
+    }
+    if (data.containsKey('package_unit')) {
+      context.handle(
+        _packageUnitMeta,
+        packageUnit.isAcceptableOrUnknown(
+          data['package_unit']!,
+          _packageUnitMeta,
+        ),
+      );
+    }
+    if (data.containsKey('package_quantity')) {
+      context.handle(
+        _packageQuantityMeta,
+        packageQuantity.isAcceptableOrUnknown(
+          data['package_quantity']!,
+          _packageQuantityMeta,
         ),
       );
     }
@@ -1620,6 +1663,14 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.int,
         data['${effectivePrefix}purchase_quantity'],
       )!,
+      packageUnit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}package_unit'],
+      ),
+      packageQuantity: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}package_quantity'],
+      )!,
       currentQuantity: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}current_quantity'],
@@ -1719,6 +1770,8 @@ class Item extends DataClass implements Insertable<Item> {
   final int? locationId;
   final double? purchasePrice;
   final int purchaseQuantity;
+  final String? packageUnit;
+  final int packageQuantity;
   final double currentQuantity;
   final String unit;
   final double safetyStock;
@@ -1749,6 +1802,8 @@ class Item extends DataClass implements Insertable<Item> {
     this.locationId,
     this.purchasePrice,
     required this.purchaseQuantity,
+    this.packageUnit,
+    required this.packageQuantity,
     required this.currentQuantity,
     required this.unit,
     required this.safetyStock,
@@ -1792,6 +1847,10 @@ class Item extends DataClass implements Insertable<Item> {
       map['purchase_price'] = Variable<double>(purchasePrice);
     }
     map['purchase_quantity'] = Variable<int>(purchaseQuantity);
+    if (!nullToAbsent || packageUnit != null) {
+      map['package_unit'] = Variable<String>(packageUnit);
+    }
+    map['package_quantity'] = Variable<int>(packageQuantity);
     map['current_quantity'] = Variable<double>(currentQuantity);
     map['unit'] = Variable<String>(unit);
     map['safety_stock'] = Variable<double>(safetyStock);
@@ -1860,6 +1919,10 @@ class Item extends DataClass implements Insertable<Item> {
           ? const Value.absent()
           : Value(purchasePrice),
       purchaseQuantity: Value(purchaseQuantity),
+      packageUnit: packageUnit == null && nullToAbsent
+          ? const Value.absent()
+          : Value(packageUnit),
+      packageQuantity: Value(packageQuantity),
       currentQuantity: Value(currentQuantity),
       unit: Value(unit),
       safetyStock: Value(safetyStock),
@@ -1922,6 +1985,8 @@ class Item extends DataClass implements Insertable<Item> {
       locationId: serializer.fromJson<int?>(json['locationId']),
       purchasePrice: serializer.fromJson<double?>(json['purchasePrice']),
       purchaseQuantity: serializer.fromJson<int>(json['purchaseQuantity']),
+      packageUnit: serializer.fromJson<String?>(json['packageUnit']),
+      packageQuantity: serializer.fromJson<int>(json['packageQuantity']),
       currentQuantity: serializer.fromJson<double>(json['currentQuantity']),
       unit: serializer.fromJson<String>(json['unit']),
       safetyStock: serializer.fromJson<double>(json['safetyStock']),
@@ -1961,6 +2026,8 @@ class Item extends DataClass implements Insertable<Item> {
       'locationId': serializer.toJson<int?>(locationId),
       'purchasePrice': serializer.toJson<double?>(purchasePrice),
       'purchaseQuantity': serializer.toJson<int>(purchaseQuantity),
+      'packageUnit': serializer.toJson<String?>(packageUnit),
+      'packageQuantity': serializer.toJson<int>(packageQuantity),
       'currentQuantity': serializer.toJson<double>(currentQuantity),
       'unit': serializer.toJson<String>(unit),
       'safetyStock': serializer.toJson<double>(safetyStock),
@@ -1994,6 +2061,8 @@ class Item extends DataClass implements Insertable<Item> {
     Value<int?> locationId = const Value.absent(),
     Value<double?> purchasePrice = const Value.absent(),
     int? purchaseQuantity,
+    Value<String?> packageUnit = const Value.absent(),
+    int? packageQuantity,
     double? currentQuantity,
     String? unit,
     double? safetyStock,
@@ -2028,6 +2097,8 @@ class Item extends DataClass implements Insertable<Item> {
         ? purchasePrice.value
         : this.purchasePrice,
     purchaseQuantity: purchaseQuantity ?? this.purchaseQuantity,
+    packageUnit: packageUnit.present ? packageUnit.value : this.packageUnit,
+    packageQuantity: packageQuantity ?? this.packageQuantity,
     currentQuantity: currentQuantity ?? this.currentQuantity,
     unit: unit ?? this.unit,
     safetyStock: safetyStock ?? this.safetyStock,
@@ -2082,6 +2153,12 @@ class Item extends DataClass implements Insertable<Item> {
       purchaseQuantity: data.purchaseQuantity.present
           ? data.purchaseQuantity.value
           : this.purchaseQuantity,
+      packageUnit: data.packageUnit.present
+          ? data.packageUnit.value
+          : this.packageUnit,
+      packageQuantity: data.packageQuantity.present
+          ? data.packageQuantity.value
+          : this.packageQuantity,
       currentQuantity: data.currentQuantity.present
           ? data.currentQuantity.value
           : this.currentQuantity,
@@ -2145,6 +2222,8 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('locationId: $locationId, ')
           ..write('purchasePrice: $purchasePrice, ')
           ..write('purchaseQuantity: $purchaseQuantity, ')
+          ..write('packageUnit: $packageUnit, ')
+          ..write('packageQuantity: $packageQuantity, ')
           ..write('currentQuantity: $currentQuantity, ')
           ..write('unit: $unit, ')
           ..write('safetyStock: $safetyStock, ')
@@ -2180,6 +2259,8 @@ class Item extends DataClass implements Insertable<Item> {
     locationId,
     purchasePrice,
     purchaseQuantity,
+    packageUnit,
+    packageQuantity,
     currentQuantity,
     unit,
     safetyStock,
@@ -2214,6 +2295,8 @@ class Item extends DataClass implements Insertable<Item> {
           other.locationId == this.locationId &&
           other.purchasePrice == this.purchasePrice &&
           other.purchaseQuantity == this.purchaseQuantity &&
+          other.packageUnit == this.packageUnit &&
+          other.packageQuantity == this.packageQuantity &&
           other.currentQuantity == this.currentQuantity &&
           other.unit == this.unit &&
           other.safetyStock == this.safetyStock &&
@@ -2246,6 +2329,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<int?> locationId;
   final Value<double?> purchasePrice;
   final Value<int> purchaseQuantity;
+  final Value<String?> packageUnit;
+  final Value<int> packageQuantity;
   final Value<double> currentQuantity;
   final Value<String> unit;
   final Value<double> safetyStock;
@@ -2276,6 +2361,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.locationId = const Value.absent(),
     this.purchasePrice = const Value.absent(),
     this.purchaseQuantity = const Value.absent(),
+    this.packageUnit = const Value.absent(),
+    this.packageQuantity = const Value.absent(),
     this.currentQuantity = const Value.absent(),
     this.unit = const Value.absent(),
     this.safetyStock = const Value.absent(),
@@ -2307,6 +2394,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.locationId = const Value.absent(),
     this.purchasePrice = const Value.absent(),
     this.purchaseQuantity = const Value.absent(),
+    this.packageUnit = const Value.absent(),
+    this.packageQuantity = const Value.absent(),
     this.currentQuantity = const Value.absent(),
     this.unit = const Value.absent(),
     this.safetyStock = const Value.absent(),
@@ -2339,6 +2428,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<int>? locationId,
     Expression<double>? purchasePrice,
     Expression<int>? purchaseQuantity,
+    Expression<String>? packageUnit,
+    Expression<int>? packageQuantity,
     Expression<double>? currentQuantity,
     Expression<String>? unit,
     Expression<double>? safetyStock,
@@ -2370,6 +2461,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (locationId != null) 'location_id': locationId,
       if (purchasePrice != null) 'purchase_price': purchasePrice,
       if (purchaseQuantity != null) 'purchase_quantity': purchaseQuantity,
+      if (packageUnit != null) 'package_unit': packageUnit,
+      if (packageQuantity != null) 'package_quantity': packageQuantity,
       if (currentQuantity != null) 'current_quantity': currentQuantity,
       if (unit != null) 'unit': unit,
       if (safetyStock != null) 'safety_stock': safetyStock,
@@ -2405,6 +2498,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<int?>? locationId,
     Value<double?>? purchasePrice,
     Value<int>? purchaseQuantity,
+    Value<String?>? packageUnit,
+    Value<int>? packageQuantity,
     Value<double>? currentQuantity,
     Value<String>? unit,
     Value<double>? safetyStock,
@@ -2436,6 +2531,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       locationId: locationId ?? this.locationId,
       purchasePrice: purchasePrice ?? this.purchasePrice,
       purchaseQuantity: purchaseQuantity ?? this.purchaseQuantity,
+      packageUnit: packageUnit ?? this.packageUnit,
+      packageQuantity: packageQuantity ?? this.packageQuantity,
       currentQuantity: currentQuantity ?? this.currentQuantity,
       unit: unit ?? this.unit,
       safetyStock: safetyStock ?? this.safetyStock,
@@ -2488,6 +2585,12 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     }
     if (purchaseQuantity.present) {
       map['purchase_quantity'] = Variable<int>(purchaseQuantity.value);
+    }
+    if (packageUnit.present) {
+      map['package_unit'] = Variable<String>(packageUnit.value);
+    }
+    if (packageQuantity.present) {
+      map['package_quantity'] = Variable<int>(packageQuantity.value);
     }
     if (currentQuantity.present) {
       map['current_quantity'] = Variable<double>(currentQuantity.value);
@@ -2568,6 +2671,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('locationId: $locationId, ')
           ..write('purchasePrice: $purchasePrice, ')
           ..write('purchaseQuantity: $purchaseQuantity, ')
+          ..write('packageUnit: $packageUnit, ')
+          ..write('packageQuantity: $packageQuantity, ')
           ..write('currentQuantity: $currentQuantity, ')
           ..write('unit: $unit, ')
           ..write('safetyStock: $safetyStock, ')
@@ -4530,6 +4635,8 @@ typedef $$ItemsTableCreateCompanionBuilder =
       Value<int?> locationId,
       Value<double?> purchasePrice,
       Value<int> purchaseQuantity,
+      Value<String?> packageUnit,
+      Value<int> packageQuantity,
       Value<double> currentQuantity,
       Value<String> unit,
       Value<double> safetyStock,
@@ -4562,6 +4669,8 @@ typedef $$ItemsTableUpdateCompanionBuilder =
       Value<int?> locationId,
       Value<double?> purchasePrice,
       Value<int> purchaseQuantity,
+      Value<String?> packageUnit,
+      Value<int> packageQuantity,
       Value<double> currentQuantity,
       Value<String> unit,
       Value<double> safetyStock,
@@ -4634,6 +4743,16 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<int> get purchaseQuantity => $composableBuilder(
     column: $table.purchaseQuantity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get packageUnit => $composableBuilder(
+    column: $table.packageUnit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get packageQuantity => $composableBuilder(
+    column: $table.packageQuantity,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4792,6 +4911,16 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get packageUnit => $composableBuilder(
+    column: $table.packageUnit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get packageQuantity => $composableBuilder(
+    column: $table.packageQuantity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get currentQuantity => $composableBuilder(
     column: $table.currentQuantity,
     builder: (column) => ColumnOrderings(column),
@@ -4939,6 +5068,16 @@ class $$ItemsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get packageUnit => $composableBuilder(
+    column: $table.packageUnit,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get packageQuantity => $composableBuilder(
+    column: $table.packageQuantity,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<double> get currentQuantity => $composableBuilder(
     column: $table.currentQuantity,
     builder: (column) => column,
@@ -5065,6 +5204,8 @@ class $$ItemsTableTableManager
                 Value<int?> locationId = const Value.absent(),
                 Value<double?> purchasePrice = const Value.absent(),
                 Value<int> purchaseQuantity = const Value.absent(),
+                Value<String?> packageUnit = const Value.absent(),
+                Value<int> packageQuantity = const Value.absent(),
                 Value<double> currentQuantity = const Value.absent(),
                 Value<String> unit = const Value.absent(),
                 Value<double> safetyStock = const Value.absent(),
@@ -5095,6 +5236,8 @@ class $$ItemsTableTableManager
                 locationId: locationId,
                 purchasePrice: purchasePrice,
                 purchaseQuantity: purchaseQuantity,
+                packageUnit: packageUnit,
+                packageQuantity: packageQuantity,
                 currentQuantity: currentQuantity,
                 unit: unit,
                 safetyStock: safetyStock,
@@ -5127,6 +5270,8 @@ class $$ItemsTableTableManager
                 Value<int?> locationId = const Value.absent(),
                 Value<double?> purchasePrice = const Value.absent(),
                 Value<int> purchaseQuantity = const Value.absent(),
+                Value<String?> packageUnit = const Value.absent(),
+                Value<int> packageQuantity = const Value.absent(),
                 Value<double> currentQuantity = const Value.absent(),
                 Value<String> unit = const Value.absent(),
                 Value<double> safetyStock = const Value.absent(),
@@ -5157,6 +5302,8 @@ class $$ItemsTableTableManager
                 locationId: locationId,
                 purchasePrice: purchasePrice,
                 purchaseQuantity: purchaseQuantity,
+                packageUnit: packageUnit,
+                packageQuantity: packageQuantity,
                 currentQuantity: currentQuantity,
                 unit: unit,
                 safetyStock: safetyStock,

@@ -192,6 +192,61 @@ class ItemFormView extends StatelessWidget {
             ),
           ],
         ),
+        // 包装单位（可选）：如 3盒 × 10片
+        Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: TextFormField(
+                initialValue: c.packageQuantity > 1 ? c.packageQuantity.toString() : '',
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: '一包多少个（可选）',
+                  hintText: '如 10',
+                ),
+                onChanged: (v) {
+                  c.packageQuantity = int.tryParse(v) ?? 1;
+                  if (c.packageQuantity < 1) c.packageQuantity = 1;
+                  onChanged();
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 1,
+              child: DropdownButtonFormField<String>(
+                value: c.packageUnit,
+                decoration: const InputDecoration(labelText: '包装单位'),
+                items: const [
+                  DropdownMenuItem(value: null, child: Text('无')),
+                  DropdownMenuItem(value: '盒', child: Text('盒')),
+                  DropdownMenuItem(value: '箱', child: Text('箱')),
+                  DropdownMenuItem(value: '提', child: Text('提')),
+                  DropdownMenuItem(value: '板', child: Text('板')),
+                  DropdownMenuItem(value: '袋', child: Text('袋')),
+                  DropdownMenuItem(value: '包', child: Text('包')),
+                  DropdownMenuItem(value: '瓶', child: Text('瓶')),
+                ],
+                onChanged: (v) {
+                  c.packageUnit = v;
+                  onChanged();
+                },
+              ),
+            ),
+          ],
+        ),
+        // 总量提示
+        if (c.packageUnit != null && c.packageQuantity > 1) ...[
+          const SizedBox(height: 8),
+          Text(
+            '共 ${(c.quantity * c.packageQuantity).toStringAsFixed(0)} ${c.unit}'
+                '（${c.quantity.toStringAsFixed(0)} ${c.packageUnit} × ${c.packageQuantity} ${c.unit}）',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+          ),
+        ],
         const SizedBox(height: 16),
         TextFormField(
           controller: c.priceController,

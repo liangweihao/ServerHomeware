@@ -96,6 +96,12 @@ class ItemSyncService {
           ? Value(_parseDouble(json['current_quantity']))
           : const Value(1),
       purchaseQuantity: const Value(1), // 列表接口无此字段，用默认值
+      packageUnit: json['package_unit'] != null
+          ? Value(json['package_unit'].toString())
+          : const Value.absent(),
+      packageQuantity: json['package_quantity'] != null
+          ? Value(_parseInt(json['package_quantity']))
+          : const Value(1),
       unit: json['unit'] != null
           ? Value(json['unit'].toString())
           : const Value('件'),
