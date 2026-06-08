@@ -241,7 +241,7 @@ class ItemFormController {
           : Value(double.tryParse(priceController.text)),
       purchaseQuantity: quantity.round(),
       packageUnit: packageUnit != null ? Value(packageUnit!) : const Value.absent(),
-      packageQuantity: Value(packageQuantity),
+      packageQuantity: packageQuantity,
       unit: unit,
       safetyStock: safetyStock,
       purchaseDate: purchaseDate != null ? Value(purchaseDate!) : const Value.absent(),
