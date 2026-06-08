@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -79,13 +80,13 @@ class LocationOverviewPage extends ConsumerWidget {
   void _showAddLocationDialog(BuildContext context, WidgetRef ref) {
     AddLocationDialog.show(
       context,
-      onConfirm: (data) async {
-        final (name, icon) = data;
+      onConfirm: (name, icon, imagePath) async {
         final db = ref.read(databaseProvider);
         await db.insertLocation(
           LocationsCompanion.insert(
             name: name,
             icon: Value(icon),
+            images: imagePath != null ? Value(jsonEncode([imagePath])) : const Value.absent(),
             level: const Value(1),
             fullPath: name,
             sortOrder: const Value(0),

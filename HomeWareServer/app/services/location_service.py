@@ -148,6 +148,7 @@ class LocationService:
         location = await self.repo.create({
             "name": name,
             "icon": data.get("icon"),
+            "images": data.get("images"),
             "parent_id": parent_id,
             "family_id": family_id,
             "level": level,
@@ -178,6 +179,8 @@ class LocationService:
             update_data["name"] = data["name"]
         if "icon" in data:
             update_data["icon"] = data["icon"]
+        if "images" in data:
+            update_data["images"] = data["images"]
         if "sort_order" in data:
             update_data["sort_order"] = data["sort_order"]
         

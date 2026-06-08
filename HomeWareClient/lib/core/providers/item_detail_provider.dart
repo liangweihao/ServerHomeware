@@ -14,8 +14,10 @@ class ItemDetailData {
   final List<UsageRecord> recentRecords;
   /// 可展示的图片 URL（优先服务端，已 resolve 为完整地址）
   final List<String> imageUrls;
-  /// 存放位置参考照片
+  /// 存放位置参考照片（旧：从 item.images 解析 __loc__:）
   final List<String> locationImageUrls;
+  /// 位置自带说明照片（新：从 Location.images 读取）
+  final List<String> locationPhotoUrls;
 
   const ItemDetailData({
     required this.item,
@@ -25,6 +27,7 @@ class ItemDetailData {
     required this.recentRecords,
     this.imageUrls = const [],
     this.locationImageUrls = const [],
+    this.locationPhotoUrls = const [],
   });
 
   /// 分类展示：父级 · 子级 或单级名称
@@ -55,9 +58,11 @@ final itemDetailProvider =
   }
 
   String? locationPath;
+  String? locationImages; // 位置自带说明图片 JSON
   if (item.locationId != null) {
     final location = await db.getLocationById(item.locationId!);
     locationPath = location?.fullPath;
+    locationImages = location?.images;
   }
 
   final recentRecords = await db.getUsageRecordsByItem(id, limit: 5);
@@ -84,8 +89,10 @@ final itemDetailProvider =
     imageUrls = ItemImageStorage.resolveDisplaySources(item.images);
   }
 
-  // 位置参考照片（从本地 images 字段解析 __loc__: 前缀）
+  // 位置参考照片（从本地 item.images 解析 __loc__: 前缀 — 旧方案）
   final locationImageUrls = ItemImageStorage.resolveLocationDisplaySources(item.images);
+  // 位置自带照片（从 Location.images 读取 — 新方案）
+  final locationPhotoUrls = ItemImageStorage.resolveDisplaySources(locationImages);
 
   debugPrint('[ItemDetailProvider] INFO: 加载物品详情 id=$id name=${item.name} '
       'images=${imageUrls.length} locPhotos=${locationImageUrls.length}');
@@ -97,5 +104,6 @@ final itemDetailProvider =
     recentRecords: recentRecords,
     imageUrls: imageUrls,
     locationImageUrls: locationImageUrls,
+    locationPhotoUrls: locationPhotoUrls,
   );
 });

@@ -16,6 +16,7 @@ class Location(Base, BaseMixin):
     
     name = Column(String(50), nullable=False, comment="位置名称")
     icon = Column(String(20), nullable=True, comment="图标(emoji)")
+    images = Column(String(500), nullable=True, comment="位置说明图片 JSON 数组")
     family_id = Column(Integer, ForeignKey("families.id"), nullable=False, comment="家庭ID")
     parent_id = Column(Integer, ForeignKey("locations.id"), nullable=True, comment="父位置ID")
     level = Column(Integer, nullable=False, default=1, comment="层级(1/2/3)")

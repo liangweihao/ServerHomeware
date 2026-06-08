@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -179,8 +180,7 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
         AddLocationDialog.show(
           context,
           parentName: snapshot.data?.name,
-          onConfirm: (data) async {
-            final (name, icon) = data;
+          onConfirm: (name, icon, imagePath) async {
             final db = ref.read(databaseProvider);
             final parent = await db.getLocationById(widget.locationId);
             if (parent != null) {
@@ -188,6 +188,7 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
                 LocationsCompanion.insert(
                   name: name,
                   icon: Value(icon),
+                  images: imagePath != null ? Value(jsonEncode([imagePath])) : const Value.absent(),
                   parentId: Value(widget.locationId),
                   level: Value(parent.level + 1),
                   fullPath: '${parent.fullPath}/$name',

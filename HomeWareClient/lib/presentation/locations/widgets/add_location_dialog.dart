@@ -1,10 +1,14 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/item_image_storage.dart';
 import '../../common/widgets/app_button.dart';
 
 class AddLocationDialog extends StatefulWidget {
   final String? parentName;
-  final ValueChanged<(String, String)> onConfirm;
+  final void Function(String name, String icon, String? imagePath) onConfirm;
 
   const AddLocationDialog({
     super.key,
@@ -15,7 +19,7 @@ class AddLocationDialog extends StatefulWidget {
   static void show(
     BuildContext context, {
     String? parentName,
-    required ValueChanged<(String, String)> onConfirm,
+    required void Function(String name, String icon, String? imagePath) onConfirm,
   }) {
     showDialog(
       context: context,
@@ -33,6 +37,7 @@ class AddLocationDialog extends StatefulWidget {
 class _AddLocationDialogState extends State<AddLocationDialog> {
   final _nameController = TextEditingController();
   String _selectedIcon = '🏠';
+  String? _locationImagePath; // 位置说明照片本地路径
 
   final List<String> _icons = [
     '🏠', '🍳', '🛁', '🛋️', '🛏️', '☀️', '📦', '🗄️',
@@ -46,6 +51,24 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     super.dispose();
   }
 
+  Future<void> _takePhoto() async {
+    try {
+      final picker = ImagePicker();
+      final file = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+      if (file == null) return;
+      final path = await ItemImageStorage.persistPickedImage(file);
+      if (path != null) {
+        setState(() => _locationImagePath = path);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('拍照失败')),
+        );
+      }
+    }
+  }
+
   void _confirm() {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
@@ -54,26 +77,55 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
       );
       return;
     }
-    widget.onConfirm((name, _selectedIcon));
+    widget.onConfirm(name, _selectedIcon, _locationImagePath);
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.parentName != null ? '添加子位置' : '添加空间'),
+      title: Text(widget.parentName != null ? '添加子位置' : '添加位置'),
       content: SingleChildScrollView(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(
                 labelText: '位置名称',
-                hintText: '请输入位置名称',
+                hintText: '如：衣柜上层',
               ),
               autofocus: true,
             ),
+            const SizedBox(height: 16),
+            // 拍照说明位置
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '位置照片（方便日后找东西）',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _buildPhotoButton(context),
+              ],
+            ),
+            if (_locationImagePath != null) ...[
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  File(_locationImagePath!),
+                  height: 120,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ],
             const SizedBox(height: 20),
             Text(
               '选择图标',
@@ -124,6 +176,27 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
           variant: ButtonVariant.primary,
         ),
       ],
+    );
+  }
+
+  Widget _buildPhotoButton(BuildContext context) {
+    return Material(
+      color: AppColors.gray100,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: _takePhoto,
+        child: Container(
+          width: 44,
+          height: 44,
+          alignment: Alignment.center,
+          child: Icon(
+            _locationImagePath != null ? Icons.check_circle : Icons.add_a_photo_outlined,
+            color: _locationImagePath != null ? AppColors.success : AppColors.primary,
+            size: 22,
+          ),
+        ),
+      ),
     );
   }
 }

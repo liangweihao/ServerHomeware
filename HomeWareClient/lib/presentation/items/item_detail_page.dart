@@ -313,7 +313,11 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
   }
 
   Widget _buildLocationRow(BuildContext context, ItemDetailData data) {
-    final locationPhotos = data.locationImageUrls;
+    // 合并旧方案（__loc__:）和新方案（Location.images）的照片
+    final locationPhotos = [
+      ...data.locationPhotoUrls,   // 新：位置自带照片
+      ...data.locationImageUrls,   // 旧：物品级 __loc__: 照片（兼容）
+    ];
 
     return Column(
       children: [

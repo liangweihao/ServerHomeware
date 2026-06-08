@@ -534,6 +534,15 @@ class $LocationsTable extends Locations
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _imagesMeta = const VerificationMeta('images');
+  @override
+  late final GeneratedColumn<String> images = GeneratedColumn<String>(
+    'images',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _parentIdMeta = const VerificationMeta(
     'parentId',
   );
@@ -595,6 +604,7 @@ class $LocationsTable extends Locations
     id,
     name,
     icon,
+    images,
     parentId,
     level,
     fullPath,
@@ -628,6 +638,12 @@ class $LocationsTable extends Locations
       context.handle(
         _iconMeta,
         icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
+      );
+    }
+    if (data.containsKey('images')) {
+      context.handle(
+        _imagesMeta,
+        images.isAcceptableOrUnknown(data['images']!, _imagesMeta),
       );
     }
     if (data.containsKey('parent_id')) {
@@ -683,6 +699,10 @@ class $LocationsTable extends Locations
         DriftSqlType.string,
         data['${effectivePrefix}icon'],
       ),
+      images: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}images'],
+      ),
       parentId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}parent_id'],
@@ -716,6 +736,7 @@ class Location extends DataClass implements Insertable<Location> {
   final int id;
   final String name;
   final String? icon;
+  final String? images;
   final int? parentId;
   final int level;
   final String fullPath;
@@ -725,6 +746,7 @@ class Location extends DataClass implements Insertable<Location> {
     required this.id,
     required this.name,
     this.icon,
+    this.images,
     this.parentId,
     required this.level,
     required this.fullPath,
@@ -738,6 +760,9 @@ class Location extends DataClass implements Insertable<Location> {
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || icon != null) {
       map['icon'] = Variable<String>(icon);
+    }
+    if (!nullToAbsent || images != null) {
+      map['images'] = Variable<String>(images);
     }
     if (!nullToAbsent || parentId != null) {
       map['parent_id'] = Variable<int>(parentId);
@@ -754,6 +779,9 @@ class Location extends DataClass implements Insertable<Location> {
       id: Value(id),
       name: Value(name),
       icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
+      images: images == null && nullToAbsent
+          ? const Value.absent()
+          : Value(images),
       parentId: parentId == null && nullToAbsent
           ? const Value.absent()
           : Value(parentId),
@@ -773,6 +801,7 @@ class Location extends DataClass implements Insertable<Location> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       icon: serializer.fromJson<String?>(json['icon']),
+      images: serializer.fromJson<String?>(json['images']),
       parentId: serializer.fromJson<int?>(json['parentId']),
       level: serializer.fromJson<int>(json['level']),
       fullPath: serializer.fromJson<String>(json['fullPath']),
@@ -787,6 +816,7 @@ class Location extends DataClass implements Insertable<Location> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'icon': serializer.toJson<String?>(icon),
+      'images': serializer.toJson<String?>(images),
       'parentId': serializer.toJson<int?>(parentId),
       'level': serializer.toJson<int>(level),
       'fullPath': serializer.toJson<String>(fullPath),
@@ -799,6 +829,7 @@ class Location extends DataClass implements Insertable<Location> {
     int? id,
     String? name,
     Value<String?> icon = const Value.absent(),
+    Value<String?> images = const Value.absent(),
     Value<int?> parentId = const Value.absent(),
     int? level,
     String? fullPath,
@@ -808,6 +839,7 @@ class Location extends DataClass implements Insertable<Location> {
     id: id ?? this.id,
     name: name ?? this.name,
     icon: icon.present ? icon.value : this.icon,
+    images: images.present ? images.value : this.images,
     parentId: parentId.present ? parentId.value : this.parentId,
     level: level ?? this.level,
     fullPath: fullPath ?? this.fullPath,
@@ -819,6 +851,7 @@ class Location extends DataClass implements Insertable<Location> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       icon: data.icon.present ? data.icon.value : this.icon,
+      images: data.images.present ? data.images.value : this.images,
       parentId: data.parentId.present ? data.parentId.value : this.parentId,
       level: data.level.present ? data.level.value : this.level,
       fullPath: data.fullPath.present ? data.fullPath.value : this.fullPath,
@@ -833,6 +866,7 @@ class Location extends DataClass implements Insertable<Location> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('icon: $icon, ')
+          ..write('images: $images, ')
           ..write('parentId: $parentId, ')
           ..write('level: $level, ')
           ..write('fullPath: $fullPath, ')
@@ -847,6 +881,7 @@ class Location extends DataClass implements Insertable<Location> {
     id,
     name,
     icon,
+    images,
     parentId,
     level,
     fullPath,
@@ -860,6 +895,7 @@ class Location extends DataClass implements Insertable<Location> {
           other.id == this.id &&
           other.name == this.name &&
           other.icon == this.icon &&
+          other.images == this.images &&
           other.parentId == this.parentId &&
           other.level == this.level &&
           other.fullPath == this.fullPath &&
@@ -871,6 +907,7 @@ class LocationsCompanion extends UpdateCompanion<Location> {
   final Value<int> id;
   final Value<String> name;
   final Value<String?> icon;
+  final Value<String?> images;
   final Value<int?> parentId;
   final Value<int> level;
   final Value<String> fullPath;
@@ -880,6 +917,7 @@ class LocationsCompanion extends UpdateCompanion<Location> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.icon = const Value.absent(),
+    this.images = const Value.absent(),
     this.parentId = const Value.absent(),
     this.level = const Value.absent(),
     this.fullPath = const Value.absent(),
@@ -890,6 +928,7 @@ class LocationsCompanion extends UpdateCompanion<Location> {
     this.id = const Value.absent(),
     required String name,
     this.icon = const Value.absent(),
+    this.images = const Value.absent(),
     this.parentId = const Value.absent(),
     this.level = const Value.absent(),
     required String fullPath,
@@ -901,6 +940,7 @@ class LocationsCompanion extends UpdateCompanion<Location> {
     Expression<int>? id,
     Expression<String>? name,
     Expression<String>? icon,
+    Expression<String>? images,
     Expression<int>? parentId,
     Expression<int>? level,
     Expression<String>? fullPath,
@@ -911,6 +951,7 @@ class LocationsCompanion extends UpdateCompanion<Location> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (icon != null) 'icon': icon,
+      if (images != null) 'images': images,
       if (parentId != null) 'parent_id': parentId,
       if (level != null) 'level': level,
       if (fullPath != null) 'full_path': fullPath,
@@ -923,6 +964,7 @@ class LocationsCompanion extends UpdateCompanion<Location> {
     Value<int>? id,
     Value<String>? name,
     Value<String?>? icon,
+    Value<String?>? images,
     Value<int?>? parentId,
     Value<int>? level,
     Value<String>? fullPath,
@@ -933,6 +975,7 @@ class LocationsCompanion extends UpdateCompanion<Location> {
       id: id ?? this.id,
       name: name ?? this.name,
       icon: icon ?? this.icon,
+      images: images ?? this.images,
       parentId: parentId ?? this.parentId,
       level: level ?? this.level,
       fullPath: fullPath ?? this.fullPath,
@@ -952,6 +995,9 @@ class LocationsCompanion extends UpdateCompanion<Location> {
     }
     if (icon.present) {
       map['icon'] = Variable<String>(icon.value);
+    }
+    if (images.present) {
+      map['images'] = Variable<String>(images.value);
     }
     if (parentId.present) {
       map['parent_id'] = Variable<int>(parentId.value);
@@ -977,6 +1023,7 @@ class LocationsCompanion extends UpdateCompanion<Location> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('icon: $icon, ')
+          ..write('images: $images, ')
           ..write('parentId: $parentId, ')
           ..write('level: $level, ')
           ..write('fullPath: $fullPath, ')
@@ -4384,6 +4431,7 @@ typedef $$LocationsTableCreateCompanionBuilder =
       Value<int> id,
       required String name,
       Value<String?> icon,
+      Value<String?> images,
       Value<int?> parentId,
       Value<int> level,
       required String fullPath,
@@ -4395,6 +4443,7 @@ typedef $$LocationsTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> name,
       Value<String?> icon,
+      Value<String?> images,
       Value<int?> parentId,
       Value<int> level,
       Value<String> fullPath,
@@ -4423,6 +4472,11 @@ class $$LocationsTableFilterComposer
 
   ColumnFilters<String> get icon => $composableBuilder(
     column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get images => $composableBuilder(
+    column: $table.images,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4476,6 +4530,11 @@ class $$LocationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get images => $composableBuilder(
+    column: $table.images,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get parentId => $composableBuilder(
     column: $table.parentId,
     builder: (column) => ColumnOrderings(column),
@@ -4519,6 +4578,9 @@ class $$LocationsTableAnnotationComposer
 
   GeneratedColumn<String> get icon =>
       $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<String> get images =>
+      $composableBuilder(column: $table.images, builder: (column) => column);
 
   GeneratedColumn<int> get parentId =>
       $composableBuilder(column: $table.parentId, builder: (column) => column);
@@ -4567,6 +4629,7 @@ class $$LocationsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> icon = const Value.absent(),
+                Value<String?> images = const Value.absent(),
                 Value<int?> parentId = const Value.absent(),
                 Value<int> level = const Value.absent(),
                 Value<String> fullPath = const Value.absent(),
@@ -4576,6 +4639,7 @@ class $$LocationsTableTableManager
                 id: id,
                 name: name,
                 icon: icon,
+                images: images,
                 parentId: parentId,
                 level: level,
                 fullPath: fullPath,
@@ -4587,6 +4651,7 @@ class $$LocationsTableTableManager
                 Value<int> id = const Value.absent(),
                 required String name,
                 Value<String?> icon = const Value.absent(),
+                Value<String?> images = const Value.absent(),
                 Value<int?> parentId = const Value.absent(),
                 Value<int> level = const Value.absent(),
                 required String fullPath,
@@ -4596,6 +4661,7 @@ class $$LocationsTableTableManager
                 id: id,
                 name: name,
                 icon: icon,
+                images: images,
                 parentId: parentId,
                 level: level,
                 fullPath: fullPath,
