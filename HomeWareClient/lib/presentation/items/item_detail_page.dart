@@ -860,7 +860,16 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
       parts.add('到期前${item.expiryAlertDays}天');
     }
     if (item.stockAlert) {
-      parts.add('剩余${item.safetyStock.toStringAsFixed(0)}${item.unit}时');
+      // 基础单位
+      var text = '剩余${item.safetyStock.toStringAsFixed(0)} ${item.unit}';
+      // 有包装时追加换算
+      if (item.packageUnit != null && item.packageUnit!.isNotEmpty &&
+          item.packageQuantity > 1 && item.safetyStock >= item.packageQuantity) {
+        final inPackage = item.safetyStock / item.packageQuantity;
+        text += '（≈ ${inPackage.toStringAsFixed(1)} ${item.packageUnit}）';
+      }
+      text += '时提醒';
+      parts.add(text);
     }
     return parts.isEmpty ? '未设置' : parts.join(' / ');
   }

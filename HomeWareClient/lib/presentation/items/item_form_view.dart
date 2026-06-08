@@ -476,17 +476,39 @@ class ItemFormView extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('库存预警数量', style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 8),
-            QuantityStepper(
-              value: c.safetyStock,
-              min: 0,
-              max: 9999,
-              step: 1,
-              onChanged: (value) {
-                c.safetyStock = value;
-                onChanged();
-              },
+            // 库存预警：显示基础单位 + 包装换算
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '库存预警数量',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 8),
+                QuantityStepper(
+                  value: c.safetyStock,
+                  min: 0,
+                  max: 9999,
+                  step: 1,
+                  unit: c.unit,
+                  onChanged: (value) {
+                    c.safetyStock = value;
+                    onChanged();
+                  },
+                ),
+                // 包装换算提示
+                if (c.packageUnit != null && c.packageQuantity > 1 &&
+                    c.safetyStock > 0 && c.safetyStock >= c.packageQuantity) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '≈ ${(c.safetyStock / c.packageQuantity).toStringAsFixed(1)} ${c.packageUnit}'
+                    '（${c.packageQuantity} ${c.unit}/${c.packageUnit}）',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                ],
+              ],
             ),
           ],
         ),
