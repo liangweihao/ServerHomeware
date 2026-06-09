@@ -164,7 +164,7 @@ class ItemFormView extends StatelessWidget {
                   const SizedBox(height: 8),
                   QuantityStepper(
                     value: c.quantity,
-                    min: 0.1,
+                    min: 1,
                     max: 9999,
                     step: 1,
                     unit: c.unit,
@@ -226,6 +226,7 @@ class ItemFormView extends StatelessWidget {
                   DropdownMenuItem(value: '袋', child: Text('袋')),
                   DropdownMenuItem(value: '包', child: Text('包')),
                   DropdownMenuItem(value: '瓶', child: Text('瓶')),
+                  DropdownMenuItem(value: '粒', child: Text('粒')),
                 ],
                 onChanged: (v) {
                   c.packageUnit = v;

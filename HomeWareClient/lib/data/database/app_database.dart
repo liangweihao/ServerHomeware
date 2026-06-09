@@ -155,6 +155,11 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
+  // 插入自定义分类
+  Future<int> insertCategory(CategoriesCompanion category) {
+    return into(categories).insert(category);
+  }
+
   // 根据 ID 获取分类
   Future<Category?> getCategoryById(int id) {
     return (select(categories)..where((c) => c.id.equals(id))).getSingleOrNull();
@@ -384,27 +389,143 @@ class AppDatabase extends _$AppDatabase {
     if (!hasCategories) {
       await batch((batch) {
         batch.insertAll(categories, [
+          // ==================== 一级分类 ====================
+          // id=1
           CategoriesCompanion.insert(name: '食品饮料', icon: '🍎', color: '#FF8A65', isSystem: const Value(true), sortOrder: const Value(1)),
+          // id=2
           CategoriesCompanion.insert(name: '日用清洁', icon: '🧹', color: '#4DB6AC', isSystem: const Value(true), sortOrder: const Value(2)),
+          // id=3
           CategoriesCompanion.insert(name: '个护美妆', icon: '🧴', color: '#F06292', isSystem: const Value(true), sortOrder: const Value(3)),
+          // id=4
           CategoriesCompanion.insert(name: '药品保健', icon: '💊', color: '#7986CB', isSystem: const Value(true), sortOrder: const Value(4)),
+          // id=5
           CategoriesCompanion.insert(name: '家用电器', icon: '📺', color: '#FFD54F', isSystem: const Value(true), sortOrder: const Value(5)),
-          CategoriesCompanion.insert(name: '衣物鞋帽', icon: '👕', color: '#F06292', isSystem: const Value(true), sortOrder: const Value(6)),
-          CategoriesCompanion.insert(name: '其他', icon: '📦', color: '#A1887F', isSystem: const Value(true), sortOrder: const Value(7)),
-          
+          // id=6
+          CategoriesCompanion.insert(name: '衣物鞋帽', icon: '👕', color: '#EF5350', isSystem: const Value(true), sortOrder: const Value(6)),
+          // id=7
+          CategoriesCompanion.insert(name: '家居日用', icon: '🛋️', color: '#8D6E63', isSystem: const Value(true), sortOrder: const Value(7)),
+          // id=8
+          CategoriesCompanion.insert(name: '书籍文具', icon: '📚', color: '#78909C', isSystem: const Value(true), sortOrder: const Value(8)),
+          // id=9
+          CategoriesCompanion.insert(name: '数码配件', icon: '🔌', color: '#42A5F5', isSystem: const Value(true), sortOrder: const Value(9)),
+          // id=10
+          CategoriesCompanion.insert(name: '宠物用品', icon: '🐾', color: '#FFA726', isSystem: const Value(true), sortOrder: const Value(10)),
+          // id=11
+          CategoriesCompanion.insert(name: '母婴用品', icon: '🍼', color: '#EC407A', isSystem: const Value(true), sortOrder: const Value(11)),
+          // id=12
+          CategoriesCompanion.insert(name: '运动户外', icon: '⚽', color: '#66BB6A', isSystem: const Value(true), sortOrder: const Value(12)),
+          // id=13
+          CategoriesCompanion.insert(name: '汽车用品', icon: '🚗', color: '#5C6BC0', isSystem: const Value(true), sortOrder: const Value(13)),
+          // id=14
+          CategoriesCompanion.insert(name: '工具五金', icon: '🔧', color: '#795548', isSystem: const Value(true), sortOrder: const Value(14)),
+          // id=15
+          CategoriesCompanion.insert(name: '其他', icon: '📦', color: '#A1887F', isSystem: const Value(true), sortOrder: const Value(99)),
+
+          // ==================== 食品饮料 ====================
           CategoriesCompanion.insert(name: '乳制品', icon: '🥛', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(1)),
-          CategoriesCompanion.insert(name: '肉类', icon: '🥩', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(2)),
-          CategoriesCompanion.insert(name: '蔬果', icon: '🥦', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(3)),
-          CategoriesCompanion.insert(name: '零食', icon: '🍪', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(4)),
-          CategoriesCompanion.insert(name: '饮品', icon: '🥤', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(5)),
-          CategoriesCompanion.insert(name: '调味品', icon: '🧂', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(6)),
-          CategoriesCompanion.insert(name: '粮油', icon: '🌾', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(7)),
-          CategoriesCompanion.insert(name: '速食', icon: '🍜', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(8)),
-          
-          CategoriesCompanion.insert(name: '洗衣', icon: '🧺', color: '#4DB6AC', parentId: const Value(2), isSystem: const Value(true), sortOrder: const Value(1)),
+          CategoriesCompanion.insert(name: '肉禽蛋', icon: '🥩', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(2)),
+          CategoriesCompanion.insert(name: '海鲜水产', icon: '🦐', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(3)),
+          CategoriesCompanion.insert(name: '蔬菜水果', icon: '🥦', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(4)),
+          CategoriesCompanion.insert(name: '零食糖果', icon: '🍪', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(5)),
+          CategoriesCompanion.insert(name: '饮料冲调', icon: '🥤', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(6)),
+          CategoriesCompanion.insert(name: '调味品', icon: '🧂', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(7)),
+          CategoriesCompanion.insert(name: '米面粮油', icon: '🌾', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(8)),
+          CategoriesCompanion.insert(name: '方便速食', icon: '🍜', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(9)),
+          CategoriesCompanion.insert(name: '烘焙原料', icon: '🍞', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(10)),
+          CategoriesCompanion.insert(name: '茶/咖啡', icon: '☕', color: '#FF8A65', parentId: const Value(1), isSystem: const Value(true), sortOrder: const Value(11)),
+
+          // ==================== 日用清洁 ====================
+          CategoriesCompanion.insert(name: '洗衣/柔顺剂', icon: '🧺', color: '#4DB6AC', parentId: const Value(2), isSystem: const Value(true), sortOrder: const Value(1)),
           CategoriesCompanion.insert(name: '厨房清洁', icon: '🧼', color: '#4DB6AC', parentId: const Value(2), isSystem: const Value(true), sortOrder: const Value(2)),
-          CategoriesCompanion.insert(name: '纸巾', icon: '🧻', color: '#4DB6AC', parentId: const Value(2), isSystem: const Value(true), sortOrder: const Value(3)),
-          CategoriesCompanion.insert(name: '垃圾袋', icon: '🗑️', color: '#4DB6AC', parentId: const Value(2), isSystem: const Value(true), sortOrder: const Value(4)),
+          CategoriesCompanion.insert(name: '卫浴清洁', icon: '🚽', color: '#4DB6AC', parentId: const Value(2), isSystem: const Value(true), sortOrder: const Value(3)),
+          CategoriesCompanion.insert(name: '纸巾/湿巾', icon: '🧻', color: '#4DB6AC', parentId: const Value(2), isSystem: const Value(true), sortOrder: const Value(4)),
+          CategoriesCompanion.insert(name: '垃圾袋/保鲜袋', icon: '🗑️', color: '#4DB6AC', parentId: const Value(2), isSystem: const Value(true), sortOrder: const Value(5)),
+          CategoriesCompanion.insert(name: '消杀/驱虫', icon: '🪰', color: '#4DB6AC', parentId: const Value(2), isSystem: const Value(true), sortOrder: const Value(6)),
+          CategoriesCompanion.insert(name: '抹布/拖把', icon: '🪣', color: '#4DB6AC', parentId: const Value(2), isSystem: const Value(true), sortOrder: const Value(7)),
+
+          // ==================== 个护美妆 ====================
+          CategoriesCompanion.insert(name: '洗发/护发', icon: '💇', color: '#F06292', parentId: const Value(3), isSystem: const Value(true), sortOrder: const Value(1)),
+          CategoriesCompanion.insert(name: '沐浴/香皂', icon: '🚿', color: '#F06292', parentId: const Value(3), isSystem: const Value(true), sortOrder: const Value(2)),
+          CategoriesCompanion.insert(name: '口腔护理', icon: '🪥', color: '#F06292', parentId: const Value(3), isSystem: const Value(true), sortOrder: const Value(3)),
+          CategoriesCompanion.insert(name: '面部护肤', icon: '✨', color: '#F06292', parentId: const Value(3), isSystem: const Value(true), sortOrder: const Value(4)),
+          CategoriesCompanion.insert(name: '彩妆', icon: '💄', color: '#F06292', parentId: const Value(3), isSystem: const Value(true), sortOrder: const Value(5)),
+          CategoriesCompanion.insert(name: '男士护理', icon: '🪒', color: '#F06292', parentId: const Value(3), isSystem: const Value(true), sortOrder: const Value(6)),
+          CategoriesCompanion.insert(name: '卫生巾/棉条', icon: '🩸', color: '#F06292', parentId: const Value(3), isSystem: const Value(true), sortOrder: const Value(7)),
+
+          // ==================== 药品保健 ====================
+          CategoriesCompanion.insert(name: '感冒/退烧', icon: '🤒', color: '#7986CB', parentId: const Value(4), isSystem: const Value(true), sortOrder: const Value(1)),
+          CategoriesCompanion.insert(name: '肠胃消化', icon: '💊', color: '#7986CB', parentId: const Value(4), isSystem: const Value(true), sortOrder: const Value(2)),
+          CategoriesCompanion.insert(name: '外伤/创可贴', icon: '🩹', color: '#7986CB', parentId: const Value(4), isSystem: const Value(true), sortOrder: const Value(3)),
+          CategoriesCompanion.insert(name: '维生素/保健品', icon: '🌿', color: '#7986CB', parentId: const Value(4), isSystem: const Value(true), sortOrder: const Value(4)),
+          CategoriesCompanion.insert(name: '医疗器械', icon: '🌡️', color: '#7986CB', parentId: const Value(4), isSystem: const Value(true), sortOrder: const Value(5)),
+          CategoriesCompanion.insert(name: '中药/药材', icon: '🫖', color: '#7986CB', parentId: const Value(4), isSystem: const Value(true), sortOrder: const Value(6)),
+
+          // ==================== 家用电器 ====================
+          CategoriesCompanion.insert(name: '厨房电器', icon: '🍳', color: '#FFD54F', parentId: const Value(5), isSystem: const Value(true), sortOrder: const Value(1)),
+          CategoriesCompanion.insert(name: '清洁电器', icon: '🧹', color: '#FFD54F', parentId: const Value(5), isSystem: const Value(true), sortOrder: const Value(2)),
+          CategoriesCompanion.insert(name: '个护电器', icon: '💇', color: '#FFD54F', parentId: const Value(5), isSystem: const Value(true), sortOrder: const Value(3)),
+          CategoriesCompanion.insert(name: '空调/暖气', icon: '🌡️', color: '#FFD54F', parentId: const Value(5), isSystem: const Value(true), sortOrder: const Value(4)),
+          CategoriesCompanion.insert(name: '灯具/灯泡', icon: '💡', color: '#FFD54F', parentId: const Value(5), isSystem: const Value(true), sortOrder: const Value(5)),
+
+          // ==================== 衣物鞋帽 ====================
+          CategoriesCompanion.insert(name: '上衣', icon: '👔', color: '#EF5350', parentId: const Value(6), isSystem: const Value(true), sortOrder: const Value(1)),
+          CategoriesCompanion.insert(name: '裤子/裙子', icon: '👖', color: '#EF5350', parentId: const Value(6), isSystem: const Value(true), sortOrder: const Value(2)),
+          CategoriesCompanion.insert(name: '外套/大衣', icon: '🧥', color: '#EF5350', parentId: const Value(6), isSystem: const Value(true), sortOrder: const Value(3)),
+          CategoriesCompanion.insert(name: '鞋/靴', icon: '👟', color: '#EF5350', parentId: const Value(6), isSystem: const Value(true), sortOrder: const Value(4)),
+          CategoriesCompanion.insert(name: '内衣/袜子', icon: '🧦', color: '#EF5350', parentId: const Value(6), isSystem: const Value(true), sortOrder: const Value(5)),
+          CategoriesCompanion.insert(name: '围巾/帽子', icon: '🧣', color: '#EF5350', parentId: const Value(6), isSystem: const Value(true), sortOrder: const Value(6)),
+
+          // ==================== 家居日用 ====================
+          CategoriesCompanion.insert(name: '床上用品', icon: '🛏️', color: '#8D6E63', parentId: const Value(7), isSystem: const Value(true), sortOrder: const Value(1)),
+          CategoriesCompanion.insert(name: '收纳/整理箱', icon: '📦', color: '#8D6E63', parentId: const Value(7), isSystem: const Value(true), sortOrder: const Value(2)),
+          CategoriesCompanion.insert(name: '毛巾/浴巾', icon: '🛁', color: '#8D6E63', parentId: const Value(7), isSystem: const Value(true), sortOrder: const Value(3)),
+          CategoriesCompanion.insert(name: '装饰/相框', icon: '🖼️', color: '#8D6E63', parentId: const Value(7), isSystem: const Value(true), sortOrder: const Value(4)),
+          CategoriesCompanion.insert(name: '杯具/餐具', icon: '🍽️', color: '#8D6E63', parentId: const Value(7), isSystem: const Value(true), sortOrder: const Value(5)),
+          CategoriesCompanion.insert(name: '一次性用品', icon: '🥡', color: '#8D6E63', parentId: const Value(7), isSystem: const Value(true), sortOrder: const Value(6)),
+
+          // ==================== 书籍文具 ====================
+          CategoriesCompanion.insert(name: '小说文学', icon: '📖', color: '#78909C', parentId: const Value(8), isSystem: const Value(true), sortOrder: const Value(1)),
+          CategoriesCompanion.insert(name: '专业/工具书', icon: '📕', color: '#78909C', parentId: const Value(8), isSystem: const Value(true), sortOrder: const Value(2)),
+          CategoriesCompanion.insert(name: '杂志/漫画', icon: '📰', color: '#78909C', parentId: const Value(8), isSystem: const Value(true), sortOrder: const Value(3)),
+          CategoriesCompanion.insert(name: '笔类', icon: '🖊️', color: '#78909C', parentId: const Value(8), isSystem: const Value(true), sortOrder: const Value(4)),
+          CategoriesCompanion.insert(name: '本册/纸张', icon: '📓', color: '#78909C', parentId: const Value(8), isSystem: const Value(true), sortOrder: const Value(5)),
+          CategoriesCompanion.insert(name: '桌面文具', icon: '📎', color: '#78909C', parentId: const Value(8), isSystem: const Value(true), sortOrder: const Value(6)),
+
+          // ==================== 数码配件 ====================
+          CategoriesCompanion.insert(name: '手机壳/膜', icon: '📱', color: '#42A5F5', parentId: const Value(9), isSystem: const Value(true), sortOrder: const Value(1)),
+          CategoriesCompanion.insert(name: '数据线/充电头', icon: '🔋', color: '#42A5F5', parentId: const Value(9), isSystem: const Value(true), sortOrder: const Value(2)),
+          CategoriesCompanion.insert(name: '耳机/音箱', icon: '🎧', color: '#42A5F5', parentId: const Value(9), isSystem: const Value(true), sortOrder: const Value(3)),
+          CategoriesCompanion.insert(name: 'U盘/硬盘', icon: '💾', color: '#42A5F5', parentId: const Value(9), isSystem: const Value(true), sortOrder: const Value(4)),
+          CategoriesCompanion.insert(name: '相机/镜头', icon: '📷', color: '#42A5F5', parentId: const Value(9), isSystem: const Value(true), sortOrder: const Value(5)),
+
+          // ==================== 宠物用品 ====================
+          CategoriesCompanion.insert(name: '宠物食品', icon: '🦴', color: '#FFA726', parentId: const Value(10), isSystem: const Value(true), sortOrder: const Value(1)),
+          CategoriesCompanion.insert(name: '猫砂/尿垫', icon: '🐱', color: '#FFA726', parentId: const Value(10), isSystem: const Value(true), sortOrder: const Value(2)),
+          CategoriesCompanion.insert(name: '宠物药品', icon: '💊', color: '#FFA726', parentId: const Value(10), isSystem: const Value(true), sortOrder: const Value(3)),
+          CategoriesCompanion.insert(name: '玩具/用品', icon: '🎾', color: '#FFA726', parentId: const Value(10), isSystem: const Value(true), sortOrder: const Value(4)),
+
+          // ==================== 母婴用品 ====================
+          CategoriesCompanion.insert(name: '奶粉/辅食', icon: '🍼', color: '#EC407A', parentId: const Value(11), isSystem: const Value(true), sortOrder: const Value(1)),
+          CategoriesCompanion.insert(name: '纸尿裤', icon: '👶', color: '#EC407A', parentId: const Value(11), isSystem: const Value(true), sortOrder: const Value(2)),
+          CategoriesCompanion.insert(name: '玩具/绘本', icon: '🧸', color: '#EC407A', parentId: const Value(11), isSystem: const Value(true), sortOrder: const Value(3)),
+          CategoriesCompanion.insert(name: '孕产用品', icon: '🤰', color: '#EC407A', parentId: const Value(11), isSystem: const Value(true), sortOrder: const Value(4)),
+
+          // ==================== 运动户外 ====================
+          CategoriesCompanion.insert(name: '健身器材', icon: '🏋️', color: '#66BB6A', parentId: const Value(12), isSystem: const Value(true), sortOrder: const Value(1)),
+          CategoriesCompanion.insert(name: '球类/拍类', icon: '🏸', color: '#66BB6A', parentId: const Value(12), isSystem: const Value(true), sortOrder: const Value(2)),
+          CategoriesCompanion.insert(name: '露营/户外', icon: '🏕️', color: '#66BB6A', parentId: const Value(12), isSystem: const Value(true), sortOrder: const Value(3)),
+          CategoriesCompanion.insert(name: '游泳/水上', icon: '🏊', color: '#66BB6A', parentId: const Value(12), isSystem: const Value(true), sortOrder: const Value(4)),
+
+          // ==================== 汽车用品 ====================
+          CategoriesCompanion.insert(name: '洗车/打蜡', icon: '🧽', color: '#5C6BC0', parentId: const Value(13), isSystem: const Value(true), sortOrder: const Value(1)),
+          CategoriesCompanion.insert(name: '车载电子/记录仪', icon: '📻', color: '#5C6BC0', parentId: const Value(13), isSystem: const Value(true), sortOrder: const Value(2)),
+          CategoriesCompanion.insert(name: '应急安全', icon: '⚠️', color: '#5C6BC0', parentId: const Value(13), isSystem: const Value(true), sortOrder: const Value(3)),
+
+          // ==================== 工具五金 ====================
+          CategoriesCompanion.insert(name: '手动工具', icon: '🔨', color: '#795548', parentId: const Value(14), isSystem: const Value(true), sortOrder: const Value(1)),
+          CategoriesCompanion.insert(name: '电动工具', icon: '🪚', color: '#795548', parentId: const Value(14), isSystem: const Value(true), sortOrder: const Value(2)),
+          CategoriesCompanion.insert(name: '螺丝/钉子等', icon: '🔩', color: '#795548', parentId: const Value(14), isSystem: const Value(true), sortOrder: const Value(3)),
+          CategoriesCompanion.insert(name: '胶带/胶水', icon: '🧴', color: '#795548', parentId: const Value(14), isSystem: const Value(true), sortOrder: const Value(4)),
         ]);
       });
     }

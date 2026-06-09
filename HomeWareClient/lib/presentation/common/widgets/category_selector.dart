@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/database_provider.dart';
@@ -48,6 +49,7 @@ class CategorySelector extends StatelessWidget {
             Expanded(
               child: _buildCategoryGrid(context, scrollController),
             ),
+            _buildAddButton(context),
           ],
         ),
       ),
@@ -138,6 +140,118 @@ class CategorySelector extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddButton(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.add),
+                label: const Text('新增自定义分类'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: BorderSide(color: AppColors.primary.withOpacity(0.3)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                onPressed: () => _showAddDialog(context, ref),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAddDialog(BuildContext context, WidgetRef ref) {
+    final nameController = TextEditingController();
+    String selectedIcon = '📦';
+
+    final icons = [
+      '📦', '🍎', '🥩', '🥦', '🍪', '🥤', '🧂',
+      '🧹', '🧴', '💊', '📺', '👕', '🛋️', '🔌',
+      '📎', '🐾', '🍼', '⚽', '🚗', '🔧', '💡',
+      '🖼️', '🛏️', '🧸', '🦴', '🏋️', '🛟', '📱',
+    ];
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('新增自定义分类'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: '分类名称',
+                    hintText: '如：茶具、相册',
+                  ),
+                  autofocus: true,
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: icons.map((icon) => GestureDetector(
+                    onTap: () => setDialogState(() => selectedIcon = icon),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: selectedIcon == icon
+                            ? AppColors.primary.withOpacity(0.15)
+                            : null,
+                        borderRadius: BorderRadius.circular(8),
+                        border: selectedIcon == icon
+                            ? Border.all(color: AppColors.primary)
+                            : null,
+                      ),
+                      child: Text(icon, style: const TextStyle(fontSize: 24)),
+                    ),
+                  )).toList(),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final name = nameController.text.trim();
+                if (name.isEmpty) return;
+                final db = ref.read(databaseProvider);
+                final category = CategoriesCompanion.insert(
+                  name: name,
+                  icon: selectedIcon,
+                  color: '#78909C',
+                  isSystem: Value(false),
+                  sortOrder: Value(99),
+                );
+                await db.insertCategory(category);
+                // 刷新分类列表
+                ref.invalidate(topLevelCategoriesProvider);
+                Navigator.pop(ctx);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('已添加分类「$name」')),
+                  );
+                }
+              },
+              child: const Text('创建'),
             ),
           ],
         ),
