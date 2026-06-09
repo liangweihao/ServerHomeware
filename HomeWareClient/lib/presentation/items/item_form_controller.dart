@@ -15,6 +15,7 @@ class ItemFormController {
 
   Category? selectedCategory;
   Location? selectedLocation;
+  String? containerName;
   DateTime? purchaseDate = DateTime.now();
   DateTime? productionDate;
   DateTime? expiryDate;
@@ -48,6 +49,7 @@ class ItemFormController {
 
     selectedCategory = category;
     selectedLocation = location;
+    containerName = item.containerName;
     purchaseDate = item.purchaseDate;
     productionDate = item.productionDate;
     expiryDate = item.expiryDate;
@@ -73,6 +75,7 @@ class ItemFormController {
     priceController.clear();
     selectedCategory = null;
     selectedLocation = null;
+    containerName = null;
     purchaseDate = DateTime.now();
     productionDate = null;
     expiryDate = null;
@@ -134,6 +137,9 @@ class ItemFormController {
     if (selectedLocation != null) {
       body['location_id'] = selectedLocation!.id;
     }
+    if (containerName != null && containerName!.isNotEmpty) {
+      body['container_name'] = containerName;
+    }
     final price = double.tryParse(priceController.text);
     if (price != null) {
       body['purchase_price'] = price;
@@ -192,6 +198,7 @@ class ItemFormController {
       locationId: selectedLocation != null
           ? Value(selectedLocation!.id)
           : const Value.absent(),
+      containerName: containerName != null ? Value(containerName!) : const Value.absent(),
       purchasePrice: priceController.text.isEmpty
           ? const Value.absent()
           : Value(double.tryParse(priceController.text)),
@@ -236,6 +243,7 @@ class ItemFormController {
       locationId: selectedLocation != null
           ? Value(selectedLocation!.id)
           : const Value.absent(),
+      containerName: containerName != null ? Value(containerName!) : const Value.absent(),
       purchasePrice: priceController.text.isEmpty
           ? const Value.absent()
           : Value(double.tryParse(priceController.text)),

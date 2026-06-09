@@ -39,6 +39,7 @@ class Items extends Table {
   TextColumn get barcode => text().nullable()();
   IntColumn get categoryId => integer()();
   IntColumn get locationId => integer().nullable()();
+  TextColumn get containerName => text().nullable()();
   RealColumn get purchasePrice => real().nullable()();
   IntColumn get purchaseQuantity => integer().withDefault(const Constant(1))();
   TextColumn get packageUnit => text().nullable()();

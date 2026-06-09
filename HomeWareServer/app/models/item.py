@@ -20,6 +20,7 @@ class Item(Base, BaseMixin):
     barcode = Column(String(50), nullable=True, comment="条码")
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False, comment="分类ID")
     location_id = Column(Integer, ForeignKey("locations.id"), nullable=True, comment="位置ID")
+    container_name = Column(String(50), nullable=True, comment="容器名（收纳箱/药盒等）")
     family_id = Column(Integer, ForeignKey("families.id"), nullable=False, comment="家庭ID")
     
     # 价格相关

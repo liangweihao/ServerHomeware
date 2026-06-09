@@ -92,6 +92,9 @@ class ItemSyncService {
       locationId: json['location_id'] != null
           ? Value(_parseId(json['location_id'])!)
           : const Value.absent(),
+      containerName: json['container_name'] != null
+          ? Value(json['container_name'].toString())
+          : const Value.absent(),
       currentQuantity: json['current_quantity'] != null
           ? Value(_parseDouble(json['current_quantity']))
           : const Value(1),

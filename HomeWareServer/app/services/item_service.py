@@ -150,6 +150,7 @@ class ItemService:
             "category_name": category_name,
             "location_id": item.location_id,
             "location_full_path": location_full_path,
+            "container_name": item.container_name,
             "purchase_price": float(item.purchase_price) if item.purchase_price else None,
             "total_price": float(item.total_price) if item.total_price else None,
             "purchase_quantity": item.purchase_quantity,
@@ -243,6 +244,7 @@ class ItemService:
                 "category_name": category_names.get(item.category_id),
                 "location_id": item.location_id,
                 "location_full_path": location_paths.get(item.location_id),
+                "container_name": item.container_name,
                 "current_quantity": float(item.current_quantity),
                 "unit": item.unit,
                 "package_unit": item.package_unit,
@@ -304,7 +306,7 @@ class ItemService:
         update_data = {}
         allowed_fields = [
             "name", "brand", "specification", "barcode", "category_id", "location_id",
-            "purchase_price", "total_price", "purchase_quantity", "package_unit",
+            "container_name", "purchase_price", "total_price", "purchase_quantity", "package_unit",
             "package_quantity", "current_quantity",
             "unit", "safety_stock", "purchase_date", "purchase_channel",
             "production_date", "expiry_date", "shelf_life_days", "opened_date",

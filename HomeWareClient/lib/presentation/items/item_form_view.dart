@@ -369,6 +369,19 @@ class ItemFormView extends StatelessWidget {
     return _Section(
       title: '存放位置',
       children: [
+        // 容器（收纳箱/药盒等）
+        TextFormField(
+          initialValue: c.containerName,
+          decoration: const InputDecoration(
+            labelText: '容器（可选）',
+            hintText: '如：蓝色收纳箱、药品盒、工具箱',
+          ),
+          onChanged: (v) {
+            c.containerName = v.isEmpty ? null : v.trim();
+            onChanged();
+          },
+        ),
+        const SizedBox(height: 16),
         Row(
           children: [
             // 位置选择

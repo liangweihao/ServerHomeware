@@ -461,9 +461,12 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
       ...data.locationImageUrls,   // 旧：物品级 __loc__: 照片（兼容）
     ];
 
+    final container = data.item.containerName;
     return Column(
       children: [
-        _detailRow('📍', '存放位置', data.locationPath ?? '未设置'),
+        _detailRow('📍', '存放位置',
+            (data.locationPath ?? '未设置') +
+                (container != null && container.isNotEmpty ? '  → ${container}' : '')),
         if (locationPhotos.isNotEmpty) ...[
           const SizedBox(height: 8),
           SizedBox(

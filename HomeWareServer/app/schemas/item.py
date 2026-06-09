@@ -43,8 +43,9 @@ class ItemResponse(BaseModel):
     category_name: Optional[str] = Field(None, description="分类名称")
     location_id: Optional[int] = Field(None, description="位置ID")
     location_full_path: Optional[str] = Field(None, description="位置完整路径")
+    container_name: Optional[str] = Field(None, description="容器名")
     family_id: int = Field(..., description="家庭ID")
-    
+
     # 价格相关
     purchase_price: Optional[float] = Field(None, description="购买单价")
     total_price: Optional[float] = Field(None, description="总价")
@@ -95,7 +96,8 @@ class CreateItemRequest(BaseModel):
     barcode: Optional[str] = Field(None, description="条码")
     category_id: int = Field(..., description="分类ID")
     location_id: Optional[int] = Field(None, description="位置ID")
-    
+    container_name: Optional[str] = Field(None, description="容器名")
+
     # 价格相关
     purchase_price: Optional[float] = Field(None, description="购买单价")
     purchase_quantity: int = Field(1, description="购买数量（包装数）")

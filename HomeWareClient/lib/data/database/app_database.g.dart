@@ -1114,6 +1114,17 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _containerNameMeta = const VerificationMeta(
+    'containerName',
+  );
+  @override
+  late final GeneratedColumn<String> containerName = GeneratedColumn<String>(
+    'container_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _purchasePriceMeta = const VerificationMeta(
     'purchasePrice',
   );
@@ -1393,6 +1404,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     barcode,
     categoryId,
     locationId,
+    containerName,
     purchasePrice,
     purchaseQuantity,
     packageUnit,
@@ -1474,6 +1486,15 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
       context.handle(
         _locationIdMeta,
         locationId.isAcceptableOrUnknown(data['location_id']!, _locationIdMeta),
+      );
+    }
+    if (data.containsKey('container_name')) {
+      context.handle(
+        _containerNameMeta,
+        containerName.isAcceptableOrUnknown(
+          data['container_name']!,
+          _containerNameMeta,
+        ),
       );
     }
     if (data.containsKey('purchase_price')) {
@@ -1702,6 +1723,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.int,
         data['${effectivePrefix}location_id'],
       ),
+      containerName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}container_name'],
+      ),
       purchasePrice: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}purchase_price'],
@@ -1815,6 +1840,7 @@ class Item extends DataClass implements Insertable<Item> {
   final String? barcode;
   final int categoryId;
   final int? locationId;
+  final String? containerName;
   final double? purchasePrice;
   final int purchaseQuantity;
   final String? packageUnit;
@@ -1847,6 +1873,7 @@ class Item extends DataClass implements Insertable<Item> {
     this.barcode,
     required this.categoryId,
     this.locationId,
+    this.containerName,
     this.purchasePrice,
     required this.purchaseQuantity,
     this.packageUnit,
@@ -1889,6 +1916,9 @@ class Item extends DataClass implements Insertable<Item> {
     map['category_id'] = Variable<int>(categoryId);
     if (!nullToAbsent || locationId != null) {
       map['location_id'] = Variable<int>(locationId);
+    }
+    if (!nullToAbsent || containerName != null) {
+      map['container_name'] = Variable<String>(containerName);
     }
     if (!nullToAbsent || purchasePrice != null) {
       map['purchase_price'] = Variable<double>(purchasePrice);
@@ -1962,6 +1992,9 @@ class Item extends DataClass implements Insertable<Item> {
       locationId: locationId == null && nullToAbsent
           ? const Value.absent()
           : Value(locationId),
+      containerName: containerName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(containerName),
       purchasePrice: purchasePrice == null && nullToAbsent
           ? const Value.absent()
           : Value(purchasePrice),
@@ -2030,6 +2063,7 @@ class Item extends DataClass implements Insertable<Item> {
       barcode: serializer.fromJson<String?>(json['barcode']),
       categoryId: serializer.fromJson<int>(json['categoryId']),
       locationId: serializer.fromJson<int?>(json['locationId']),
+      containerName: serializer.fromJson<String?>(json['containerName']),
       purchasePrice: serializer.fromJson<double?>(json['purchasePrice']),
       purchaseQuantity: serializer.fromJson<int>(json['purchaseQuantity']),
       packageUnit: serializer.fromJson<String?>(json['packageUnit']),
@@ -2071,6 +2105,7 @@ class Item extends DataClass implements Insertable<Item> {
       'barcode': serializer.toJson<String?>(barcode),
       'categoryId': serializer.toJson<int>(categoryId),
       'locationId': serializer.toJson<int?>(locationId),
+      'containerName': serializer.toJson<String?>(containerName),
       'purchasePrice': serializer.toJson<double?>(purchasePrice),
       'purchaseQuantity': serializer.toJson<int>(purchaseQuantity),
       'packageUnit': serializer.toJson<String?>(packageUnit),
@@ -2106,6 +2141,7 @@ class Item extends DataClass implements Insertable<Item> {
     Value<String?> barcode = const Value.absent(),
     int? categoryId,
     Value<int?> locationId = const Value.absent(),
+    Value<String?> containerName = const Value.absent(),
     Value<double?> purchasePrice = const Value.absent(),
     int? purchaseQuantity,
     Value<String?> packageUnit = const Value.absent(),
@@ -2140,6 +2176,9 @@ class Item extends DataClass implements Insertable<Item> {
     barcode: barcode.present ? barcode.value : this.barcode,
     categoryId: categoryId ?? this.categoryId,
     locationId: locationId.present ? locationId.value : this.locationId,
+    containerName: containerName.present
+        ? containerName.value
+        : this.containerName,
     purchasePrice: purchasePrice.present
         ? purchasePrice.value
         : this.purchasePrice,
@@ -2194,6 +2233,9 @@ class Item extends DataClass implements Insertable<Item> {
       locationId: data.locationId.present
           ? data.locationId.value
           : this.locationId,
+      containerName: data.containerName.present
+          ? data.containerName.value
+          : this.containerName,
       purchasePrice: data.purchasePrice.present
           ? data.purchasePrice.value
           : this.purchasePrice,
@@ -2267,6 +2309,7 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('barcode: $barcode, ')
           ..write('categoryId: $categoryId, ')
           ..write('locationId: $locationId, ')
+          ..write('containerName: $containerName, ')
           ..write('purchasePrice: $purchasePrice, ')
           ..write('purchaseQuantity: $purchaseQuantity, ')
           ..write('packageUnit: $packageUnit, ')
@@ -2304,6 +2347,7 @@ class Item extends DataClass implements Insertable<Item> {
     barcode,
     categoryId,
     locationId,
+    containerName,
     purchasePrice,
     purchaseQuantity,
     packageUnit,
@@ -2340,6 +2384,7 @@ class Item extends DataClass implements Insertable<Item> {
           other.barcode == this.barcode &&
           other.categoryId == this.categoryId &&
           other.locationId == this.locationId &&
+          other.containerName == this.containerName &&
           other.purchasePrice == this.purchasePrice &&
           other.purchaseQuantity == this.purchaseQuantity &&
           other.packageUnit == this.packageUnit &&
@@ -2374,6 +2419,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<String?> barcode;
   final Value<int> categoryId;
   final Value<int?> locationId;
+  final Value<String?> containerName;
   final Value<double?> purchasePrice;
   final Value<int> purchaseQuantity;
   final Value<String?> packageUnit;
@@ -2406,6 +2452,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.barcode = const Value.absent(),
     this.categoryId = const Value.absent(),
     this.locationId = const Value.absent(),
+    this.containerName = const Value.absent(),
     this.purchasePrice = const Value.absent(),
     this.purchaseQuantity = const Value.absent(),
     this.packageUnit = const Value.absent(),
@@ -2439,6 +2486,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.barcode = const Value.absent(),
     required int categoryId,
     this.locationId = const Value.absent(),
+    this.containerName = const Value.absent(),
     this.purchasePrice = const Value.absent(),
     this.purchaseQuantity = const Value.absent(),
     this.packageUnit = const Value.absent(),
@@ -2473,6 +2521,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<String>? barcode,
     Expression<int>? categoryId,
     Expression<int>? locationId,
+    Expression<String>? containerName,
     Expression<double>? purchasePrice,
     Expression<int>? purchaseQuantity,
     Expression<String>? packageUnit,
@@ -2506,6 +2555,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (barcode != null) 'barcode': barcode,
       if (categoryId != null) 'category_id': categoryId,
       if (locationId != null) 'location_id': locationId,
+      if (containerName != null) 'container_name': containerName,
       if (purchasePrice != null) 'purchase_price': purchasePrice,
       if (purchaseQuantity != null) 'purchase_quantity': purchaseQuantity,
       if (packageUnit != null) 'package_unit': packageUnit,
@@ -2543,6 +2593,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<String?>? barcode,
     Value<int>? categoryId,
     Value<int?>? locationId,
+    Value<String?>? containerName,
     Value<double?>? purchasePrice,
     Value<int>? purchaseQuantity,
     Value<String?>? packageUnit,
@@ -2576,6 +2627,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       barcode: barcode ?? this.barcode,
       categoryId: categoryId ?? this.categoryId,
       locationId: locationId ?? this.locationId,
+      containerName: containerName ?? this.containerName,
       purchasePrice: purchasePrice ?? this.purchasePrice,
       purchaseQuantity: purchaseQuantity ?? this.purchaseQuantity,
       packageUnit: packageUnit ?? this.packageUnit,
@@ -2626,6 +2678,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     }
     if (locationId.present) {
       map['location_id'] = Variable<int>(locationId.value);
+    }
+    if (containerName.present) {
+      map['container_name'] = Variable<String>(containerName.value);
     }
     if (purchasePrice.present) {
       map['purchase_price'] = Variable<double>(purchasePrice.value);
@@ -2716,6 +2771,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('barcode: $barcode, ')
           ..write('categoryId: $categoryId, ')
           ..write('locationId: $locationId, ')
+          ..write('containerName: $containerName, ')
           ..write('purchasePrice: $purchasePrice, ')
           ..write('purchaseQuantity: $purchaseQuantity, ')
           ..write('packageUnit: $packageUnit, ')
@@ -4699,6 +4755,7 @@ typedef $$ItemsTableCreateCompanionBuilder =
       Value<String?> barcode,
       required int categoryId,
       Value<int?> locationId,
+      Value<String?> containerName,
       Value<double?> purchasePrice,
       Value<int> purchaseQuantity,
       Value<String?> packageUnit,
@@ -4733,6 +4790,7 @@ typedef $$ItemsTableUpdateCompanionBuilder =
       Value<String?> barcode,
       Value<int> categoryId,
       Value<int?> locationId,
+      Value<String?> containerName,
       Value<double?> purchasePrice,
       Value<int> purchaseQuantity,
       Value<String?> packageUnit,
@@ -4799,6 +4857,11 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<int> get locationId => $composableBuilder(
     column: $table.locationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get containerName => $composableBuilder(
+    column: $table.containerName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4967,6 +5030,11 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get containerName => $composableBuilder(
+    column: $table.containerName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get purchasePrice => $composableBuilder(
     column: $table.purchasePrice,
     builder: (column) => ColumnOrderings(column),
@@ -5124,6 +5192,11 @@ class $$ItemsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get containerName => $composableBuilder(
+    column: $table.containerName,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<double> get purchasePrice => $composableBuilder(
     column: $table.purchasePrice,
     builder: (column) => column,
@@ -5268,6 +5341,7 @@ class $$ItemsTableTableManager
                 Value<String?> barcode = const Value.absent(),
                 Value<int> categoryId = const Value.absent(),
                 Value<int?> locationId = const Value.absent(),
+                Value<String?> containerName = const Value.absent(),
                 Value<double?> purchasePrice = const Value.absent(),
                 Value<int> purchaseQuantity = const Value.absent(),
                 Value<String?> packageUnit = const Value.absent(),
@@ -5300,6 +5374,7 @@ class $$ItemsTableTableManager
                 barcode: barcode,
                 categoryId: categoryId,
                 locationId: locationId,
+                containerName: containerName,
                 purchasePrice: purchasePrice,
                 purchaseQuantity: purchaseQuantity,
                 packageUnit: packageUnit,
@@ -5334,6 +5409,7 @@ class $$ItemsTableTableManager
                 Value<String?> barcode = const Value.absent(),
                 required int categoryId,
                 Value<int?> locationId = const Value.absent(),
+                Value<String?> containerName = const Value.absent(),
                 Value<double?> purchasePrice = const Value.absent(),
                 Value<int> purchaseQuantity = const Value.absent(),
                 Value<String?> packageUnit = const Value.absent(),
@@ -5366,6 +5442,7 @@ class $$ItemsTableTableManager
                 barcode: barcode,
                 categoryId: categoryId,
                 locationId: locationId,
+                containerName: containerName,
                 purchasePrice: purchasePrice,
                 purchaseQuantity: purchaseQuantity,
                 packageUnit: packageUnit,
