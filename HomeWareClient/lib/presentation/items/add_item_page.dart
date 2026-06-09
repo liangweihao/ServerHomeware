@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
+import '../../core/constants/app_colors.dart';
 import '../../core/events/item_event_bus.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/services/item_service.dart';
@@ -67,7 +68,47 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
       return false;
     }
 
-    setState(() => _isSaving = true);
+    // 0. 检查是否存在同名物品
+    final name = _form.nameController.text.trim();
+    if (name.isNotEmpty) {
+      final db = ref.read(databaseProvider);
+      final allItems = await db.getAllItems();
+      final existing = allItems.where((item) =>
+          item.name.toLowerCase() == name.toLowerCase() &&
+          item.status == 0 // 只匹配使用中的物品
+      ).toList();
+
+      if (existing.isNotEmpty && mounted) {
+        setState(() => _isSaving = false); // 先释放状态等弹窗
+        final shouldUpdate = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('发现同名物品'),
+            content: Text(
+              '已存在「${existing.first.name}」'
+              '${existing.length > 1 ? '等多${existing.length}件' : ''}，'
+              '是否更新已有物品而不是新增？',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('仍然新增', style: TextStyle(color: AppColors.textSecondary)),
+              ),
+              AppButton(
+                label: '去更新',
+                onPressed: () => Navigator.pop(ctx, true),
+              ),
+            ],
+          ),
+        );
+        if (shouldUpdate == true && mounted) {
+          context.push('/items/${existing.first.id}/edit');
+          return false;
+        }
+        // 用户选择仍然新增 → 重新设置 loading 继续
+        setState(() => _isSaving = true);
+      }
+    }
 
     try {
       // 1. 上传本地图片到服务端（物品图片 + 位置照片）
