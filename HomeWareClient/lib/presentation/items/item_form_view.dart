@@ -167,7 +167,7 @@ class ItemFormView extends StatelessWidget {
                     min: 1,
                     max: 9999,
                     step: 1,
-                    unit: c.unit,
+                    unit: c.packageUnit,
                     onChanged: (value) {
                       c.quantity = value;
                       onChanged();
@@ -178,60 +178,94 @@ class ItemFormView extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: DropdownButtonFormField<String>(
-                value: c.unit,
-                decoration: const InputDecoration(labelText: '单位'),
-                items: AppConstants.units
-                    .map((u) => DropdownMenuItem(value: u, child: Text(u)))
-                    .toList(),
-                onChanged: (value) {
-                  c.unit = value ?? '件';
-                  onChanged();
-                },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '包装单位',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: c.packageUnit,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text('无')),
+                      DropdownMenuItem(value: '盒', child: Text('盒')),
+                      DropdownMenuItem(value: '箱', child: Text('箱')),
+                      DropdownMenuItem(value: '提', child: Text('提')),
+                      DropdownMenuItem(value: '板', child: Text('板')),
+                      DropdownMenuItem(value: '袋', child: Text('袋')),
+                      DropdownMenuItem(value: '包', child: Text('包')),
+                      DropdownMenuItem(value: '瓶', child: Text('瓶')),
+                    ],
+                    onChanged: (value) {
+                      c.packageUnit = value;
+                      onChanged();
+                    },
+                  ),
+                ],
               ),
             ),
           ],
         ),
-        // 包装单位（可选）：如 3盒 × 10片
+        const SizedBox(height: 24),
+        // 包装内小单位：如 10粒/盒
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              flex: 2,
-              child: TextFormField(
-                initialValue: c.packageQuantity > 1 ? c.packageQuantity.toString() : '',
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: '一包多少个（可选）',
-                  hintText: '如 10',
-                ),
-                onChanged: (v) {
-                  c.packageQuantity = int.tryParse(v) ?? 1;
-                  if (c.packageQuantity < 1) c.packageQuantity = 1;
-                  onChanged();
-                },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '每包装含（可选）',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  QuantityStepper(
+                    value: c.packageQuantity > 1 ? c.packageQuantity.toDouble() : 1.0,
+                    min: 1,
+                    max: 9999,
+                    step: 1,
+                    unit: c.unit,
+                    onChanged: (value) {
+                      c.packageQuantity = value.toInt();
+                      if (c.packageQuantity < 1) c.packageQuantity = 1;
+                      onChanged();
+                    },
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
-              flex: 1,
-              child: DropdownButtonFormField<String>(
-                value: c.packageUnit,
-                decoration: const InputDecoration(labelText: '包装单位'),
-                items: const [
-                  DropdownMenuItem(value: null, child: Text('无')),
-                  DropdownMenuItem(value: '盒', child: Text('盒')),
-                  DropdownMenuItem(value: '箱', child: Text('箱')),
-                  DropdownMenuItem(value: '提', child: Text('提')),
-                  DropdownMenuItem(value: '板', child: Text('板')),
-                  DropdownMenuItem(value: '袋', child: Text('袋')),
-                  DropdownMenuItem(value: '包', child: Text('包')),
-                  DropdownMenuItem(value: '瓶', child: Text('瓶')),
-                  DropdownMenuItem(value: '粒', child: Text('粒')),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '单位',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: c.unit,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                    items: AppConstants.units
+                        .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                        .toList(),
+                    onChanged: (value) {
+                      c.unit = value ?? '件';
+                      onChanged();
+                    },
+                  ),
                 ],
-                onChanged: (v) {
-                  c.packageUnit = v;
-                  onChanged();
-                },
               ),
             ),
           ],
