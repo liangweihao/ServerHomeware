@@ -118,11 +118,14 @@ class ItemFormController {
         for (final url in locationImageUrls) '${ItemImageStorage.locPrefix}$url',
     ];
 
+    // 初始库存按最小单位计算：有大单位时 quantity × packageQuantity，否则直接 quantity
+    final initialStock = quantity * (packageQuantity > 1 ? packageQuantity : 1);
+
     final body = <String, dynamic>{
       'name': nameController.text.trim(),
       'category_id': selectedCategory!.id,
       'purchase_quantity': quantity.round(),
-      'current_quantity': quantity,
+      'current_quantity': initialStock,
       'unit': unit,
       'package_unit': packageUnit,
       'package_quantity': packageQuantity,
@@ -205,7 +208,7 @@ class ItemFormController {
       purchaseQuantity: Value(quantity.round()),
       packageUnit: packageUnit != null ? Value(packageUnit!) : const Value.absent(),
       packageQuantity: Value(packageQuantity),
-      currentQuantity: Value(quantity),
+      currentQuantity: Value(quantity * (packageQuantity > 1 ? packageQuantity : 1)),
       unit: Value(unit),
       safetyStock: Value(safetyStock),
       purchaseDate: purchaseDate != null ? Value(purchaseDate!) : const Value.absent(),

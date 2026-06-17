@@ -6,6 +6,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/events/item_event_bus.dart';
 import '../../../core/providers/database_provider.dart';
 import '../../../core/services/consumption_prediction_service.dart';
+import '../../../core/services/item_service.dart';
 import '../../../data/database/app_database.dart';
 import '../../common/widgets/app_button.dart';
 import '../../common/widgets/quantity_stepper.dart';
@@ -77,6 +78,19 @@ Future<void> _applyUsage({
   ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
 
   await ConsumptionPredictionService(db).onItemUsed(item.id);
+
+  // 同步到服务端
+  try {
+    await ItemService().recordUsage(
+      itemId: item.id,
+      quantity: useQty,
+      remainingQuantity: newRemaining,
+      operatorName: operatorName,
+    );
+  } catch (e) {
+    debugPrint('[UsageDialog] WARN: 同步使用记录到服务端失败: $e');
+  }
+
   debugPrint(
     '[UsageDialog] INFO: 记录使用 itemId=${item.id} qty=$useQty remaining=$newRemaining',
   );

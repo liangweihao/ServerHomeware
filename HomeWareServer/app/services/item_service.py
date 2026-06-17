@@ -246,6 +246,7 @@ class ItemService:
                 "location_full_path": location_paths.get(item.location_id),
                 "container_name": item.container_name,
                 "current_quantity": float(item.current_quantity),
+                "purchase_quantity": item.purchase_quantity,
                 "unit": item.unit,
                 "package_unit": item.package_unit,
                 "package_quantity": item.package_quantity or 1,

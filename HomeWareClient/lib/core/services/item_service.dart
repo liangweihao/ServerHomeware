@@ -207,6 +207,46 @@ class ItemService {
     }
   }
 
+  /// 同步使用记录到服务端
+  /// 调用服务端 POST /api/v1/usage_records 接口
+  Future<ApiResponse<Map<String, dynamic>>> recordUsage({
+    required int itemId,
+    required double quantity,
+    required double remainingQuantity,
+    String? operatorName,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        return ApiResponse<Map<String, dynamic>>(code: 401, message: '未登录');
+      }
+
+      final body = <String, dynamic>{
+        'item_id': itemId,
+        'type': 1, // 使用
+        'quantity': quantity,
+        'remaining_quantity': remainingQuantity,
+      };
+      if (operatorName != null && operatorName.isNotEmpty) {
+        body['operator_name'] = operatorName;
+      }
+
+      _log('INFO: 同步使用记录到服务端 itemId=$itemId qty=$quantity');
+      final response = await http.post(
+        Uri.parse('$_baseUrl/usage_records'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 同步使用记录失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(code: 500, message: '同步使用记录失败: $e');
+    }
+  }
+
   /// 获取全部使用记录（自动翻页）
   Future<List<Map<String, dynamic>>> getAllUsageRecordsFromServer() async {
     final allRecords = <Map<String, dynamic>>[];

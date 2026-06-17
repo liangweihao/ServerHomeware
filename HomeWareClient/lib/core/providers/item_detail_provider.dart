@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/services/item_service.dart';
@@ -67,22 +68,61 @@ final itemDetailProvider =
 
   final recentRecords = await db.getUsageRecordsByItem(id, limit: 5);
 
-  // 优先从服务端拉取图片列表
+  // 优先从服务端拉取最新数据（图片 + 关键字段纠正列表同步默认值问题）
   List<String> imageUrls = [];
+  Item updatedItem = item;
   try {
     final itemService = ItemService();
     final remote = await itemService.getItemDetail(itemId: id);
     if (remote.code == 200 && remote.data != null) {
-      final images = remote.data!['images'] as List<dynamic>?;
+      final data = remote.data!;
+      final images = data['images'] as List<dynamic>?;
       imageUrls = ItemImageStorage.urlsFromServerImages(images);
       debugPrint('[ItemDetailProvider] INFO: 服务端图片 ${imageUrls.length} 张');
+
+      // 用服务端数据纠正本地可能被列表同步覆盖的关键字段
+      final serverPurchaseQty = data['purchase_quantity'];
+      final serverCurrentQty = data['current_quantity'];
+      final serverPackageUnit = data['package_unit'];
+      final serverPackageQty = data['package_quantity'];
+      final serverUnit = data['unit'];
+      final serverSafetyStock = data['safety_stock'];
+      final serverStatus = data['status'];
+
+      if (serverPurchaseQty != null || serverCurrentQty != null) {
+        updatedItem = item.copyWith(
+          purchaseQuantity: serverPurchaseQty != null
+              ? (serverPurchaseQty as num).toInt()
+              : null,
+          currentQuantity: serverCurrentQty != null
+              ? (serverCurrentQty as num).toDouble()
+              : null,
+          packageUnit: serverPackageUnit != null
+              ? Value<String?>(serverPackageUnit.toString())
+              : const Value.absent(),
+          packageQuantity: serverPackageQty != null
+              ? (serverPackageQty as num).toInt()
+              : null,
+          unit: serverUnit != null
+              ? serverUnit.toString()
+              : null,
+          safetyStock: serverSafetyStock != null
+              ? (serverSafetyStock as num).toDouble()
+              : null,
+          status: serverStatus != null
+              ? (serverStatus as num).toInt()
+              : null,
+        );
+        await db.updateItem(updatedItem);
+        debugPrint('[ItemDetailProvider] INFO: 已用服务端数据纠正本地字段');
+      }
     } else {
       debugPrint(
         '[ItemDetailProvider] WARN: 服务端详情失败 code=${remote.code}，使用本地图片',
       );
     }
   } catch (e) {
-    debugPrint('[ItemDetailProvider] WARN: 拉取服务端图片异常 $e');
+    debugPrint('[ItemDetailProvider] WARN: 拉取服务端数据异常 $e');
   }
 
   if (imageUrls.isEmpty) {
@@ -97,7 +137,7 @@ final itemDetailProvider =
   debugPrint('[ItemDetailProvider] INFO: 加载物品详情 id=$id name=${item.name} '
       'images=${imageUrls.length} locPhotos=${locationImageUrls.length}');
   return ItemDetailData(
-    item: item,
+    item: updatedItem,
     category: category,
     parentCategory: parentCategory,
     locationPath: locationPath,

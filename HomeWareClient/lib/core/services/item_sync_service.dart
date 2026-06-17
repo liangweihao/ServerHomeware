@@ -42,16 +42,54 @@ class ItemSyncService {
         // 检查本地是否已存在
         final existing = await _db.getItemById(id);
         if (existing != null) {
-          // 已存在：如果本地没有图片但服务端有，补充图片
+          // 已存在：用服务端数据更新核心字段（封面图、数量、单位等）
           final preview = serverItem['preview_image']?.toString();
-          if (preview != null && preview.isNotEmpty &&
-              (existing.images == null || existing.images!.isEmpty)) {
+          final currentQty = serverItem['current_quantity'];
+          final purchaseQty = serverItem['purchase_quantity'];
+          final pkgUnit = serverItem['package_unit'];
+          final pkgQty = serverItem['package_quantity'];
+          final srvUnit = serverItem['unit'];
+          final srvStatus = serverItem['status'];
+          final srvExpiry = serverItem['expiry_date'];
+
+          final needsUpdate = currentQty != null || purchaseQty != null ||
+              (preview != null && preview.isNotEmpty &&
+                  (existing.images == null || existing.images!.isEmpty));
+
+          if (needsUpdate) {
             final updated = existing.copyWith(
-              images: Value(jsonEncode([preview])),
+              currentQuantity: currentQty != null
+                  ? _parseDouble(currentQty)
+                  : null,
+              purchaseQuantity: purchaseQty != null
+                  ? _parseInt(purchaseQty)
+                  : null,
+              packageUnit: pkgUnit != null
+                  ? Value<String?>(pkgUnit.toString())
+                  : const Value.absent(),
+              packageQuantity: pkgQty != null
+                  ? _parseInt(pkgQty)
+                  : null,
+              unit: srvUnit != null
+                  ? srvUnit.toString()
+                  : null,
+              status: srvStatus != null
+                  ? _parseInt(srvStatus)
+                  : null,
+              expiryDate: srvExpiry != null
+                  ? Value(DateTime.tryParse(srvExpiry.toString()))
+                  : const Value.absent(),
+              images: preview != null && preview.isNotEmpty &&
+                      (existing.images == null || existing.images!.isEmpty)
+                  ? Value(jsonEncode([preview]))
+                  : const Value.absent(),
               updatedAt: DateTime.now(),
             );
             await _db.updateItem(updated);
-            updatedImages++;
+            if (preview != null && preview.isNotEmpty &&
+                (existing.images == null || existing.images!.isEmpty)) {
+              updatedImages++;
+            }
           }
           skipped++;
           continue;
@@ -98,7 +136,9 @@ class ItemSyncService {
       currentQuantity: json['current_quantity'] != null
           ? Value(_parseDouble(json['current_quantity']))
           : const Value(1),
-      purchaseQuantity: const Value(1), // 列表接口无此字段，用默认值
+      purchaseQuantity: json['purchase_quantity'] != null
+          ? Value(_parseInt(json['purchase_quantity']))
+          : const Value(1),
       packageUnit: json['package_unit'] != null
           ? Value(json['package_unit'].toString())
           : const Value.absent(),

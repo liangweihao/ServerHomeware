@@ -75,20 +75,46 @@ async def get_usage_records(
 async def create_usage_record(
     request: CreateUsageRecordRequest,
     current_user: User = Depends(get_current_user),
+    current_family_id: int = Depends(get_current_family),
     db: AsyncSession = Depends(get_db)
 ):
     usage_record_repo = UsageRecordRepository(db)
     record = await usage_record_repo.create({
         "item_id": request.item_id,
-        "used_quantity": request.used_quantity,
-        "used_by": current_user.id,
+        "family_id": current_family_id,
+        "type": request.type,
+        "quantity": request.quantity,
+        "remaining_quantity": request.remaining_quantity,
+        "operator_id": current_user.id,
+        "operator_name": request.operator_name,
         "notes": request.notes,
     })
-    
+
+    # 同步更新物品的 current_quantity 和 status
+    from app.repositories.item_repo import ItemRepository
+    item_repo = ItemRepository(db)
+    item = await item_repo.get_by_id(request.item_id)
+    if item and request.remaining_quantity is not None:
+        new_status = item.status
+        if request.remaining_quantity <= 0:
+            new_status = 1  # 已用完
+        await item_repo.update(item.id, {
+            "current_quantity": request.remaining_quantity,
+            "status": new_status,
+        })
+
     return ResponseSchema(
         code=200,
         message="使用记录创建成功",
-        data=UsageRecordResponse.from_orm(record)
+        data={
+            "id": record.id,
+            "item_id": record.item_id,
+            "type": record.type,
+            "quantity": float(record.quantity),
+            "remaining_quantity": float(record.remaining_quantity),
+            "operator_name": record.operator_name,
+            "created_at": record.created_at.isoformat() if record.created_at else None,
+        }
     )
 
 
