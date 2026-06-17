@@ -28,15 +28,32 @@ class ErrorHandler {
     debugPrint('$label 异常: $e');
     debugPrint('$label 堆栈: $stack');
 
+    // 优先用异常自身的消息（如服务端返回的"该手机号已被注册"）
+    final message = _extractMessage(e) ?? userMessage;
+
     // 用户友好 toast
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(userMessage),
-          backgroundColor: Colors.red.shade600,
+          content: Text(message),
+          backgroundColor: message.contains('已被注册') || message.contains('已注册')
+              ? Colors.orange.shade700
+              : Colors.red.shade600,
           duration: const Duration(seconds: 3),
         ),
       );
     }
+  }
+
+  /// 从异常对象中提取服务端返回的错误消息
+  static String? _extractMessage(Object e) {
+    final str = e.toString();
+    // Exception: 该手机号已被注册 → 取冒号后内容
+    final colonIdx = str.indexOf(': ');
+    if (colonIdx != -1) {
+      final msg = str.substring(colonIdx + 2).trim();
+      if (msg.isNotEmpty && msg != 'Exception') return msg;
+    }
+    return null;
   }
 }
