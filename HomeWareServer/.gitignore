@@ -35,3 +35,6 @@ uploads/
 
 # Exports — 数据导出文件
 exports/
+
+# 外部数据目录（数据库 + 上传文件）
+../data/
