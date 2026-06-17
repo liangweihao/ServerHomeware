@@ -25,7 +25,8 @@ class UsageRecordsPage extends ConsumerWidget {
       body: recordsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('加载失败: $e')),
-        data: (records) {
+        data: (result) {
+          final (item, records) = result;
           if (records.isEmpty) {
             return const Center(child: Text('暂无使用记录'));
           }
@@ -37,6 +38,7 @@ class UsageRecordsPage extends ConsumerWidget {
               return _TimelineTile(
                 record: records[index],
                 isLast: index == records.length - 1,
+                item: item,
               );
             },
           );
@@ -47,16 +49,23 @@ class UsageRecordsPage extends ConsumerWidget {
 }
 
 final _allUsageRecordsProvider =
-    FutureProvider.family<List<UsageRecord>, int>((ref, itemId) async {
+    FutureProvider.family<(Item, List<UsageRecord>), int>((ref, itemId) async {
   final db = ref.watch(databaseProvider);
-  return db.getUsageRecordsByItem(itemId, limit: 500);
+  final item = (await db.getItemById(itemId))!;
+  final records = await db.getUsageRecordsByItem(itemId, limit: 500);
+  return (item, records);
 });
 
 class _TimelineTile extends StatelessWidget {
   final UsageRecord record;
   final bool isLast;
+  final Item item;
 
-  const _TimelineTile({required this.record, required this.isLast});
+  const _TimelineTile({
+    required this.record,
+    required this.isLast,
+    required this.item,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -122,15 +131,8 @@ class _TimelineTile extends StatelessWidget {
   }
 
   String _recordDescription(UsageRecord record) {
-    final qty = record.quantity.toStringAsFixed(
-      record.quantity == record.quantity.roundToDouble() ? 0 : 1,
-    );
-    final remain = record.remainingQuantity.toStringAsFixed(
-      record.remainingQuantity ==
-              record.remainingQuantity.roundToDouble()
-          ? 0
-          : 1,
-    );
+    final qty = _formatQuantity(record.quantity, item);
+    final remain = _formatQuantity(record.remainingQuantity, item);
     switch (record.type) {
       case 0:
         return '入库 $qty，剩余 $remain';
@@ -145,5 +147,26 @@ class _TimelineTile extends StatelessWidget {
       default:
         return '操作 $qty';
     }
+  }
+
+  /// 格式化数量，按最小单位显示，有包装时追加换算
+  String _formatQuantity(double quantity, Item item) {
+    final numStr = quantity == quantity.roundToDouble()
+        ? quantity.toInt().toString()
+        : quantity.toStringAsFixed(1);
+    final base = '$numStr${item.unit}';
+    // 如果有包装单位，追加包装换算
+    if (item.packageUnit != null &&
+        item.packageUnit!.isNotEmpty &&
+        item.packageQuantity > 1) {
+      final packages = quantity ~/ item.packageQuantity;
+      final pieces = (quantity % item.packageQuantity).round();
+      if (packages > 0 && pieces > 0) {
+        return '$base ($packages ${item.packageUnit} $pieces ${item.unit})';
+      } else if (packages > 0) {
+        return '$base ($packages ${item.packageUnit})';
+      }
+    }
+    return base;
   }
 }

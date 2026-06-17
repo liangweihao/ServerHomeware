@@ -430,9 +430,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
 
   Widget _buildDetailList(BuildContext context, ItemDetailData data) {
     final item = data.item;
-    final priceLine = item.purchasePrice != null
-        ? '¥${item.purchasePrice!.toStringAsFixed(1)} × ${item.purchaseQuantity} = ¥${(item.purchasePrice! * item.purchaseQuantity).toStringAsFixed(1)}'
-        : '—';
+    final priceLine = _buildPriceLine(item);
 
     return Card(
       elevation: 0,
@@ -452,6 +450,26 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
         ],
       ),
     );
+  }
+
+  /// 构建购买价格行，按最小单位显示单价
+  String _buildPriceLine(Item item) {
+    if (item.purchasePrice == null) return '—';
+    final totalQty = item.purchaseQuantity.toDouble();
+    final unitPrice = item.purchasePrice!;
+    final totalPrice = unitPrice * totalQty;
+    // 如果有包装单位，计算最小单位单价
+    if (item.packageUnit != null &&
+        item.packageUnit!.isNotEmpty &&
+        item.packageQuantity > 1) {
+      final minUnitCount = totalQty * item.packageQuantity;
+      final minUnitPrice = totalPrice / minUnitCount;
+      return '¥${minUnitPrice.toStringAsFixed(2)}/${item.unit}'
+          ' (${item.purchaseQuantity}${item.packageUnit}'
+          ' × ¥${unitPrice.toStringAsFixed(1)}/${item.packageUnit}'
+          ' = ¥${totalPrice.toStringAsFixed(1)})';
+    }
+    return '¥${unitPrice.toStringAsFixed(1)} × $totalQty = ¥${totalPrice.toStringAsFixed(1)}';
   }
 
   Widget _buildLocationRow(BuildContext context, ItemDetailData data) {
@@ -947,13 +965,23 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
   // —— 文案 / 颜色 ——
 
   String _quantityText(Item item) {
-    final base = '${item.currentQuantity.toStringAsFixed(0)} / ${item.purchaseQuantity} ${item.unit}';
-    // 如果有包装单位，追加包装信息
+    final currentStr = item.currentQuantity.toStringAsFixed(0);
+    final totalStr = item.purchaseQuantity.toStringAsFixed(0);
+    // 如果有包装单位，按最小单位显示总量
     if (item.packageUnit != null && item.packageUnit!.isNotEmpty && item.packageQuantity > 1) {
-      final total = item.purchaseQuantity * item.packageQuantity;
-      return '$base\n(${item.purchaseQuantity} ${item.packageUnit} × ${item.packageQuantity} ${item.unit} = $total ${item.unit})';
+      final totalMinUnit = item.purchaseQuantity * item.packageQuantity; // 购买时总小单位
+      final remainingPackages = item.currentQuantity ~/ item.packageQuantity; // 剩余整包数
+      final remainingPieces = item.currentQuantity % item.packageQuantity; // 剩余零散小单位
+      final buff = StringBuffer();
+      buff.write('${currentStr}${item.unit} / ${totalMinUnit}${item.unit}');
+      if (remainingPackages > 0 && remainingPieces > 0) {
+        buff.write('\n($remainingPackages ${item.packageUnit} $remainingPieces ${item.unit})');
+      } else if (remainingPackages > 0) {
+        buff.write('\n($remainingPackages ${item.packageUnit})');
+      }
+      return buff.toString();
     }
-    return base;
+    return '${currentStr}${item.unit} / ${totalStr}${item.unit}';
   }
 
   Color _stockColor(Item item) {
