@@ -974,11 +974,6 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
       final remainingPieces = item.currentQuantity % item.packageQuantity; // 剩余零散小单位
       final buff = StringBuffer();
       buff.write('${currentStr}${item.unit} / ${totalMinUnit}${item.unit}');
-      if (remainingPackages > 0 && remainingPieces > 0) {
-        buff.write('\n($remainingPackages ${item.packageUnit} $remainingPieces ${item.unit})');
-      } else if (remainingPackages > 0) {
-        buff.write('\n($remainingPackages ${item.packageUnit})');
-      }
       return buff.toString();
     }
     return '${currentStr}${item.unit} / ${totalStr}${item.unit}';
@@ -994,6 +989,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     if (item.expiryDate == null) return '无限制';
     final days = item.expiryDate!.difference(DateTime.now()).inDays;
     if (days < 0) return '已过期';
+    if (days > 18250) return '长期'; // >50年视为长期/无限
     return '$days 天';
   }
 
@@ -1003,6 +999,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     if (days < 0) return AppColors.danger;
     if (days <= 3) return AppColors.danger;
     if (days <= 7) return AppColors.warning;
+    if (days > 18250) return AppColors.textSecondary;
     return AppColors.success;
   }
 
