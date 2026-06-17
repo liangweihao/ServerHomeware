@@ -33,8 +33,8 @@ class Settings(BaseSettings):
     # JWT
     JWT_SECRET_KEY: str = "your-secret-key-change-in-production-must-be-at-least-32-characters"
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7天，每次使用时服务端会自动刷新
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30       # 30天未使用才过期
 
     # File Upload
     UPLOAD_DIR: str = "./uploads"
