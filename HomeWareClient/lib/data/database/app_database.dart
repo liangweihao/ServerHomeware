@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:drift/drift.dart';
 import 'package:drift_sqflite/drift_sqflite.dart';
 import 'package:path_provider/path_provider.dart';
@@ -133,7 +134,16 @@ class AppDatabase extends _$AppDatabase {
     return LazyDatabase(() async {
       final dbFolder = await getApplicationDocumentsDirectory();
       final file = File(path.join(dbFolder.path, 'homestock.db'));
-      return SqfliteQueryExecutor.inDatabaseFolder(path: 'homestock.db');
+      try {
+        return SqfliteQueryExecutor.inDatabaseFolder(path: 'homestock.db');
+      } catch (e) {
+        // 数据库 schema 不匹配（旧版本升级）→ 删除重建
+        debugPrint('[DB] WARN: 数据库打开失败，可能是旧版本 schema 不匹配，删除重建 - $e');
+        if (await file.exists()) {
+          await file.delete();
+        }
+        return SqfliteQueryExecutor.inDatabaseFolder(path: 'homestock.db');
+      }
     });
   }
 
@@ -196,8 +206,13 @@ class AppDatabase extends _$AppDatabase {
   // ==================== Items DAO ====================
 
   // 获取所有物品（关联分类和位置）
-  Future<List<Item>> getAllItems() {
-    return (select(items)..orderBy([(i) => OrderingTerm(expression: i.createdAt, mode: OrderingMode.desc)])).get();
+  Future<List<Item>> getAllItems() async {
+    try {
+      return await (select(items)..orderBy([(i) => OrderingTerm(expression: i.createdAt, mode: OrderingMode.desc)])).get();
+    } catch (e) {
+      debugPrint('[DB] ERROR: 查询物品列表失败 - $e');
+      return <Item>[];
+    }
   }
 
   // 根据分类 ID 获取物品
@@ -378,9 +393,14 @@ class AppDatabase extends _$AppDatabase {
 
   // 获取所有提醒数量（过期+库存）
   Future<int> getAlertCount() async {
-    final expiryCount = await getExpiryAlerts();
-    final stockCount = await getStockAlerts();
-    return expiryCount.length + stockCount.length;
+    try {
+      final expiryCount = await getExpiryAlerts();
+      final stockCount = await getStockAlerts();
+      return expiryCount.length + stockCount.length;
+    } catch (e) {
+      debugPrint('[DB] WARN: 获取提醒数量失败 - $e');
+      return 0;
+    }
   }
   
   // 预设数据插入
