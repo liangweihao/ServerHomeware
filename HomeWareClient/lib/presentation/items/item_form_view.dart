@@ -579,16 +579,40 @@ class ItemFormView extends StatelessWidget {
   }
 }
 
-/// 位置拍照按钮 — 拍照记录物品存放位置，方便日后查找
+/// 位置拍照/相册按钮 — 拍照或从相册选择照片记录物品存放位置，方便日后查找
 class _LocationPhotoButton extends StatelessWidget {
   final ValueChanged<String> onPhotoTaken;
 
   const _LocationPhotoButton({required this.onPhotoTaken});
 
-  Future<void> _takePhoto(BuildContext context) async {
+  /// 弹出底部菜单让用户选择「拍照」或「从相册选择」
+  Future<void> _pickImage(BuildContext context) async {
+    // 弹出选择菜单
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('从相册选择'),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('拍照'),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+
     try {
       final picker = ImagePicker();
-      final file = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+      final file = await picker.pickImage(source: source, imageQuality: 80);
       if (file == null) return;
 
       final path = await ItemImageStorage.persistPickedImage(file);
@@ -606,7 +630,7 @@ class _LocationPhotoButton extends StatelessWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('拍照失败')),
+          const SnackBar(content: Text('获取图片失败')),
         );
       }
     }
@@ -615,13 +639,13 @@ class _LocationPhotoButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: '拍照记录存放位置',
+      message: '拍照或从相册选择位置照片',
       child: Material(
         color: AppColors.gray100,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
-          onTap: () => _takePhoto(context),
+          onTap: () => _pickImage(context),
           child: Container(
             width: 48,
             height: 48,
