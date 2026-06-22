@@ -96,19 +96,26 @@ class ItemRepository(BaseRepository[Item]):
             return {}
 
         from app.models.item import ItemImage
+        from app.services.upload_service import UploadService
 
-        # 使用子查询获取每个物品的第一张图片（最小 sort_order）
-        from sqlalchemy import and_
+        upload_svc = UploadService()
+
+        # 取每个物品最新上传的图片（id 最大），且文件必须存在于磁盘
         result = await self.db.execute(
             select(ItemImage.item_id, ItemImage.url)
             .filter(ItemImage.item_id.in_(item_ids))
-            .order_by(ItemImage.item_id, ItemImage.sort_order)
+            .order_by(ItemImage.item_id, ItemImage.id.desc())
         )
 
-        # 只取每个 item 的第一张（已按 sort_order 排序）
+        # 只取每个 item 的第一条有效物品图（跳过位置照片 __loc__:）
         preview_map = {}
         for row in result.all():
-            if row[0] not in preview_map:
-                preview_map[row[0]] = row[1]
+            if row[0] in preview_map:
+                continue
+            url = row[1]
+            if url.startswith("__loc__:"):
+                continue
+            if upload_svc.image_file_exists(url):
+                preview_map[row[0]] = url
 
         return preview_map

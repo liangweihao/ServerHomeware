@@ -31,6 +31,26 @@ class ItemService:
         """检查用户是否有权访问家庭"""
         if not await self.family_member_repo.is_member(user_id, family_id):
             raise ForbiddenException("无权访问该家庭")
+
+    def _serialize_item_images(self, images) -> List[Dict]:
+        """
+        序列化物品图片列表，过滤磁盘上不存在的孤儿记录
+        按 id 降序（较新上传优先展示）
+        """
+        from app.services.upload_service import UploadService
+
+        upload_svc = UploadService()
+        result = []
+        for img in sorted(images, key=lambda x: x.id, reverse=True):
+            if not upload_svc.image_file_exists(img.url):
+                logger.warning(f"跳过不存在的图片记录 id={img.id} url={img.url}")
+                continue
+            result.append({
+                "id": img.id,
+                "url": img.url,
+                "sort_order": img.sort_order,
+            })
+        return result
     
     async def create_item(self, user_id: int, family_id: int, data: dict) -> Item:
         """
@@ -108,14 +128,8 @@ class ItemService:
         
         await self._check_family_access(user_id, item.family_id)
         
-        # 获取图片列表
-        images = []
-        for img in item.images:
-            images.append({
-                "id": img.id,
-                "url": img.url,
-                "sort_order": img.sort_order
-            })
+        # 获取图片列表（过滤磁盘上不存在的孤儿记录）
+        images = self._serialize_item_images(item.images)
         
         # 获取最近5条使用记录
         usage_records = await self.usage_repo.get_recent_by_item(item.id, limit=5)

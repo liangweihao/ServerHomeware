@@ -106,6 +106,20 @@ class UploadService:
 
         return urls
 
+    def image_file_exists(self, url: str) -> bool:
+        """
+        检查上传图片是否存在于磁盘（支持 __loc__: 前缀的位置照片）
+        :param url: 图片 URL，如 /uploads/1/xxx.webp 或 __loc__:/uploads/1/xxx.webp
+        """
+        raw = url
+        if raw.startswith("__loc__:"):
+            raw = raw[len("__loc__:"):]
+        if not raw.startswith("/uploads/"):
+            return True
+        upload_root = os.path.abspath(settings.UPLOAD_DIR)
+        file_path = os.path.join(upload_root, raw[len("/uploads/"):].replace("/", os.sep))
+        return os.path.isfile(file_path)
+
     async def delete_image(self, url: str) -> bool:
         """
         删除图片文件

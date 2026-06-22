@@ -108,8 +108,10 @@ class Settings(BaseSettings):
     @field_validator("UPLOAD_DIR")
     @classmethod
     def validate_upload_dir(cls, v: str) -> str:
-        # 标准化路径
+        # 标准化并转为绝对路径，避免进程 cwd 变化导致文件检测/静态服务路径不一致
         normalized = os.path.normpath(v)
+        if not os.path.isabs(normalized):
+            normalized = os.path.abspath(normalized)
         try:
             os.makedirs(normalized, exist_ok=True)
         except OSError as e:
