@@ -18,7 +18,7 @@ alwaysApply: true
   [refactor][scope]:<summary>
 示例（支持中文）:
   [docs][rules]:补充模块说明与索引
-  [fix][ios][bugid:123456]:修复 Koin 初始化时序崩溃
+  [fix][client][bugid:123456]:修复物品列表刷新时序问题
 
   
 ## 注解规范

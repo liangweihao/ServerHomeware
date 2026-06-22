@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 HomeStock (家庭物品管家) — a household inventory management system with a FastAPI backend and Flutter client. Tracks items, expiry dates, stock levels, shopping lists, and usage records across family-shared locations.
 
+**Documentation index**: [`doc/README.md`](doc/README.md) (product, design, client/server architecture). Living API deltas: [`lwh/code_changed/`](lwh/code_changed/). Historical Phase specs are archived under `doc/archive/` — do not treat as source of truth.
+
 ## Repository Layout
 
 ```

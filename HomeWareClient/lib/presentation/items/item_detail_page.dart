@@ -23,7 +23,7 @@ import '../common/widgets/location_picker.dart';
 import 'widgets/usage_dialog.dart';
 import 'widgets/item_image_tile.dart';
 
-/// 物品详情页（对齐 doc/原型图.md §四、Phase 2 任务4）
+/// 物品详情页（对齐 doc/design/information-architecture.md §四）
 class ItemDetailPage extends ConsumerStatefulWidget {
   final int id;
 
