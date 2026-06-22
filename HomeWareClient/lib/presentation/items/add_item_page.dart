@@ -8,6 +8,7 @@ import '../../core/events/item_event_bus.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/services/item_service.dart';
 import '../../core/services/upload_service.dart';
+import '../../core/utils/item_image_storage.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_button.dart';
 import 'item_form_controller.dart';
@@ -160,7 +161,12 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
       }
 
       debugPrint('[AddItemPage] INFO: 服务端创建成功 id=${result.data!['id']}');
-      await _saveItemLocally(result.data!);
+      // 仅保存本次上传的图片路径，避免服务端历史孤儿图片污染本地封面
+      final storedImagePaths = <String>[
+        ...imageUrls,
+        for (final url in locationUrls) '${ItemImageStorage.locPrefix}$url',
+      ];
+      await _saveItemLocally(result.data!, storedImagePaths: storedImagePaths);
       ref.invalidate(allItemsProvider);
       return true;
     } catch (e) {
@@ -178,25 +184,29 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
     }
   }
 
-  Future<void> _saveItemLocally(Map<String, dynamic> serverItem) async {
+  Future<void> _saveItemLocally(
+    Map<String, dynamic> serverItem, {
+    List<String>? storedImagePaths,
+  }) async {
     final db = ref.read(databaseProvider);
     final serverIdRaw = serverItem['id'];
     final serverId = serverIdRaw is int
         ? serverIdRaw
         : int.tryParse(serverIdRaw?.toString() ?? '');
 
-    // 从服务端响应提取图片 URL 写入本地
-    final serverImages = serverItem['images'] as List<dynamic>?;
-    final storedPaths = serverImages != null
-        ? serverImages
-            .map((e) => (e as Map<String, dynamic>)['url']?.toString() ?? '')
-            .where((u) => u.isNotEmpty)
-            .toList()
-        : null;
+    // 优先使用本次上传的图片路径；无则回退服务端响应（兼容旧逻辑）
+    List<String>? paths = storedImagePaths;
+    if (paths == null || paths.isEmpty) {
+      final serverImages = serverItem['images'] as List<dynamic>?;
+      paths = serverImages
+          ?.map((e) => (e as Map<String, dynamic>)['url']?.toString() ?? '')
+          .where((u) => u.isNotEmpty)
+          .toList();
+    }
 
     final companion = _form.buildInsertCompanion(
       serverId: serverId,
-      imagePathsOverride: storedPaths,
+      imagePathsOverride: paths?.isNotEmpty == true ? paths : null,
     );
     final itemId = await db.insertItem(companion);
 

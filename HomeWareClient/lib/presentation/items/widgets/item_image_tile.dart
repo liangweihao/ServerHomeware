@@ -14,6 +14,8 @@ class ItemImageTile extends StatelessWidget {
   final double height;
   final BoxFit fit;
   final BorderRadius? borderRadius;
+  /// 网络/本地加载失败时回调（用于缩略图依次尝试备选图片）
+  final VoidCallback? onError;
 
   const ItemImageTile({
     super.key,
@@ -22,6 +24,7 @@ class ItemImageTile extends StatelessWidget {
     required this.height,
     this.fit = BoxFit.cover,
     this.borderRadius,
+    this.onError,
   });
 
   @override
@@ -47,6 +50,7 @@ class ItemImageTile extends StatelessWidget {
         },
         errorBuilder: (_, error, stack) {
           debugPrint('[ItemImageTile] ERROR: 加载失败 $url — $error');
+          onError?.call();
           return _errorBox();
         },
       );
@@ -56,7 +60,10 @@ class ItemImageTile extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
-        errorBuilder: (_, __, ___) => _errorBox(),
+        errorBuilder: (_, __, ___) {
+          onError?.call();
+          return _errorBox();
+        },
       );
     }
 

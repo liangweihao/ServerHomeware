@@ -140,14 +140,18 @@ class _ItemCardState extends State<ItemCard> {
     final sources = ItemImageStorage.resolveDisplaySources(widget.item.images);
 
     if (sources.isNotEmpty) {
-      return ItemImageTile(
-        source: sources.first,
+      return _ItemThumbnail(
+        sources: sources,
         width: 56,
         height: 56,
         borderRadius: BorderRadius.circular(AppRadius.sm),
       );
     }
 
+    return _placeholderThumbnail();
+  }
+
+  Widget _placeholderThumbnail() {
     return Container(
       width: 56,
       height: 56,
@@ -219,6 +223,46 @@ class _ItemCardState extends State<ItemCard> {
           fontWeight: FontWeight.w500,
         ),
       ),
+    );
+  }
+}
+
+/// 物品缩略图：首张加载失败时自动尝试后续图片
+class _ItemThumbnail extends StatefulWidget {
+  final List<String> sources;
+  final double width;
+  final double height;
+  final BorderRadius borderRadius;
+
+  const _ItemThumbnail({
+    required this.sources,
+    required this.width,
+    required this.height,
+    required this.borderRadius,
+  });
+
+  @override
+  State<_ItemThumbnail> createState() => _ItemThumbnailState();
+}
+
+class _ItemThumbnailState extends State<_ItemThumbnail> {
+  int _index = 0;
+
+  void _tryNext() {
+    if (_index < widget.sources.length - 1) {
+      setState(() => _index++);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ItemImageTile(
+      key: ValueKey(widget.sources[_index]),
+      source: widget.sources[_index],
+      width: widget.width,
+      height: widget.height,
+      borderRadius: widget.borderRadius,
+      onError: _tryNext,
     );
   }
 }

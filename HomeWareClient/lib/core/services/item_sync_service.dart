@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:drift/drift.dart' show Value;
 import '../../data/database/app_database.dart';
+import '../utils/item_image_storage.dart';
 import 'item_service.dart';
 
 /// 物品服务端 → 本地数据库同步服务
@@ -52,9 +53,13 @@ class ItemSyncService {
           final srvStatus = serverItem['status'];
           final srvExpiry = serverItem['expiry_date'];
 
-          final needsUpdate = currentQty != null || purchaseQty != null ||
-              (preview != null && preview.isNotEmpty &&
-                  (existing.images == null || existing.images!.isEmpty));
+          final shouldUpdatePreview = preview != null &&
+              preview.isNotEmpty &&
+              _shouldUpdatePreviewImage(preview, existing.images);
+
+          final needsUpdate = currentQty != null ||
+              purchaseQty != null ||
+              shouldUpdatePreview;
 
           if (needsUpdate) {
             final updated = existing.copyWith(
@@ -79,15 +84,13 @@ class ItemSyncService {
               expiryDate: srvExpiry != null
                   ? Value(DateTime.tryParse(srvExpiry.toString()))
                   : const Value.absent(),
-              images: preview != null && preview.isNotEmpty &&
-                      (existing.images == null || existing.images!.isEmpty)
+              images: shouldUpdatePreview
                   ? Value(jsonEncode([preview]))
                   : const Value.absent(),
               updatedAt: DateTime.now(),
             );
             await _db.updateItem(updated);
-            if (preview != null && preview.isNotEmpty &&
-                (existing.images == null || existing.images!.isEmpty)) {
+            if (shouldUpdatePreview) {
               updatedImages++;
             }
           }
@@ -201,5 +204,27 @@ class ItemSyncService {
   Future<int> _countLocalItems() async {
     final items = await _db.getAllItems();
     return items.length;
+  }
+
+  /// 服务端 preview_image 比本地封面更新时覆盖（修复历史失效 URL）
+  bool _shouldUpdatePreviewImage(String serverPreview, String? localImagesJson) {
+    if (localImagesJson == null || localImagesJson.isEmpty) return true;
+
+    final serverDate = ItemImageStorage.extractUploadDate(serverPreview);
+    final localPaths = ItemImageStorage.decodeItemImages(localImagesJson);
+    if (localPaths.isEmpty) return true;
+
+    String? localNewest;
+    for (final path in localPaths) {
+      final d = ItemImageStorage.extractUploadDate(path);
+      if (d != null && (localNewest == null || d.compareTo(localNewest) > 0)) {
+        localNewest = d;
+      }
+    }
+
+    if (serverDate == null || localNewest == null) {
+      return serverPreview != localPaths.first;
+    }
+    return serverDate.compareTo(localNewest) >= 0;
   }
 }

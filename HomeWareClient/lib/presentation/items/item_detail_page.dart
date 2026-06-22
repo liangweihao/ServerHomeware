@@ -168,18 +168,12 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
                   itemCount: imageUrls.length,
                   itemBuilder: (_, i) => GestureDetector(
                     onTap: () => _showFullScreenImage(context, imageUrls, i),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.zero,
-                      ),
-                      child: Image.network(
-                        imageUrls[i],
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.broken_image_outlined,
-                          color: AppColors.textHint,
-                        ),
-                      ),
+                    child: ItemImageTile(
+                      source: imageUrls[i],
+                      width: double.infinity,
+                      height: 280,
+                      fit: BoxFit.contain,
+                      borderRadius: BorderRadius.zero,
                     ),
                   ),
                 ),

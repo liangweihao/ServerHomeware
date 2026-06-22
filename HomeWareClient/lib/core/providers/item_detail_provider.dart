@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart' show debugPrint;
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/services/item_service.dart';
 import '../../core/utils/item_image_storage.dart';
@@ -70,6 +71,7 @@ final itemDetailProvider =
 
   // 优先从服务端拉取最新数据（图片 + 关键字段纠正列表同步默认值问题）
   List<String> imageUrls = [];
+  List<String> serverLocationUrls = [];
   Item updatedItem = item;
   try {
     final itemService = ItemService();
@@ -77,8 +79,11 @@ final itemDetailProvider =
     if (remote.code == 200 && remote.data != null) {
       final data = remote.data!;
       final images = data['images'] as List<dynamic>?;
-      imageUrls = ItemImageStorage.urlsFromServerImages(images);
-      debugPrint('[ItemDetailProvider] INFO: 服务端图片 ${imageUrls.length} 张');
+      final parsed = ItemImageStorage.parseServerImages(images);
+      imageUrls = parsed.itemUrls;
+      serverLocationUrls = parsed.locationUrls;
+      debugPrint('[ItemDetailProvider] INFO: 服务端物品图 ${imageUrls.length} 张, '
+          '位置图 ${serverLocationUrls.length} 张');
 
       // 用服务端数据纠正本地可能被列表同步覆盖的关键字段
       final serverPurchaseQty = data['purchase_quantity'];
@@ -89,8 +94,12 @@ final itemDetailProvider =
       final serverSafetyStock = data['safety_stock'];
       final serverStatus = data['status'];
 
-      if (serverPurchaseQty != null || serverCurrentQty != null) {
-        updatedItem = item.copyWith(
+      final validPaths = parsed.storagePaths;
+      final needsFieldUpdate = serverPurchaseQty != null || serverCurrentQty != null;
+      final needsImageUpdate = validPaths.isNotEmpty;
+
+      if (needsFieldUpdate || needsImageUpdate) {
+        updatedItem = updatedItem.copyWith(
           purchaseQuantity: serverPurchaseQty != null
               ? (serverPurchaseQty as num).toInt()
               : null,
@@ -103,17 +112,19 @@ final itemDetailProvider =
           packageQuantity: serverPackageQty != null
               ? (serverPackageQty as num).toInt()
               : null,
-          unit: serverUnit != null
-              ? serverUnit.toString()
-              : null,
+          unit: serverUnit != null ? serverUnit.toString() : null,
           safetyStock: serverSafetyStock != null
               ? (serverSafetyStock as num).toDouble()
               : null,
-          status: serverStatus != null
-              ? (serverStatus as num).toInt()
-              : null,
+          status: serverStatus != null ? (serverStatus as num).toInt() : null,
+          images: needsImageUpdate
+              ? Value(jsonEncode(validPaths))
+              : const Value.absent(),
         );
         await db.updateItem(updatedItem);
+        if (needsImageUpdate) {
+          debugPrint('[ItemDetailProvider] INFO: 已用服务端有效图片更新本地 images');
+        }
         debugPrint('[ItemDetailProvider] INFO: 已用服务端数据纠正本地字段');
       }
     } else {
@@ -129,8 +140,12 @@ final itemDetailProvider =
     imageUrls = ItemImageStorage.resolveDisplaySources(item.images);
   }
 
-  // 位置参考照片（从本地 item.images 解析 __loc__: 前缀 — 旧方案）
-  final locationImageUrls = ItemImageStorage.resolveLocationDisplaySources(item.images);
+  // 位置参考照片：服务端位置图 + 本地 __loc__: 照片（去重）
+  final localLocationUrls = ItemImageStorage.resolveLocationDisplaySources(item.images);
+  final locationImageUrls = <String>{
+    ...serverLocationUrls,
+    ...localLocationUrls,
+  }.toList();
   // 位置自带照片（从 Location.images 读取 — 新方案）
   final locationPhotoUrls = ItemImageStorage.resolveDisplaySources(locationImages);
 

@@ -125,42 +125,134 @@ class ItemImageStorage {
         .toList();
   }
 
-  /// 用于展示的 URL：远程路径转完整 URL，本地转 file path
-  /// 只返回物品图片，不含位置照片
+  /// 用于展示的 URL：本地文件优先，远程 URL 按较新优先（列表末尾较新）
+  /// 只返回物品图片，不含位置照片；自动过滤历史失效批次
   static List<String> resolveDisplaySources(String? jsonStr) {
-    return decodeItemImages(jsonStr).map((path) {
-      if (ItemImageRefs.isRemotePath(path)) {
-        return AppEnv.resolveUploadUrl(path);
-      }
-      if (File(path).existsSync()) return path;
-      return null;
-    }).whereType<String>().toList();
-  }
+    final paths = decodeItemImages(jsonStr);
+    final newestDate = _newestUploadDateFromPaths(paths);
+    final filtered = newestDate == null
+        ? paths
+        : paths.where((p) => _extractUploadDate(p) == newestDate).toList();
 
-  /// 位置照片 → 可展示的 URL 列表
-  static List<String> resolveLocationDisplaySources(String? jsonStr) {
-    return decodeLocationImages(jsonStr).map((path) {
-      if (ItemImageRefs.isRemotePath(path)) {
-        return AppEnv.resolveUploadUrl(path);
-      }
-      if (File(path).existsSync()) return path;
-      return null;
-    }).whereType<String>().toList();
-  }
+    final local = <String>[];
+    final remote = <String>[];
 
-  /// 从服务端详情 images 字段解析 URL
-  static List<String> urlsFromServerImages(List<dynamic>? images) {
-    if (images == null || images.isEmpty) return [];
-    final urls = <String>[];
-    for (final raw in images) {
-      if (raw is Map) {
-        final url = raw['url']?.toString();
-        if (url != null && url.isNotEmpty) {
-          urls.add(AppEnv.resolveUploadUrl(url));
-        }
+    for (final path in filtered) {
+      if (ItemImageRefs.isRemotePath(path)) {
+        remote.add(AppEnv.resolveUploadUrl(path));
+      } else if (File(path).existsSync()) {
+        local.add(path);
       }
     }
-    return urls;
+
+    return [...local, ...remote.reversed];
+  }
+
+  static String? _newestUploadDateFromPaths(List<String> paths) {
+    String? newest;
+    for (final path in paths) {
+      final d = _extractUploadDate(path);
+      if (d != null && (newest == null || d.compareTo(newest) > 0)) {
+        newest = d;
+      }
+    }
+    return newest;
+  }
+
+  /// 位置照片 → 可展示的 URL 列表（过滤历史失效批次）
+  static List<String> resolveLocationDisplaySources(String? jsonStr) {
+    final paths = decodeLocationImages(jsonStr);
+    final newestDate = _newestUploadDateFromPaths(paths);
+    final filtered = newestDate == null
+        ? paths
+        : paths.where((p) => _extractUploadDate(p) == newestDate).toList();
+
+    return filtered.map((path) {
+      if (ItemImageRefs.isRemotePath(path)) {
+        return AppEnv.resolveUploadUrl(path);
+      }
+      if (File(path).existsSync()) return path;
+      return null;
+    }).whereType<String>().toList();
+  }
+
+  /// 从服务端详情 images 字段解析 URL（物品图 + 位置图分离，过滤历史失效批次）
+  static ServerImageParseResult parseServerImages(List<dynamic>? images) {
+    if (images == null || images.isEmpty) {
+      return const ServerImageParseResult([], [], []);
+    }
+
+    final entries = <Map<String, dynamic>>[];
+    for (final raw in images) {
+      if (raw is Map) {
+        entries.add(Map<String, dynamic>.from(raw));
+      }
+    }
+    entries.sort((a, b) {
+      final idA = a['id'] is int ? a['id'] as int : int.tryParse('${a['id']}') ?? 0;
+      final idB = b['id'] is int ? b['id'] as int : int.tryParse('${b['id']}') ?? 0;
+      return idB.compareTo(idA);
+    });
+
+    // 只保留最新日期批次（文件名中 YYYYMMDD），规避 DB 孤儿记录指向已删除文件
+    final newestDate = _newestUploadDate(entries);
+    final filtered = newestDate == null
+        ? entries
+        : entries.where((e) {
+            final url = e['url']?.toString() ?? '';
+            return url.contains('/$newestDate\_');
+          }).toList();
+
+    if (filtered.length < entries.length) {
+      debugPrint('[ItemImageStorage] INFO: 过滤历史图片批次 '
+          '${entries.length} → ${filtered.length}（保留 $newestDate）');
+    }
+
+    final itemUrls = <String>[];
+    final locationUrls = <String>[];
+    final storagePaths = <String>[];
+
+    for (final entry in filtered) {
+      final url = entry['url']?.toString();
+      if (url == null || url.isEmpty) continue;
+      storagePaths.add(url);
+
+      if (url.startsWith(_locPrefix)) {
+        final stripped = url.substring(_locPrefix.length);
+        locationUrls.add(AppEnv.resolveUploadUrl(stripped));
+      } else {
+        itemUrls.add(AppEnv.resolveUploadUrl(url));
+      }
+    }
+
+    return ServerImageParseResult(itemUrls, locationUrls, storagePaths);
+  }
+
+  /// 从 URL 中提取上传日期前缀（如 20260622）
+  static String? extractUploadDate(String url) {
+    final clean = url.startsWith(_locPrefix) ? url.substring(_locPrefix.length) : url;
+    final match = RegExp(r'/(\d{8})_').firstMatch(clean);
+    return match?.group(1);
+  }
+
+  static String? _extractUploadDate(String url) => extractUploadDate(url);
+
+  static String? _newestUploadDate(List<Map<String, dynamic>> entries) {
+    String? newest;
+    for (final entry in entries) {
+      final url = entry['url']?.toString();
+      if (url == null) continue;
+      final d = _extractUploadDate(url);
+      if (d != null && (newest == null || d.compareTo(newest) > 0)) {
+        newest = d;
+      }
+    }
+    return newest;
+  }
+
+  /// 从服务端详情 images 字段解析物品图片 URL（不含位置照片）
+  static List<String> urlsFromServerImages(List<dynamic>? images) {
+    return parseServerImages(images).itemUrls;
   }
 
   /// 删除本地图片文件（可选，移除缩略图时调用）
@@ -174,4 +266,18 @@ class ItemImageStorage {
       debugPrint('[ItemImageStorage] WARN: 删除图片失败 $path $e');
     }
   }
+}
+
+/// 服务端 images 字段解析结果（物品图与位置图分离）
+class ServerImageParseResult {
+  final List<String> itemUrls;
+  final List<String> locationUrls;
+  /// 原始存储路径（含 __loc__: 前缀），用于写入本地 DB
+  final List<String> storagePaths;
+
+  const ServerImageParseResult(
+    this.itemUrls,
+    this.locationUrls,
+    this.storagePaths,
+  );
 }
