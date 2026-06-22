@@ -38,9 +38,10 @@ class CategorySelector extends StatelessWidget {
       initialChildSize: 0.6,
       minChildSize: 0.4,
       maxChildSize: 0.85,
-      builder: (context, scrollController) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+      builder: (context, scrollController) => Material(
+        color: Colors.white,
+        clipBehavior: Clip.antiAlias,
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(

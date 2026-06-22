@@ -63,9 +63,10 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
       initialChildSize: 0.6,
       minChildSize: 0.5,
       maxChildSize: 0.85,
-      builder: (context, scrollController) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+      builder: (context, scrollController) => Material(
+        color: Colors.white,
+        clipBehavior: Clip.antiAlias,
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
@@ -226,18 +227,21 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
     bool isSelected,
     VoidCallback onTap,
   ) {
-    return ListTile(
-      onTap: onTap,
-      tileColor: isSelected ? AppColors.primary.withOpacity(0.1) : null,
-      leading: location.icon != null
-          ? Text(location.icon!, style: const TextStyle(fontSize: 24))
-          : const Icon(Icons.location_on),
-      title: Text(
-        location.name,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              color: isSelected ? AppColors.primary : null,
-            ),
+    // ListTile 的 ink splash 需要最近的 Material 祖先，避免被外层 DecoratedBox 遮挡
+    return Material(
+      color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+      child: ListTile(
+        onTap: onTap,
+        leading: location.icon != null
+            ? Text(location.icon!, style: const TextStyle(fontSize: 24))
+            : const Icon(Icons.location_on),
+        title: Text(
+          location.name,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected ? AppColors.primary : null,
+              ),
+        ),
       ),
     );
   }
