@@ -48,9 +48,9 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
     final endHour = ref.watch(notificationEndHourProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.appBarBackground,
         title: const Text('提醒设置'),
       ),
       body: ListView(

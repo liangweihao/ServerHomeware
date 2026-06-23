@@ -21,9 +21,9 @@ class FamilyManagementPage extends ConsumerWidget {
     final membersAsync = ref.watch(familyMembersProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.appBarBackground,
         title: const Text('家庭成员'),
       ),
       body: membersAsync.when(

@@ -184,9 +184,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.appBarBackground,
         title: const Text('编辑资料'),
         actions: [
           TextButton(

@@ -1,37 +1,29 @@
 import 'app_color_palette.dart';
 
-/// 应用主题样式变体
+/// 应用主题样式变体（仅保留三种特效主题）
 enum AppThemeVariant {
-  /// 默认青松绿
-  teal(
-    storageKey: 'teal',
-    label: '青松绿',
-    description: '温和沉稳，适合日常管理',
-    palette: AppColorPalettes.teal,
+  /// 玻璃拟态
+  glassmorphism(
+    storageKey: 'glassmorphism',
+    label: '玻璃拟态',
+    description: '磨砂玻璃质感，现代高级',
+    palette: AppColorPalettes.glassmorphism,
   ),
 
-  /// 创意紫
-  creativePurple(
-    storageKey: 'creative_purple',
-    label: '创意紫',
-    description: '创意活力，偏高级质感',
-    palette: AppColorPalettes.creativePurple,
+  /// 渐变活力
+  gradientBold(
+    storageKey: 'gradient_bold',
+    label: '渐变活力',
+    description: '鲜明渐变，年轻有活力',
+    palette: AppColorPalettes.gradientBold,
   ),
 
-  /// 暖橙活力
-  warmOrange(
-    storageKey: 'warm_orange',
-    label: '暖橙活力',
-    description: '温暖亲和，行动感强',
-    palette: AppColorPalettes.warmOrange,
-  ),
-
-  /// 翡翠清新
-  emeraldFresh(
-    storageKey: 'emerald_fresh',
-    label: '翡翠清新',
-    description: '自然清爽，轻量舒适',
-    palette: AppColorPalettes.emeraldFresh,
+  /// 新拟态轻质感（默认）
+  neumorphism(
+    storageKey: 'neumorphism',
+    label: '新拟态轻质感',
+    description: '软阴影浮雕，触感温润',
+    palette: AppColorPalettes.neumorphism,
   );
 
   const AppThemeVariant({
@@ -40,6 +32,9 @@ enum AppThemeVariant {
     required this.description,
     required this.palette,
   });
+
+  /// 默认主题
+  static const AppThemeVariant defaultVariant = AppThemeVariant.neumorphism;
 
   /// SharedPreferences 持久化键值
   final String storageKey;
@@ -53,12 +48,13 @@ enum AppThemeVariant {
   /// 对应色板
   final AppColorPalette palette;
 
-  /// 从持久化字符串解析，未知值回退默认
+  /// 从持久化字符串解析，未知或已移除的主题回退默认
   static AppThemeVariant fromStorage(String? key) {
-    if (key == null || key.isEmpty) return AppThemeVariant.teal;
+    if (key == null || key.isEmpty) return defaultVariant;
     for (final variant in AppThemeVariant.values) {
       if (variant.storageKey == key) return variant;
     }
-    return AppThemeVariant.teal;
+    // 旧版主题键（teal / creative_purple 等）已移除，回退默认
+    return defaultVariant;
   }
 }

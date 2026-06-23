@@ -58,9 +58,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final historyAsync = ref.watch(searchHistoryProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.appBarBackground,
         titleSpacing: 0,
         title: TextField(
           controller: _searchController,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_radius.dart';
+import '../../core/theme/app_decorations.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/services/auth_service.dart';
@@ -17,18 +17,19 @@ class ProfilePage extends ConsumerWidget {
     final user = ref.watch(authProvider.notifier).currentUser;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.scaffoldBackground,
       body: CustomScrollView(
         slivers: [
           // AppBar
           SliverAppBar(
             floating: true,
-            backgroundColor: AppColors.background,
+            backgroundColor: AppColors.appBarBackground,
             elevation: 0,
             title: Text(
               '我的',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: AppColors.appBarForeground,
                   ),
             ),
           ),
@@ -39,75 +40,56 @@ class ProfilePage extends ConsumerWidget {
                 const SizedBox(height: 16),
 
                 // 个人信息卡片
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Hero(
-                        tag: 'user_avatar',
-                        child: _buildAvatar(user?.nickname ?? '?', user?.phone ?? 'default', 32),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              user?.nickname ?? '用户',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _getRoleText(user?.familyRole),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
-                            ),
-                          ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: AppSurface(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        Hero(
+                          tag: 'user_avatar',
+                          child: _buildAvatar(user?.nickname ?? '?', user?.phone ?? 'default', 32),
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined),
-                        onPressed: () {
-                          context.push('/profile/edit');
-                        },
-                      ),
-                    ],
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user?.nickname ?? '用户',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _getRoleText(user?.familyRole),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.textSecondary,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined),
+                          onPressed: () {
+                            context.push('/profile/edit');
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 
                 const SizedBox(height: 24),
 
                 // 功能列表
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: AppSurface(
+                    child: Column(
+                      children: [
                       _buildSettingItem(
                         context,
                         icon: '🏠',
@@ -158,26 +140,17 @@ class ProfilePage extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  ),
                 ),
 
                 const SizedBox(height: 16),
 
                 // 第二组功能
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: AppSurface(
+                    child: Column(
+                      children: [
                       _buildSettingItem(
                         context,
                         icon: '📤',
@@ -192,6 +165,7 @@ class ProfilePage extends ConsumerWidget {
                         onTap: () => _showAboutDialog(context),
                       ),
                     ],
+                  ),
                   ),
                 ),
 

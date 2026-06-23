@@ -9,7 +9,7 @@ const kAppThemeVariantPrefKey = 'app_theme_variant';
 
 /// 启动时注入的初始主题（由 main 预加载后 override）
 final initialThemeVariantProvider = Provider<AppThemeVariant>(
-  (ref) => AppThemeVariant.teal,
+  (ref) => AppThemeVariant.defaultVariant,
 );
 
 /// 当前应用主题变体 Provider
@@ -57,7 +57,7 @@ Future<AppThemeVariant> loadInitialThemeVariant() async {
   } catch (e, stack) {
     debugPrint('[Theme] WARN 启动加载主题失败，使用默认: $e');
     debugPrint('[Theme] $stack');
-    AppColors.applyPalette(AppThemeVariant.teal.palette);
-    return AppThemeVariant.teal;
+    AppColors.applyPalette(AppThemeVariant.defaultVariant.palette);
+    return AppThemeVariant.defaultVariant;
   }
 }

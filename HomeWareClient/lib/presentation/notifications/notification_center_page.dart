@@ -20,7 +20,7 @@ class NotificationCenterPage extends ConsumerWidget {
     final unreadCount = unreadCountAsync.value ?? 0;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: const Text('通知中心'),
         actions: [

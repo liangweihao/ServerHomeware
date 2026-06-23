@@ -194,10 +194,10 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: const Text('个人中心'),
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.appBarBackground,
         elevation: 0,
       ),
       body: SafeArea(

@@ -15,9 +15,9 @@ class StatisticsPage extends ConsumerWidget {
     final timeRange = ref.watch(timeRangeProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.appBarBackground,
         title: const Text('数据统计'),
       ),
       body: RefreshIndicator(

@@ -10,6 +10,7 @@ import 'core/router/app_router.dart';
 import 'core/services/notification_scheduler.dart';
 import 'data/database/app_database.dart';
 import 'core/providers/auth_guard.dart';
+import 'presentation/common/widgets/app_theme_background.dart';
 
 /// 全局错误观察者 - 监听 Provider 错误
 class AppProviderObserver extends ProviderObserver {
@@ -81,11 +82,13 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'HomeStock',
-      theme: AppTheme.lightThemeOf(themeVariant.palette),
+      theme: AppTheme.lightThemeOf(themeVariant),
       routerConfig: appRouter,
       locale: const Locale('zh', 'CN'),
       debugShowCheckedModeBanner: false,
-      builder: (context, child) => AuthGuard(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => AppThemeBackground(
+        child: AuthGuard(child: child ?? const SizedBox.shrink()),
+      ),
     );
   }
 }

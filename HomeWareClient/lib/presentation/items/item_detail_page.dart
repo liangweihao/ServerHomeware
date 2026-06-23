@@ -44,7 +44,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     final detailAsync = ref.watch(itemDetailProvider(widget.id));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: const Text('物品详情'),
         actions: [

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_radius.dart';
+import '../../../core/theme/app_decorations.dart';
 
 /// 首页统计卡片：白底 + 左侧语义色条 + Material Icon
 class StatCard extends StatelessWidget {
@@ -26,18 +26,7 @@ class StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+      child: AppSurface(
         clipBehavior: Clip.antiAlias,
         child: IntrinsicHeight(
           child: Row(

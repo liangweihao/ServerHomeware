@@ -332,15 +332,16 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
         ref.watch(itemSortProvider) != AppConstants.sortOptions.first;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.appBarBackground,
         elevation: 0,
         centerTitle: false,
         title: Text(
           '物品',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
+                color: AppColors.appBarForeground,
               ),
         ),
         actions: [

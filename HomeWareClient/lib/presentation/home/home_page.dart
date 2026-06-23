@@ -24,7 +24,7 @@ class HomePage extends ConsumerWidget {
     final statsAsync = ref.watch(homeStatsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.scaffoldBackground,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
@@ -38,7 +38,7 @@ class HomePage extends ConsumerWidget {
             slivers: [
               SliverAppBar(
                 floating: true,
-                backgroundColor: AppColors.background,
+                backgroundColor: AppColors.appBarBackground,
                 elevation: 0,
                 centerTitle: false,
                 title: GestureDetector(
@@ -167,6 +167,7 @@ class HomePage extends ConsumerWidget {
   ) {
     final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w600,
+          color: AppColors.appBarForeground,
         );
 
     return currentFamilyAsync.when(

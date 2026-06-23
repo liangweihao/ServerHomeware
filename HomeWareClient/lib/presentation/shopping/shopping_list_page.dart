@@ -56,9 +56,9 @@ class _ShoppingListPageState extends ConsumerState<ShoppingListPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.appBarBackground,
         title: const Text('购物清单'),
         actions: [
           IconButton(

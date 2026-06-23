@@ -32,9 +32,9 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
     final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.appBarBackground,
         title: const Text('分类管理'),
       ),
       body: categoriesAsync.when(
