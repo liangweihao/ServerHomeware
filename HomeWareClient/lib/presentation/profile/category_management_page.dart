@@ -216,7 +216,7 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
   void _showAddCategoryDialog(BuildContext context) {
     final nameController = TextEditingController();
     String selectedIcon = '📦';
-    String selectedColor = '#2196F3';
+    String selectedColor = AppColors.primaryHex;
 
     showDialog(
       context: context,

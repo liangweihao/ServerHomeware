@@ -600,7 +600,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
                 width: 8,
                 height: 8,
                 margin: const EdgeInsets.only(top: 6),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.primary,
                   shape: BoxShape.circle,
                 ),
@@ -725,7 +725,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('确认', style: TextStyle(color: AppColors.primary)),
+            child: Text('确认', style: TextStyle(color: AppColors.primary)),
           ),
         ],
       ),

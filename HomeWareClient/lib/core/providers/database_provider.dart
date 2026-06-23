@@ -30,7 +30,7 @@ final itemByIdProvider = FutureProvider.family<Item?, int>((ref, id) async {
   return db.getItemById(id);
 });
 
-// 提醒数量 Provider
+// 提醒数量（四类合计，兼容旧引用；Badge 请用 unreadAlertCountProvider）
 final alertCountProvider = FutureProvider<int>((ref) async {
   final db = ref.watch(databaseProvider);
   return db.getAlertCount();

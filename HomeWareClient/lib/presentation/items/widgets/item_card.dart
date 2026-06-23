@@ -8,12 +8,18 @@ import 'item_image_tile.dart';
 class ItemCard extends StatefulWidget {
   final Item item;
   final String? locationName;
+  /// 分类名称（列表页展示小标签）
+  final String? categoryName;
+  /// 分类色值，如 #FF8A65
+  final String? categoryColorHex;
   final VoidCallback? onTap;
 
   const ItemCard({
     super.key,
     required this.item,
     this.locationName,
+    this.categoryName,
+    this.categoryColorHex,
     this.onTap,
   });
 
@@ -45,8 +51,8 @@ class _ItemCardState extends State<ItemCard> {
             borderRadius: BorderRadius.circular(AppRadius.lg),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity( 0.05),
-                blurRadius: _isPressed ? 5 : 10,
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: _isPressed ? 4 : 8,
                 offset: Offset(0, _isPressed ? 1 : 2),
               ),
             ],
@@ -60,13 +66,23 @@ class _ItemCardState extends State<ItemCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.item.name,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w500,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.item.name,
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                        ),
+                        if (widget.categoryName != null) ...[
+                          const SizedBox(width: 8),
+                          _buildCategoryTag(widget.categoryName!, widget.categoryColorHex),
+                        ],
+                      ],
                     ),
                     if (widget.item.brand != null) ...[
                       const SizedBox(height: 2),
@@ -184,6 +200,33 @@ class _ItemCardState extends State<ItemCard> {
     );
   }
 
+  /// 分类色小标签（列表页）
+  Widget _buildCategoryTag(String name, String? colorHex) {
+    final color = _parseHexColor(colorHex) ?? AppColors.textSecondary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        name,
+        style: TextStyle(
+          fontSize: 10,
+          color: color,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Color? _parseHexColor(String? hex) {
+    if (hex == null || hex.isEmpty) return null;
+    final normalized = hex.replaceFirst('#', '');
+    if (normalized.length != 6) return null;
+    return Color(int.parse('FF$normalized', radix: 16));
+  }
+
   Widget _buildExpiryBadge(BuildContext context) {
     final now = DateTime.now();
     final expiryDate = widget.item.expiryDate;
@@ -212,7 +255,7 @@ class _ItemCardState extends State<ItemCard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: badgeColor.withOpacity( 0.1),
+        color: badgeColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(

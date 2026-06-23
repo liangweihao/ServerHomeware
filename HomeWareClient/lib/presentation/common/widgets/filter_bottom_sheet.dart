@@ -287,13 +287,16 @@ class _ChoiceChip extends StatelessWidget {
       label: Text(label),
       selected: isSelected,
       onSelected: onSelected,
-      selectedColor: AppColors.primary.withOpacity(0.15),
-      checkmarkColor: AppColors.primary,
-      backgroundColor: AppColors.primary.withOpacity(0.05),
+      selectedColor: AppColors.primaryLighter,
+      checkmarkColor: AppColors.primaryDark,
+      backgroundColor: AppColors.gray100,
       labelStyle: TextStyle(
-        color: isSelected ? AppColors.primary : AppColors.textSecondary,
+        color: isSelected ? AppColors.primaryDark : AppColors.textSecondary,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
       ),
-      side: BorderSide.none,
+      side: isSelected
+          ? BorderSide(color: AppColors.primary.withOpacity(0.35))
+          : BorderSide.none,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     );
   }

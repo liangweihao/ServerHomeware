@@ -125,7 +125,7 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline, color: AppColors.info),
+                Icon(Icons.info_outline, color: AppColors.info),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(

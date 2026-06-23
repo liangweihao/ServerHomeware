@@ -4214,6 +4214,402 @@ class FamilyMembersCompanion extends UpdateCompanion<FamilyMember> {
   }
 }
 
+class $AlertReadStatesTable extends AlertReadStates
+    with TableInfo<$AlertReadStatesTable, AlertReadState> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AlertReadStatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<int> itemId = GeneratedColumn<int>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _alertTypeMeta = const VerificationMeta(
+    'alertType',
+  );
+  @override
+  late final GeneratedColumn<String> alertType = GeneratedColumn<String>(
+    'alert_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _familyIdMeta = const VerificationMeta(
+    'familyId',
+  );
+  @override
+  late final GeneratedColumn<int> familyId = GeneratedColumn<int>(
+    'family_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _readAtMeta = const VerificationMeta('readAt');
+  @override
+  late final GeneratedColumn<DateTime> readAt = GeneratedColumn<DateTime>(
+    'read_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ignoredMeta = const VerificationMeta(
+    'ignored',
+  );
+  @override
+  late final GeneratedColumn<bool> ignored = GeneratedColumn<bool>(
+    'ignored',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("ignored" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    itemId,
+    alertType,
+    familyId,
+    readAt,
+    ignored,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'alert_read_states';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AlertReadState> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('alert_type')) {
+      context.handle(
+        _alertTypeMeta,
+        alertType.isAcceptableOrUnknown(data['alert_type']!, _alertTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_alertTypeMeta);
+    }
+    if (data.containsKey('family_id')) {
+      context.handle(
+        _familyIdMeta,
+        familyId.isAcceptableOrUnknown(data['family_id']!, _familyIdMeta),
+      );
+    }
+    if (data.containsKey('read_at')) {
+      context.handle(
+        _readAtMeta,
+        readAt.isAcceptableOrUnknown(data['read_at']!, _readAtMeta),
+      );
+    }
+    if (data.containsKey('ignored')) {
+      context.handle(
+        _ignoredMeta,
+        ignored.isAcceptableOrUnknown(data['ignored']!, _ignoredMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AlertReadState map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AlertReadState(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}item_id'],
+      )!,
+      alertType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}alert_type'],
+      )!,
+      familyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}family_id'],
+      )!,
+      readAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}read_at'],
+      ),
+      ignored: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}ignored'],
+      )!,
+    );
+  }
+
+  @override
+  $AlertReadStatesTable createAlias(String alias) {
+    return $AlertReadStatesTable(attachedDatabase, alias);
+  }
+}
+
+class AlertReadState extends DataClass implements Insertable<AlertReadState> {
+  final int id;
+  final int itemId;
+  final String alertType;
+  final int familyId;
+  final DateTime? readAt;
+  final bool ignored;
+  const AlertReadState({
+    required this.id,
+    required this.itemId,
+    required this.alertType,
+    required this.familyId,
+    this.readAt,
+    required this.ignored,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['item_id'] = Variable<int>(itemId);
+    map['alert_type'] = Variable<String>(alertType);
+    map['family_id'] = Variable<int>(familyId);
+    if (!nullToAbsent || readAt != null) {
+      map['read_at'] = Variable<DateTime>(readAt);
+    }
+    map['ignored'] = Variable<bool>(ignored);
+    return map;
+  }
+
+  AlertReadStatesCompanion toCompanion(bool nullToAbsent) {
+    return AlertReadStatesCompanion(
+      id: Value(id),
+      itemId: Value(itemId),
+      alertType: Value(alertType),
+      familyId: Value(familyId),
+      readAt: readAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(readAt),
+      ignored: Value(ignored),
+    );
+  }
+
+  factory AlertReadState.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AlertReadState(
+      id: serializer.fromJson<int>(json['id']),
+      itemId: serializer.fromJson<int>(json['itemId']),
+      alertType: serializer.fromJson<String>(json['alertType']),
+      familyId: serializer.fromJson<int>(json['familyId']),
+      readAt: serializer.fromJson<DateTime?>(json['readAt']),
+      ignored: serializer.fromJson<bool>(json['ignored']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'itemId': serializer.toJson<int>(itemId),
+      'alertType': serializer.toJson<String>(alertType),
+      'familyId': serializer.toJson<int>(familyId),
+      'readAt': serializer.toJson<DateTime?>(readAt),
+      'ignored': serializer.toJson<bool>(ignored),
+    };
+  }
+
+  AlertReadState copyWith({
+    int? id,
+    int? itemId,
+    String? alertType,
+    int? familyId,
+    Value<DateTime?> readAt = const Value.absent(),
+    bool? ignored,
+  }) => AlertReadState(
+    id: id ?? this.id,
+    itemId: itemId ?? this.itemId,
+    alertType: alertType ?? this.alertType,
+    familyId: familyId ?? this.familyId,
+    readAt: readAt.present ? readAt.value : this.readAt,
+    ignored: ignored ?? this.ignored,
+  );
+  AlertReadState copyWithCompanion(AlertReadStatesCompanion data) {
+    return AlertReadState(
+      id: data.id.present ? data.id.value : this.id,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      alertType: data.alertType.present ? data.alertType.value : this.alertType,
+      familyId: data.familyId.present ? data.familyId.value : this.familyId,
+      readAt: data.readAt.present ? data.readAt.value : this.readAt,
+      ignored: data.ignored.present ? data.ignored.value : this.ignored,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AlertReadState(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('alertType: $alertType, ')
+          ..write('familyId: $familyId, ')
+          ..write('readAt: $readAt, ')
+          ..write('ignored: $ignored')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, itemId, alertType, familyId, readAt, ignored);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AlertReadState &&
+          other.id == this.id &&
+          other.itemId == this.itemId &&
+          other.alertType == this.alertType &&
+          other.familyId == this.familyId &&
+          other.readAt == this.readAt &&
+          other.ignored == this.ignored);
+}
+
+class AlertReadStatesCompanion extends UpdateCompanion<AlertReadState> {
+  final Value<int> id;
+  final Value<int> itemId;
+  final Value<String> alertType;
+  final Value<int> familyId;
+  final Value<DateTime?> readAt;
+  final Value<bool> ignored;
+  const AlertReadStatesCompanion({
+    this.id = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.alertType = const Value.absent(),
+    this.familyId = const Value.absent(),
+    this.readAt = const Value.absent(),
+    this.ignored = const Value.absent(),
+  });
+  AlertReadStatesCompanion.insert({
+    this.id = const Value.absent(),
+    required int itemId,
+    required String alertType,
+    this.familyId = const Value.absent(),
+    this.readAt = const Value.absent(),
+    this.ignored = const Value.absent(),
+  }) : itemId = Value(itemId),
+       alertType = Value(alertType);
+  static Insertable<AlertReadState> custom({
+    Expression<int>? id,
+    Expression<int>? itemId,
+    Expression<String>? alertType,
+    Expression<int>? familyId,
+    Expression<DateTime>? readAt,
+    Expression<bool>? ignored,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (itemId != null) 'item_id': itemId,
+      if (alertType != null) 'alert_type': alertType,
+      if (familyId != null) 'family_id': familyId,
+      if (readAt != null) 'read_at': readAt,
+      if (ignored != null) 'ignored': ignored,
+    });
+  }
+
+  AlertReadStatesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? itemId,
+    Value<String>? alertType,
+    Value<int>? familyId,
+    Value<DateTime?>? readAt,
+    Value<bool>? ignored,
+  }) {
+    return AlertReadStatesCompanion(
+      id: id ?? this.id,
+      itemId: itemId ?? this.itemId,
+      alertType: alertType ?? this.alertType,
+      familyId: familyId ?? this.familyId,
+      readAt: readAt ?? this.readAt,
+      ignored: ignored ?? this.ignored,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<int>(itemId.value);
+    }
+    if (alertType.present) {
+      map['alert_type'] = Variable<String>(alertType.value);
+    }
+    if (familyId.present) {
+      map['family_id'] = Variable<int>(familyId.value);
+    }
+    if (readAt.present) {
+      map['read_at'] = Variable<DateTime>(readAt.value);
+    }
+    if (ignored.present) {
+      map['ignored'] = Variable<bool>(ignored.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AlertReadStatesCompanion(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('alertType: $alertType, ')
+          ..write('familyId: $familyId, ')
+          ..write('readAt: $readAt, ')
+          ..write('ignored: $ignored')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4223,6 +4619,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UsageRecordsTable usageRecords = $UsageRecordsTable(this);
   late final $ShoppingListTable shoppingList = $ShoppingListTable(this);
   late final $FamilyMembersTable familyMembers = $FamilyMembersTable(this);
+  late final $AlertReadStatesTable alertReadStates = $AlertReadStatesTable(
+    this,
+  );
+  late final Index alertReadUnique = Index(
+    'alert_read_unique',
+    'CREATE UNIQUE INDEX alert_read_unique ON alert_read_states (item_id, alert_type, family_id)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4234,6 +4637,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     usageRecords,
     shoppingList,
     familyMembers,
+    alertReadStates,
+    alertReadUnique,
   ];
 }
 
@@ -6217,6 +6622,225 @@ typedef $$FamilyMembersTableProcessedTableManager =
       FamilyMember,
       PrefetchHooks Function()
     >;
+typedef $$AlertReadStatesTableCreateCompanionBuilder =
+    AlertReadStatesCompanion Function({
+      Value<int> id,
+      required int itemId,
+      required String alertType,
+      Value<int> familyId,
+      Value<DateTime?> readAt,
+      Value<bool> ignored,
+    });
+typedef $$AlertReadStatesTableUpdateCompanionBuilder =
+    AlertReadStatesCompanion Function({
+      Value<int> id,
+      Value<int> itemId,
+      Value<String> alertType,
+      Value<int> familyId,
+      Value<DateTime?> readAt,
+      Value<bool> ignored,
+    });
+
+class $$AlertReadStatesTableFilterComposer
+    extends Composer<_$AppDatabase, $AlertReadStatesTable> {
+  $$AlertReadStatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get alertType => $composableBuilder(
+    column: $table.alertType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get familyId => $composableBuilder(
+    column: $table.familyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get readAt => $composableBuilder(
+    column: $table.readAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get ignored => $composableBuilder(
+    column: $table.ignored,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AlertReadStatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $AlertReadStatesTable> {
+  $$AlertReadStatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get alertType => $composableBuilder(
+    column: $table.alertType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get familyId => $composableBuilder(
+    column: $table.familyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get readAt => $composableBuilder(
+    column: $table.readAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get ignored => $composableBuilder(
+    column: $table.ignored,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AlertReadStatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AlertReadStatesTable> {
+  $$AlertReadStatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get alertType =>
+      $composableBuilder(column: $table.alertType, builder: (column) => column);
+
+  GeneratedColumn<int> get familyId =>
+      $composableBuilder(column: $table.familyId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get readAt =>
+      $composableBuilder(column: $table.readAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get ignored =>
+      $composableBuilder(column: $table.ignored, builder: (column) => column);
+}
+
+class $$AlertReadStatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AlertReadStatesTable,
+          AlertReadState,
+          $$AlertReadStatesTableFilterComposer,
+          $$AlertReadStatesTableOrderingComposer,
+          $$AlertReadStatesTableAnnotationComposer,
+          $$AlertReadStatesTableCreateCompanionBuilder,
+          $$AlertReadStatesTableUpdateCompanionBuilder,
+          (
+            AlertReadState,
+            BaseReferences<
+              _$AppDatabase,
+              $AlertReadStatesTable,
+              AlertReadState
+            >,
+          ),
+          AlertReadState,
+          PrefetchHooks Function()
+        > {
+  $$AlertReadStatesTableTableManager(
+    _$AppDatabase db,
+    $AlertReadStatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AlertReadStatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AlertReadStatesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AlertReadStatesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> itemId = const Value.absent(),
+                Value<String> alertType = const Value.absent(),
+                Value<int> familyId = const Value.absent(),
+                Value<DateTime?> readAt = const Value.absent(),
+                Value<bool> ignored = const Value.absent(),
+              }) => AlertReadStatesCompanion(
+                id: id,
+                itemId: itemId,
+                alertType: alertType,
+                familyId: familyId,
+                readAt: readAt,
+                ignored: ignored,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int itemId,
+                required String alertType,
+                Value<int> familyId = const Value.absent(),
+                Value<DateTime?> readAt = const Value.absent(),
+                Value<bool> ignored = const Value.absent(),
+              }) => AlertReadStatesCompanion.insert(
+                id: id,
+                itemId: itemId,
+                alertType: alertType,
+                familyId: familyId,
+                readAt: readAt,
+                ignored: ignored,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AlertReadStatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AlertReadStatesTable,
+      AlertReadState,
+      $$AlertReadStatesTableFilterComposer,
+      $$AlertReadStatesTableOrderingComposer,
+      $$AlertReadStatesTableAnnotationComposer,
+      $$AlertReadStatesTableCreateCompanionBuilder,
+      $$AlertReadStatesTableUpdateCompanionBuilder,
+      (
+        AlertReadState,
+        BaseReferences<_$AppDatabase, $AlertReadStatesTable, AlertReadState>,
+      ),
+      AlertReadState,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6233,4 +6857,6 @@ class $AppDatabaseManager {
       $$ShoppingListTableTableManager(_db, _db.shoppingList);
   $$FamilyMembersTableTableManager get familyMembers =>
       $$FamilyMembersTableTableManager(_db, _db.familyMembers);
+  $$AlertReadStatesTableTableManager get alertReadStates =>
+      $$AlertReadStatesTableTableManager(_db, _db.alertReadStates);
 }

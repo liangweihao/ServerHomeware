@@ -25,6 +25,7 @@ class AddItemPage extends ConsumerStatefulWidget {
 class _AddItemPageState extends ConsumerState<AddItemPage> {
   late final ItemFormController _form;
   bool _isSaving = false;
+  int _formResetKey = 0;
 
   @override
   void initState() {
@@ -51,6 +52,7 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
     final saved = await _saveItem();
     if (saved && mounted) {
       _form.resetForNewEntry();
+      setState(() => _formResetKey++);
       _notifyFormChanged();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('保存成功！继续添加下一个')),
@@ -241,20 +243,24 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: ItemFormView(
-                  controller: _form,
-                  onChanged: _notifyFormChanged,
+      body: ColoredBox(
+        color: AppColors.gray50,
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: ItemFormView(
+                    key: ValueKey(_formResetKey),
+                    controller: _form,
+                    onChanged: _notifyFormChanged,
+                  ),
                 ),
               ),
-            ),
-            _buildBottomButtons(),
-          ],
+              _buildBottomButtons(),
+            ],
+          ),
         ),
       ),
     );

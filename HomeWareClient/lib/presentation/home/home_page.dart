@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/providers/alert_provider.dart';
 import '../../core/providers/home_provider.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/family_provider.dart';
@@ -12,6 +13,7 @@ import '../common/widgets/shimmer_loading.dart';
 import 'widgets/stat_card.dart';
 import 'widgets/space_card.dart';
 import 'widgets/activity_item.dart';
+import 'widgets/today_alert_banner.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -19,150 +21,142 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentFamilyAsync = ref.watch(currentFamilyProvider);
+    final statsAsync = ref.watch(homeStatsProvider);
 
     return Scaffold(
-        backgroundColor: AppColors.background,
-        body: SafeArea(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(currentFamilyProvider);
-              ref.invalidate(homeStatsProvider);
-              ref.invalidate(spacesProvider);
-              ref.invalidate(recentActivitiesProvider);
-            },
-            child: CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  floating: true,
-                  backgroundColor: AppColors.background,
-                  elevation: 0,
-                  title: Row(
-                    children: [
-                      const Text(
-                        '🏠',
-                        style: TextStyle(fontSize: 24),
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: _buildFamilyTitle(context, currentFamilyAsync),
-                      ),
-                    ],
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(currentFamilyProvider);
+            ref.invalidate(homeStatsProvider);
+            ref.invalidate(spacesProvider);
+            ref.invalidate(recentActivitiesProvider);
+            invalidateAlertProviders(ref);
+          },
+          child: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                floating: true,
+                backgroundColor: AppColors.background,
+                elevation: 0,
+                centerTitle: false,
+                title: GestureDetector(
+                  onTap: () {
+                    debugPrint('[HomePage] INFO: 打开用户面板');
+                    context.push('/profile/panel');
+                  },
+                  child: _buildFamilyTitle(context, currentFamilyAsync),
+                ),
+                actions: [
+                  IconButton(
+                    onPressed: () => context.push('/search'),
+                    icon: const Icon(Icons.search),
+                    tooltip: '搜索',
                   ),
-                  actions: [
-                    IconButton(
-                      onPressed: () => context.push('/search'),
-                      icon: const Icon(Icons.search),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: Stack(
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('暂无新通知')),
-                              );
-                            },
-                            icon: const Icon(Icons.notifications),
-                          ),
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: AppColors.danger,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                        ],
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final unreadAsync = ref.watch(unreadAlertCountProvider);
+                      final unreadCount = unreadAsync.value ?? 0;
+                      return Badge(
+                        label: unreadCount > 0 ? Text('$unreadCount') : null,
+                        isLabelVisible: unreadCount > 0,
+                        child: IconButton(
+                          onPressed: () {
+                            debugPrint('[HomePage] INFO: 打开通知中心');
+                            context.push('/notifications');
+                          },
+                          icon: const Icon(Icons.notifications_outlined),
+                          tooltip: '通知中心',
+                        ),
+                      );
+                    },
+                  ),
+                  _buildAvatarButton(context, ref),
+                ],
+              ),
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    statsAsync.when(
+                      data: (stats) => TodayAlertBanner(
+                        stats: stats,
+                        onTap: () {
+                          debugPrint('[HomePage] INFO: 今日待办条 -> 通知中心');
+                          context.push('/notifications');
+                        },
                       ),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
                     ),
-                    _buildAvatarButton(context, ref),
+                    _buildSectionHeader(context, title: '需要关注'),
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _buildStatsGrid(context, ref, statsAsync),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader(
+                      context,
+                      title: '快捷查看',
+                      actionLabel: '全部空间',
+                      onAction: () => context.push('/locations'),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSpacesList(context, ref),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader(
+                      context,
+                      title: '最近动态',
+                      actionLabel: '查看全部',
+                      onAction: () {
+                        debugPrint('[HomePage] INFO: 查看全部动态（待实现列表页）');
+                      },
+                    ),
+                    _buildActivitiesList(context, ref),
+                    const SizedBox(height: 24),
                   ],
                 ),
-                SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: [
-                            const Text('⚠️ ', style: TextStyle(fontSize: 18)),
-                            Text(
-                              '需要关注',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: _buildStatsGrid(context, ref),
-                      ),
-                      const SizedBox(height: 24),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: [
-                            const Text('📍 ', style: TextStyle(fontSize: 18)),
-                            Text(
-                              '快捷查看',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildSpacesList(context, ref),
-                      const SizedBox(height: 24),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  const Text('📅 ', style: TextStyle(fontSize: 18)),
-                                  Flexible(
-                                    child: Text(
-                                      '最近动态',
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            TextButton(
-                              onPressed: () {},
-                              child: const Text('查看全部 →'),
-                            ),
-                          ],
-                        ),
-                      ),
-                      _buildActivitiesList(context, ref),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(
+    BuildContext context, {
+    required String title,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          if (actionLabel != null && onAction != null)
+            TextButton(
+              onPressed: onAction,
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text('$actionLabel →'),
+            ),
+        ],
+      ),
     );
   }
 
@@ -172,7 +166,7 @@ class HomePage extends ConsumerWidget {
     AsyncValue<Map<String, dynamic>?> currentFamilyAsync,
   ) {
     final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
         );
 
     return currentFamilyAsync.when(
@@ -203,9 +197,11 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatsGrid(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(homeStatsProvider);
-
+  Widget _buildStatsGrid(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<HomeStats> statsAsync,
+  ) {
     return statsAsync.when(
       data: (stats) {
         return GridView.count(
@@ -217,34 +213,35 @@ class HomePage extends ConsumerWidget {
           childAspectRatio: 1.38,
           children: [
             StatCard(
-              emoji: '🔴',
+              icon: Icons.schedule_outlined,
+              accentColor: AppColors.danger,
               title: '即将过期',
               count: '${stats.expiringCount}件',
               subtitle: stats.latestExpiringItem != null
                   ? '最近：${stats.latestExpiringItem}'
                   : null,
               onTap: () => context.push('/alerts'),
-              backgroundColor: AppColors.dangerLight,
             ),
             StatCard(
-              emoji: '📦',
+              icon: Icons.inventory_2_outlined,
+              accentColor: AppColors.warning,
               title: '库存不足',
               count: '${stats.lowStockCount}件',
               subtitle: stats.latestLowStockItem != null
                   ? '最近：${stats.latestLowStockItem}'
                   : null,
               onTap: () => context.push('/alerts'),
-              backgroundColor: AppColors.warningLight,
             ),
             StatCard(
-              emoji: '🛒',
+              icon: Icons.shopping_cart_outlined,
+              accentColor: AppColors.primary,
               title: '待购清单',
               count: '${stats.shoppingCount}项',
               onTap: () => context.push('/shopping'),
-              backgroundColor: AppColors.infoLight,
             ),
             StatCard(
-              emoji: '📊',
+              icon: Icons.payments_outlined,
+              accentColor: AppColors.success,
               title: '本月消费',
               count: '¥${stats.monthlyExpense.toStringAsFixed(2)}',
               subtitle: () {
@@ -254,7 +251,6 @@ class HomePage extends ConsumerWidget {
                 return '比上月 $prefix${change.abs().toStringAsFixed(0)}%';
               }(),
               onTap: () => context.push('/statistics'),
-              backgroundColor: AppColors.successLight,
             ),
           ],
         );
@@ -265,23 +261,20 @@ class HomePage extends ConsumerWidget {
         physics: const NeverScrollableScrollPhysics(),
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-          childAspectRatio: 1.38,
-          children: const [
-            ShimmerStatCard(),
+        childAspectRatio: 1.38,
+        children: const [
+          ShimmerStatCard(),
           ShimmerStatCard(),
           ShimmerStatCard(),
           ShimmerStatCard(),
         ],
       ),
-      error: (error, stack) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: AppEmptyState(
-          icon: '❌',
-          title: '加载失败',
-          subtitle: error.toString(),
-          actionLabel: '重试',
-          onAction: () => ref.invalidate(homeStatsProvider),
-        ),
+      error: (error, stack) => AppEmptyState(
+        icon: '❌',
+        title: '加载失败',
+        subtitle: error.toString(),
+        actionLabel: '重试',
+        onAction: () => ref.invalidate(homeStatsProvider),
       ),
     );
   }
@@ -296,9 +289,7 @@ class HomePage extends ConsumerWidget {
             height: 120,
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Center(
-                child: Text('暂无空间'),
-              ),
+              child: Center(child: Text('暂无空间')),
             ),
           );
         }
@@ -325,18 +316,14 @@ class HomePage extends ConsumerWidget {
         height: 120,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Center(
-            child: CircularProgressIndicator(),
-          ),
+          child: Center(child: CircularProgressIndicator()),
         ),
       ),
       error: (error, stack) => const SizedBox(
         height: 120,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Center(
-            child: Text('加载失败'),
-          ),
+          child: Center(child: Text('加载失败')),
         ),
       ),
     );
@@ -348,8 +335,8 @@ class HomePage extends ConsumerWidget {
     return activitiesAsync.when(
       data: (activities) {
         if (activities.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
             child: AppEmptyState(
               icon: '📝',
               title: '暂无动态',
@@ -363,15 +350,24 @@ class HomePage extends ConsumerWidget {
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             children: activities
-                .map((activity) => ActivityItem(
-                      activity: activity,
-                      onTap: activity.itemId != null
-                          ? () => context.push('/items/${activity.itemId}')
-                          : null,
-                    ))
+                .map(
+                  (activity) => ActivityItem(
+                    activity: activity,
+                    onTap: activity.itemId != null
+                        ? () => context.push('/items/${activity.itemId}')
+                        : null,
+                  ),
+                )
                 .toList(),
           ),
         );

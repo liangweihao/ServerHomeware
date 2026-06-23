@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/providers/database_provider.dart';
+import '../../../core/providers/alert_provider.dart';
 
 
 class MainScaffold extends StatefulWidget {
@@ -54,7 +54,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         body: widget.child,
         bottomNavigationBar: Consumer(
           builder: (context, ref, child) {
-            final alertCountAsync = ref.watch(alertCountProvider);
+            final alertCountAsync = ref.watch(unreadAlertCountProvider);
             final alertCount = alertCountAsync.value ?? 0;
             
             return BottomNavigationBar(

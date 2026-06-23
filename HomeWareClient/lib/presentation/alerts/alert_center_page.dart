@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart';
 import '../../core/events/item_event_bus.dart';
+import '../../core/models/alert_tab.dart';
+import '../../core/providers/alert_provider.dart';
 import '../../core/providers/database_provider.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_empty_state.dart';
 import 'widgets/alert_card.dart';
 
-enum AlertTab { all, expiry, stock, restock, warranty }
+export '../../core/models/alert_tab.dart';
 
 class AlertCenterPage extends ConsumerStatefulWidget {
   const AlertCenterPage({super.key});
@@ -20,26 +21,11 @@ class AlertCenterPage extends ConsumerStatefulWidget {
 class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  AlertTab _currentTab = AlertTab.all;
-  Set<int> _ignoredItems = {};
-
-  final _tabLabels = const {
-    AlertTab.all: '全部',
-    AlertTab.expiry: '过期',
-    AlertTab.stock: '库存',
-    AlertTab.restock: '补购',
-    AlertTab.warranty: '其他',
-  };
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
-    _tabController.addListener(() {
-      setState(() {
-        _currentTab = AlertTab.values[_tabController.index];
-      });
-    });
   }
 
   @override
@@ -48,53 +34,10 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
     super.dispose();
   }
 
-  Future<List<(Item, AlertType)>> _getAlerts(WidgetRef ref) async {
-    final db = ref.read(databaseProvider);
-    final List<(Item, AlertType)> alerts = [];
-
-    switch (_currentTab) {
-      case AlertTab.all:
-        final expiryAlerts = await db.getExpiryAlerts();
-        alerts.addAll(expiryAlerts.map((item) => (item, AlertType.expiry)));
-        
-        final stockAlerts = await db.getStockAlerts();
-        alerts.addAll(stockAlerts.map((item) => (item, AlertType.stock)));
-        
-        final restockAlerts = await db.getRestockAlerts();
-        alerts.addAll(restockAlerts.map((item) => (item, AlertType.restock)));
-        
-        final warrantyAlerts = await db.getWarrantyAlerts();
-        alerts.addAll(warrantyAlerts.map((item) => (item, AlertType.warranty)));
-        break;
-
-      case AlertTab.expiry:
-        final items = await db.getExpiryAlerts();
-        alerts.addAll(items.map((item) => (item, AlertType.expiry)));
-        break;
-
-      case AlertTab.stock:
-        final items = await db.getStockAlerts();
-        alerts.addAll(items.map((item) => (item, AlertType.stock)));
-        break;
-
-      case AlertTab.restock:
-        final items = await db.getRestockAlerts();
-        alerts.addAll(items.map((item) => (item, AlertType.restock)));
-        break;
-
-      case AlertTab.warranty:
-        final items = await db.getWarrantyAlerts();
-        alerts.addAll(items.map((item) => (item, AlertType.warranty)));
-        break;
-    }
-
-    return alerts.where((a) => !_ignoredItems.contains(a.$1.id)).toList();
-  }
-
-  void _markAsUsed(Item item, WidgetRef ref) async {
+  void _markAsUsed(Item item) async {
     final db = ref.read(databaseProvider);
     final newQuantity = item.currentQuantity - 1;
-    
+
     await db.updateItem(item.copyWith(
       currentQuantity: newQuantity,
       status: newQuantity <= 0 ? 1 : item.status,
@@ -108,8 +51,8 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
       remainingQuantity: newQuantity,
     ));
 
-    // 通知事件总线：物品使用量已更新
     ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
+    invalidateAlertProviders(ref);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -118,9 +61,9 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
     }
   }
 
-  void _markAsDiscarded(Item item, WidgetRef ref) async {
+  void _markAsDiscarded(Item item) async {
     final db = ref.read(databaseProvider);
-    
+
     await db.updateItem(item.copyWith(
       status: 3,
       updatedAt: DateTime.now(),
@@ -133,8 +76,8 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
       remainingQuantity: 0,
     ));
 
-    // 通知事件总线：物品已丢弃
     ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
+    invalidateAlertProviders(ref);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -143,15 +86,16 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
     }
   }
 
-  void _addToShoppingList(Item item, WidgetRef ref) async {
+  void _addToShoppingList(Item item) async {
     final db = ref.read(databaseProvider);
-    
+
     await db.insertShoppingListItem(ShoppingListCompanion.insert(
       name: item.name,
       relatedItemId: Value(item.id),
       quantity: Value(item.purchaseQuantity.toDouble()),
       unit: Value(item.unit),
-      estimatedPrice: item.purchasePrice != null ? Value(item.purchasePrice!) : const Value.absent(),
+      estimatedPrice:
+          item.purchasePrice != null ? Value(item.purchasePrice!) : const Value.absent(),
       isAutoGenerated: const Value(true),
     ));
 
@@ -162,19 +106,13 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
     }
   }
 
-  void _ignoreAlert(int itemId) {
-    setState(() {
-      _ignoredItems.add(itemId);
-    });
-  }
-
-  void _markAllAsRead() {
-    setState(() {
-      _ignoredItems.clear();
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('已标记所有提醒为已读')),
-    );
+  Future<void> _markAllAsRead() async {
+    await markAllAlertsReadAction(ref);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('已标记所有提醒为已读')),
+      );
+    }
   }
 
   @override
@@ -190,7 +128,7 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
         ],
         bottom: TabBar(
           controller: _tabController,
-          tabs: _tabLabels.values.map((label) => Tab(text: label)).toList(),
+          tabs: alertTabLabels.values.map((label) => Tab(text: label)).toList(),
           indicatorColor: Theme.of(context).primaryColor,
           labelColor: Theme.of(context).primaryColor,
           unselectedLabelColor: Theme.of(context).hintColor,
@@ -199,52 +137,50 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
       body: TabBarView(
         controller: _tabController,
         children: [
-          for (final tab in AlertTab.values)
-            _buildAlertList(context),
+          for (final tab in AlertTab.values) _buildAlertList(tab),
         ],
       ),
     );
   }
 
-  Widget _buildAlertList(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        return FutureBuilder<List<(Item, AlertType)>>(
-          future: _getAlerts(ref),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            final alerts = snapshot.data!;
-            
-            if (alerts.isEmpty) {
-              return AppEmptyState(
-                icon: '😊',
-                title: '一切安好',
-                subtitle: '没有待处理的提醒',
-              );
-            }
+  Widget _buildAlertList(AlertTab tab) {
+    final alertsAsync = ref.watch(alertListProvider(tab));
 
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: alerts.length,
-              itemBuilder: (context, index) {
-                final (item, type) = alerts[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: AlertCard(
-                    item: item,
-                    type: type,
-                    onUse: type == AlertType.expiry ? () => _markAsUsed(item, ref) : null,
-                    onDiscard: type == AlertType.expiry ? () => _markAsDiscarded(item, ref) : null,
-                    onAddToShopping: (type == AlertType.stock || type == AlertType.restock) 
-                        ? () => _addToShoppingList(item, ref) 
-                        : null,
-                    onAcknowledge: type == AlertType.warranty ? () => _ignoreAlert(item.id) : null,
-                    onIgnore: type == AlertType.expiry ? () => _ignoreAlert(item.id) : null,
-                  ),
-                );
-              },
+    return alertsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(child: Text('加载失败: $error')),
+      data: (alerts) {
+        if (alerts.isEmpty) {
+          return const AppEmptyState(
+            icon: '😊',
+            title: '一切安好',
+            subtitle: '没有待处理的提醒',
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: alerts.length,
+          itemBuilder: (context, index) {
+            final (item, type) = alerts[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: AlertCard(
+                item: item,
+                type: type,
+                onUse: type == AlertType.expiry ? () => _markAsUsed(item) : null,
+                onDiscard:
+                    type == AlertType.expiry ? () => _markAsDiscarded(item) : null,
+                onAddToShopping: (type == AlertType.stock || type == AlertType.restock)
+                    ? () => _addToShoppingList(item)
+                    : null,
+                onAcknowledge: type == AlertType.warranty
+                    ? () => ignoreAlertAction(ref, item.id, type)
+                    : null,
+                onIgnore: type == AlertType.expiry
+                    ? () => ignoreAlertAction(ref, item.id, type)
+                    : null,
+              ),
             );
           },
         );

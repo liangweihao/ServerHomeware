@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/constants/app_colors.dart';
 import '../../core/events/item_event_bus.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/providers/item_detail_provider.dart';
@@ -167,30 +168,33 @@ class _EditItemPageState extends ConsumerState<EditItemPage> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: ItemFormView(
-                  controller: _form,
-                  onChanged: _notifyFormChanged,
-                  isEditMode: true,
+      body: ColoredBox(
+        color: AppColors.gray50,
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: ItemFormView(
+                    controller: _form,
+                    onChanged: _notifyFormChanged,
+                    isEditMode: true,
+                  ),
                 ),
               ),
-            ),
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: AppButton(
-                  label: '保存修改',
-                  onPressed: _isSaving ? null : _save,
-                  isFullWidth: true,
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: AppButton(
+                    label: '保存修改',
+                    onPressed: _isSaving ? null : _save,
+                    isFullWidth: true,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

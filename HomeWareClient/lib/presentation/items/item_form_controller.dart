@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Value;
 import '../../core/constants/app_constants.dart';
 import '../../core/utils/item_image_storage.dart';
 import '../../data/database/app_database.dart';
+import 'category_form_policy.dart';
 
 /// 添加/编辑物品表单共享状态
 class ItemFormController {
@@ -36,6 +37,39 @@ class ItemFormController {
   /// 编辑模式：当前剩余（只读展示，保存时不改）
   double? editCurrentQuantity;
 
+  /// 首屏单位下拉显示值（包装单位或基本单位）
+  String get displayUnit => packageUnit ?? unit;
+
+  bool get usesPackageLikeUnit =>
+      CategoryFormPolicy.packageLikeUnits.contains(displayUnit);
+
+  /// 切换首屏单位并同步 package_unit / unit
+  void setDisplayUnit(String value) {
+    if (CategoryFormPolicy.packageLikeUnits.contains(value)) {
+      packageUnit = value;
+      if (CategoryFormPolicy.packageLikeUnits.contains(unit)) {
+        unit = '个';
+      }
+    } else {
+      unit = value;
+      packageUnit = null;
+      packageQuantity = 1;
+    }
+  }
+
+  /// 加载编辑数据后对齐 displayUnit
+  void syncDisplayUnitAfterLoad() {
+    if (packageUnit != null &&
+        CategoryFormPolicy.packageLikeUnits.contains(packageUnit)) {
+      // 已是包装模式
+      return;
+    }
+    if (CategoryFormPolicy.packageLikeUnits.contains(unit) && packageUnit == null) {
+      packageUnit = unit;
+      unit = '个';
+    }
+  }
+
   void loadFromItem({
     required Item item,
     Category? category,
@@ -65,6 +99,7 @@ class ItemFormController {
     imagePaths = ItemImageStorage.decodeItemImages(item.images);
     locationImagePaths = ItemImageStorage.decodeLocationImages(item.images);
     editCurrentQuantity = item.currentQuantity;
+    syncDisplayUnitAfterLoad();
   }
 
   void resetForNewEntry() {
@@ -118,8 +153,9 @@ class ItemFormController {
         for (final url in locationImageUrls) '${ItemImageStorage.locPrefix}$url',
     ];
 
-    // 初始库存按最小单位计算：有大单位时 quantity × packageQuantity，否则直接 quantity
-    final initialStock = quantity * (packageQuantity > 1 ? packageQuantity : 1);
+    // 初始库存：有包装时 quantity × packageQuantity
+    final initialStock = quantity *
+        ((packageUnit != null && packageQuantity > 0) ? packageQuantity : 1);
 
     final body = <String, dynamic>{
       'name': nameController.text.trim(),
@@ -165,10 +201,8 @@ class ItemFormController {
     if (notesController.text.isNotEmpty) {
       body['notes'] = notesController.text.trim();
     }
-    if (imageUrls != null && imageUrls.isNotEmpty) {
     if (allUrls.isNotEmpty) {
       body['image_urls'] = allUrls;
-    }
     }
     return body;
   }
@@ -208,7 +242,10 @@ class ItemFormController {
       purchaseQuantity: Value(quantity.round()),
       packageUnit: packageUnit != null ? Value(packageUnit!) : const Value.absent(),
       packageQuantity: Value(packageQuantity),
-      currentQuantity: Value(quantity * (packageQuantity > 1 ? packageQuantity : 1)),
+      currentQuantity: Value(
+        quantity *
+            ((packageUnit != null && packageQuantity > 0) ? packageQuantity : 1),
+      ),
       unit: Value(unit),
       safetyStock: Value(safetyStock),
       purchaseDate: purchaseDate != null ? Value(purchaseDate!) : const Value.absent(),

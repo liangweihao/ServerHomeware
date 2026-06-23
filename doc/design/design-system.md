@@ -1,19 +1,33 @@
 # 设计系统（Design Tokens）
 
 > 代码真源：`HomeWareClient/lib/core/constants/`（`app_colors.dart`、`app_radius.dart` 等）。  
-> 完整 Figma 组件规格（1875 行）已归档至 [`archive/figma-design-system-full.md`](../archive/figma-design-system-full.md)。
+> **视觉刷新**：见 [visual-refresh.md](visual-refresh.md)（主色拟换为柔和 Teal，代码待落地）。  
+> 完整 Figma 组件规格已归档至 [`archive/figma-design-system-full.md`](../archive/figma-design-system-full.md)。
 
 ---
 
 ## 一、颜色
 
-与 `AppColors` 一致：
+### 现行（代码中，青松 Teal）
 
 | Token | 色值 | 用途 |
 |-------|------|------|
-| primary | `#2196F3` | 主按钮、选中态、链接 |
-| primaryDark | `#1976D2` | 按下态 |
-| primaryLight | `#BBDEFB` | 浅底 |
+| primary | **`#3A9B8A`** | 主按钮、选中态、链接 |
+| primaryDark | **`#2D7F71`** | 按下态 |
+| primaryLight | **`#A8D5CC`** | 浅底 |
+| primaryLighter | **`#E8F5F2`** | 弱强调背景 |
+| info / infoLight | 同 primary 系 | 与主色统一 |
+
+### 历史（Material 蓝，已废弃）
+
+| Token | 旧值 |
+|-------|------|
+| primary | `#2196F3` |
+
+### 语义色（不变）
+
+| Token | 色值 | 用途 |
+|-------|------|------|
 | success | `#4CAF50` | 正常 / 充足 |
 | warning | `#FF9800` | 偏低 / 即将过期 |
 | danger | `#F44336` | 过期 / 删除 |
@@ -23,7 +37,7 @@
 | textSecondary | `#616161` | 次要文字 |
 | textHint | `#9E9E9E` | 占位 / 禁用 |
 
-> 切换家庭弹窗早期 spec 使用 `#4F46E5` 靛蓝，**现网统一 primary 蓝**。
+**分类色**（数据库 `categories.color`）独立于主色，用于 Chip / 标签，不随主色替换。
 
 ---
 
@@ -53,11 +67,13 @@
 | `QuantityStepper` | 数量步进器 |
 | `CategorySelector` | 分类选择底部 sheet |
 | `LocationPicker` | 位置级联选择 |
-| `FilterBottomSheet` | 筛选与排序（组件已有，物品页当前用 Chip 筛选） |
+| `FilterBottomSheet` | 筛选与排序 |
 | `MainScaffold` | 底部 4 Tab 壳 |
 | `ShimmerLoading` | 骨架屏 |
 
 物品相关：`items/widgets/item_card.dart`、`item_image_tile.dart`。
+
+录入改版规格：[add-item-redesign.md](add-item-redesign.md)。
 
 ---
 
@@ -73,7 +89,7 @@
 
 ## 五、截图参考
 
-`doc/image/` 目录含主要界面 PNG（首页、物品列表、详情、空间、购物清单等），可与 [information-architecture.md](information-architecture.md) 对照。
+`doc/image/` 目录含主要界面 PNG，可与 [information-architecture.md](information-architecture.md) 对照。
 
 ---
 
@@ -92,6 +108,6 @@
 
 修改 Token 时同步更新：
 
-1. `lib/core/constants/app_colors.dart`（及 radius/spacing）
-2. 本文件表格
-3. 若影响 UI 规格，追加 `lwh/code_changed/` 记录
+1. `lib/core/constants/app_colors.dart`（及 `app_theme.dart`）
+2. 本文件 + [visual-refresh.md](visual-refresh.md)
+3. `lwh/code_changed/` 变更记录

@@ -91,40 +91,53 @@ class ShimmerItemCard extends StatelessWidget {
   }
 }
 
-/// 骨架屏统计卡片（布局与 [StatCard] 一致，避免网格单元格溢出）
+/// 骨架屏统计卡片（布局与 [StatCard] 一致：白底 + 左侧色条）
 class ShimmerStatCard extends StatelessWidget {
   const ShimmerStatCard({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const ShimmerLoading(width: 22, height: 22, borderRadius: 4),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ShimmerLoading(
-                  width: MediaQuery.sizeOf(context).width * 0.2,
-                  height: 12,
-                  borderRadius: 4,
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const ShimmerLoading(width: 4, height: 88, borderRadius: 0),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const ShimmerLoading(width: 18, height: 18, borderRadius: 4),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: ShimmerLoading(
+                            width: MediaQuery.sizeOf(context).width * 0.2,
+                            height: 12,
+                            borderRadius: 4,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const ShimmerLoading(width: 56, height: 20, borderRadius: 4),
+                    const SizedBox(height: 2),
+                    const ShimmerLoading(width: 72, height: 12, borderRadius: 4),
+                  ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const ShimmerLoading(width: 56, height: 20, borderRadius: 4),
-          const SizedBox(height: 2),
-          const ShimmerLoading(width: 72, height: 12, borderRadius: 4),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -177,6 +190,45 @@ class ShimmerActivityItem extends StatelessWidget {
                 ShimmerLoading(width: 100, height: 14, borderRadius: 4),
                 const SizedBox(height: 6),
                 ShimmerLoading(width: 60, height: 12, borderRadius: 4),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 通知中心列表项骨架屏
+class ShimmerNotificationTile extends StatelessWidget {
+  const ShimmerNotificationTile({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const ShimmerLoading(width: 22, height: 22, borderRadius: 4),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShimmerLoading(
+                  width: double.infinity,
+                  height: 14,
+                  borderRadius: 4,
+                ),
+                const SizedBox(height: 8),
+                ShimmerLoading(width: 180, height: 12, borderRadius: 4),
+                const SizedBox(height: 6),
+                ShimmerLoading(width: 120, height: 12, borderRadius: 4),
               ],
             ),
           ),

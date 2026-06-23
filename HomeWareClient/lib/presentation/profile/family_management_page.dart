@@ -79,7 +79,7 @@ class FamilyManagementPage extends ConsumerWidget {
           child: member.avatar == null
               ? Text(
                   member.name.isNotEmpty ? member.name[0] : '?',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,

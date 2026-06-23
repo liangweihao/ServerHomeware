@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_sqflite/drift_sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import '../../core/utils/alert_display_helper.dart';
 part 'app_database.g.dart';
 
 // 分类表
@@ -101,6 +102,17 @@ class FamilyMembers extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+/// 提醒已读/忽略状态（通知中心 Epic E1）
+@TableIndex(name: 'alert_read_unique', columns: {#itemId, #alertType, #familyId}, unique: true)
+class AlertReadStates extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get itemId => integer()();
+  TextColumn get alertType => text()();
+  IntColumn get familyId => integer().withDefault(const Constant(0))();
+  DateTimeColumn get readAt => dateTime().nullable()();
+  BoolColumn get ignored => boolean().withDefault(const Constant(false))();
+}
+
 @DriftDatabase(
   tables: [
     Categories,
@@ -109,6 +121,7 @@ class FamilyMembers extends Table {
     UsageRecords,
     ShoppingList,
     FamilyMembers,
+    AlertReadStates,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -119,7 +132,21 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(_openConnection());
   
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          await m.createTable(alertReadStates);
+        }
+      },
+    );
+  }
   
   Future<void>? _seedDataFuture;
   
@@ -391,16 +418,162 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
-  // 获取所有提醒数量（过期+库存）
+  // 获取所有提醒数量（四类合计，不含已读/忽略）
   Future<int> getAlertCount() async {
     try {
-      final expiryCount = await getExpiryAlerts();
-      final stockCount = await getStockAlerts();
-      return expiryCount.length + stockCount.length;
+      final alerts = await _collectAllAlertPairs();
+      return alerts.length;
     } catch (e) {
       debugPrint('[DB] WARN: 获取提醒数量失败 - $e');
       return 0;
     }
+  }
+
+  /// 收集当前所有提醒（物品 + 类型）
+  Future<List<(Item, String alertTypeKey)>> _collectAllAlertPairs() async {
+    final List<(Item, String)> pairs = [];
+    final expiryAlerts = await getExpiryAlerts();
+    pairs.addAll(expiryAlerts.map((item) => (item, 'expiry')));
+    final stockAlerts = await getStockAlerts();
+    pairs.addAll(stockAlerts.map((item) => (item, 'stock')));
+    final restockAlerts = await getRestockAlerts();
+    pairs.addAll(restockAlerts.map((item) => (item, 'restock')));
+    final warrantyAlerts = await getWarrantyAlerts();
+    pairs.addAll(warrantyAlerts.map((item) => (item, 'warranty')));
+    return pairs;
+  }
+
+  /// 查询某条提醒的已读/忽略状态
+  Future<AlertReadState?> _getAlertReadState(
+    int itemId,
+    String alertType,
+    int familyId,
+  ) {
+    return (select(alertReadStates)
+          ..where((s) => s.itemId.equals(itemId))
+          ..where((s) => s.alertType.equals(alertType))
+          ..where((s) => s.familyId.equals(familyId)))
+        .getSingleOrNull();
+  }
+
+  /// 是否未读（未标记已读且未忽略）
+  Future<bool> isAlertUnread(int itemId, String alertType, int familyId) async {
+    final state = await _getAlertReadState(itemId, alertType, familyId);
+    if (state == null) return true;
+    if (state.ignored) return false;
+    if (state.readAt != null) return false;
+    return true;
+  }
+
+  /// 未读提醒数量（Badge 真源）
+  Future<int> getUnreadAlertCount(int familyId) async {
+    try {
+      final pairs = await _collectAllAlertPairs();
+      var count = 0;
+      for (final (item, typeKey) in pairs) {
+        if (await isAlertUnread(item.id, typeKey, familyId)) {
+          count++;
+        }
+      }
+      return count;
+    } catch (e) {
+      debugPrint('[DB] ERROR: 获取未读提醒数量失败 - $e');
+      return 0;
+    }
+  }
+
+  /// 未读提醒列表（通知中心，按紧急度降序）
+  Future<List<(Item, String alertTypeKey, int urgency)>> getUnreadNotifications(
+    int familyId, {
+    int limit = 20,
+  }) async {
+    final pairs = await _collectAllAlertPairs();
+    final unread = <(Item, String, int)>[];
+    for (final (item, typeKey) in pairs) {
+      if (await isAlertUnread(item.id, typeKey, familyId)) {
+        final type = alertTypeFromKey(typeKey);
+        final urgency = getAlertDisplayInfo(item, type).urgency;
+        unread.add((item, typeKey, urgency));
+      }
+    }
+    unread.sort((a, b) => b.$3.compareTo(a.$3));
+    if (unread.length > limit) {
+      return unread.sublist(0, limit);
+    }
+    return unread;
+  }
+
+  /// 提醒 Tab 列表（排除已忽略，已读仍展示）
+  Future<List<(Item, String alertTypeKey)>> getAlertsForDisplay(
+    int familyId, {
+    String? typeFilter,
+    bool excludeIgnored = true,
+  }) async {
+    var pairs = await _collectAllAlertPairs();
+    if (typeFilter != null && typeFilter != 'all') {
+      pairs = pairs.where((p) => p.$2 == typeFilter).toList();
+    }
+    if (!excludeIgnored) return pairs;
+
+    final filtered = <(Item, String)>[];
+    for (final (item, typeKey) in pairs) {
+      final state = await _getAlertReadState(item.id, typeKey, familyId);
+      if (state?.ignored == true) continue;
+      filtered.add((item, typeKey));
+    }
+    return filtered;
+  }
+
+  /// 标记单条提醒已读
+  Future<void> markAlertRead(int itemId, String alertType, int familyId) async {
+    final existing = await _getAlertReadState(itemId, alertType, familyId);
+    if (existing != null) {
+      await (update(alertReadStates)..where((s) => s.id.equals(existing.id))).write(
+        AlertReadStatesCompanion(
+          readAt: Value(DateTime.now()),
+          ignored: const Value(false),
+        ),
+      );
+    } else {
+      await into(alertReadStates).insert(
+        AlertReadStatesCompanion.insert(
+          itemId: itemId,
+          alertType: alertType,
+          familyId: Value(familyId),
+          readAt: Value(DateTime.now()),
+        ),
+      );
+    }
+    debugPrint('[DB] INFO: 提醒已读 itemId=$itemId type=$alertType familyId=$familyId');
+  }
+
+  /// 标记全部当前提醒为已读
+  Future<void> markAllAlertsRead(int familyId) async {
+    final pairs = await _collectAllAlertPairs();
+    for (final (item, typeKey) in pairs) {
+      await markAlertRead(item.id, typeKey, familyId);
+    }
+    debugPrint('[DB] INFO: 全部提醒已读 familyId=$familyId count=${pairs.length}');
+  }
+
+  /// 忽略单条提醒（持久化）
+  Future<void> ignoreAlert(int itemId, String alertType, int familyId) async {
+    final existing = await _getAlertReadState(itemId, alertType, familyId);
+    if (existing != null) {
+      await (update(alertReadStates)..where((s) => s.id.equals(existing.id))).write(
+        const AlertReadStatesCompanion(ignored: Value(true)),
+      );
+    } else {
+      await into(alertReadStates).insert(
+        AlertReadStatesCompanion.insert(
+          itemId: itemId,
+          alertType: alertType,
+          familyId: Value(familyId),
+          ignored: const Value(true),
+        ),
+      );
+    }
+    debugPrint('[DB] INFO: 提醒已忽略 itemId=$itemId type=$alertType');
   }
   
   // 预设数据插入

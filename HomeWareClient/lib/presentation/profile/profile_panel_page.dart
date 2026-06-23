@@ -799,7 +799,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                     height: 8,
                     width: width * 0.92 * (contribution / 100),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         colors: [AppColors.primary, AppColors.success],
                       ),
                       borderRadius: BorderRadius.circular(4),

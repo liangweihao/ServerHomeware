@@ -118,7 +118,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  const SizedBox(
+                  SizedBox(
                     width: 24,
                     height: 24,
                     child: CircularProgressIndicator(

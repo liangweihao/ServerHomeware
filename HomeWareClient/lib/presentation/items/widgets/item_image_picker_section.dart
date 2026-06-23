@@ -6,17 +6,20 @@ import '../../../core/constants/app_radius.dart';
 import '../../../core/utils/item_image_storage.dart';
 import 'item_image_tile.dart';
 
-/// 物品表单顶部图片选择区（添加/编辑共用）
+/// 物品表单图片区（添加/编辑共用）
+/// [compact] 为 true 时首屏单行入口 + 底部 sheet 管理缩略图
 class ItemImagePickerSection extends StatelessWidget {
   final List<String> imagePaths;
   final ValueChanged<List<String>> onChanged;
   final int maxImages;
+  final bool compact;
 
   const ItemImagePickerSection({
     super.key,
     required this.imagePaths,
     required this.onChanged,
     this.maxImages = ItemImageStorage.maxImages,
+    this.compact = false,
   });
 
   Future<void> _pickImage(BuildContext context) async {
@@ -75,8 +78,148 @@ class ItemImagePickerSection extends StatelessWidget {
     ItemImageStorage.deleteFile(path);
   }
 
+  Future<void> _showManageSheet(BuildContext context) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          '物品照片',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${imagePaths.length}/$maxImages',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 96,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          if (imagePaths.length < maxImages)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 12),
+                              child: GestureDetector(
+                                onTap: () async {
+                                  await _pickImage(context);
+                                  setSheetState(() {});
+                                },
+                                child: Container(
+                                  width: 88,
+                                  height: 88,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.gray100,
+                                    borderRadius: BorderRadius.circular(AppRadius.md),
+                                    border: Border.all(color: AppColors.border),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.add_a_photo_outlined,
+                                          color: AppColors.primary),
+                                      const SizedBox(height: 4),
+                                      Text('+ 添加',
+                                          style: TextStyle(
+                                              fontSize: 12, color: AppColors.primary)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ...imagePaths.asMap().entries.map((e) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 12),
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.md),
+                                    child: ItemImageTile(
+                                      source: e.value,
+                                      width: 88,
+                                      height: 88,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: -6,
+                                    right: -6,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        _removeImage(e.key);
+                                        setSheetState(() {});
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.all(2),
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.danger,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.close,
+                                            size: 16, color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (compact) {
+      final label = imagePaths.isEmpty
+          ? '+ 添加照片'
+          : '已 ${imagePaths.length} 张';
+      return OutlinedButton.icon(
+        onPressed: () {
+          if (imagePaths.isEmpty) {
+            _pickImage(context);
+          } else {
+            _showManageSheet(context);
+          }
+        },
+        icon: const Icon(Icons.add_a_photo_outlined, size: 18),
+        label: Text(label),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.border),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -103,14 +246,15 @@ class ItemImagePickerSection extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: AppColors.gray100,
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(color: AppColors.border, style: BorderStyle.solid),
+                        border: Border.all(color: AppColors.border),
                       ),
-                      child: const Column(
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.add_a_photo_outlined, color: AppColors.primary),
-                          SizedBox(height: 4),
-                          Text('+ 添加', style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                          const SizedBox(height: 4),
+                          Text('+ 添加',
+                              style: TextStyle(fontSize: 12, color: AppColors.primary)),
                         ],
                       ),
                     ),

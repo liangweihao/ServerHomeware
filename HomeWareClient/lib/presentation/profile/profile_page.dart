@@ -149,6 +149,13 @@ class ProfilePage extends ConsumerWidget {
                         title: '提醒设置',
                         onTap: () => context.push('/profile/notification-settings'),
                       ),
+                      _buildDivider(),
+                      _buildSettingItem(
+                        context,
+                        icon: '🎨',
+                        title: '主题样式',
+                        onTap: () => context.push('/profile/theme-settings'),
+                      ),
                     ],
                   ),
                 ),

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'core/theme/app_theme.dart';
+import 'core/providers/theme_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/services/notification_scheduler.dart';
 import 'data/database/app_database.dart';
@@ -57,22 +58,30 @@ void main() async {
     debugPrint('Reschedule notifications error: $error');
   });
 
+  // 启动前加载主题，避免首帧颜色闪烁
+  final initialTheme = await loadInitialThemeVariant();
+
   runApp(
     ProviderScope(
       observers: [AppProviderObserver()],
+      overrides: [
+        initialThemeVariantProvider.overrideWithValue(initialTheme),
+      ],
       child: const MyApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeVariant = ref.watch(appThemeVariantProvider);
+
     return MaterialApp.router(
       title: 'HomeStock',
-      theme: AppTheme.lightTheme,
+      theme: AppTheme.lightThemeOf(themeVariant.palette),
       routerConfig: appRouter,
       locale: const Locale('zh', 'CN'),
       debugShowCheckedModeBanner: false,
