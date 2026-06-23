@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/services/api_service.dart';
 import '../../core/services/auth_service.dart';
 
 /// 启动页
@@ -40,7 +41,13 @@ class _SplashPageState extends ConsumerState<SplashPage> {
       return;
     }
 
-    // 有token，验证token有效性
+    // 有 token，先尝试 refresh 续期（隔夜 access 过期时免登）
+    final refreshed = await ApiService.tryRefreshToken();
+    if (refreshed) {
+      debugPrint('[SplashPage] INFO: 启动时 Token 已自动续期');
+    }
+
+    // 验证 token 有效性（ApiService.get 内含 401 → refresh → 重试）
     final authService = AuthService();
     final tokenResult = await authService.validateToken();
 

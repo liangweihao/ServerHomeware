@@ -345,42 +345,38 @@ class AuthService {
     }
   }
 
-  /// 验证Token有效性
+  /// 验证 Token 有效性（支持 access 过期时用 refresh 自动续期）
   /// GET /api/v1/users/me
-  /// 通过调用用户信息接口来验证token是否有效
-  /// 返回200表示token有效，返回401/403表示token无效或过期
   Future<ApiResponse<Map<String, dynamic>>> validateToken() async {
     try {
-      final token = await _getToken();
+      final token = await ApiService.getToken();
       if (token == null || token.isEmpty) {
-        _log('ERROR: 未登录，无token');
+        _log('ERROR: 未登录，无 token');
         return ApiResponse<Map<String, dynamic>>(
           code: 401,
           message: '未登录',
         );
       }
 
-      _log('INFO: 调用 GET /api/v1/users/me 验证token');
-      
-      final response = await http.get(
-        Uri.parse('$_baseUrl/users/me'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      _log('INFO: 调用 GET /users/me 验证 token（含自动 refresh）');
+      final jsonData = await ApiService.get('/users/me');
+      final code = (jsonData['code'] as num?)?.toInt() ?? 500;
+      final message = jsonData['message']?.toString() ?? 'success';
 
-      final result = _handleResponse(response);
-      
-      if (result.code == 200) {
-        _log('INFO: Token验证成功');
-      } else if (result.code == 401 || result.code == 403) {
-        _log('WARN: Token无效或已过期 - code: ${result.code}');
+      if (code == 200) {
+        _log('INFO: Token 验证成功');
+      } else if (code == 401 || code == 403) {
+        _log('WARN: Token 无效或 refresh 失败 - code: $code');
+        // 不在此处触发全局登出，由 Splash / auth_guard 决定
       }
-      
-      return result;
+
+      return ApiResponse<Map<String, dynamic>>(
+        code: code,
+        message: message,
+        data: jsonData['data'] as Map<String, dynamic>?,
+      );
     } catch (e) {
-      _log('ERROR: Token验证失败 - $e');
+      _log('ERROR: Token 验证失败 - $e');
       return ApiResponse<Map<String, dynamic>>(
         code: 500,
         message: 'Token验证失败: $e',
