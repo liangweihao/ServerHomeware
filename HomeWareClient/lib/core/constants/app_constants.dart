@@ -82,8 +82,9 @@ class AppConstants {
     '已用完',
   ];
 
-  // 排序选项
+  // 排序选项 — 默认紧急优先
   static const List<String> sortOptions = [
+    '紧急优先',
     '过期时间近→远',
     '录入时间新→旧',
     '剩余数量少→多',

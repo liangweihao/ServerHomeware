@@ -33,7 +33,7 @@ class AppSurface extends StatelessWidget {
     required this.child,
     this.borderRadius,
     this.padding,
-    this.clipBehavior = Clip.antiAlias,
+    this.clipBehavior = Clip.none,
     this.fillColor,
     this.borderColor,
     this.shadowLevel = CartoonShadowLevel.card,
@@ -60,6 +60,7 @@ class AppSurface extends StatelessWidget {
 
     return Container(
       decoration: decoration,
+      clipBehavior: clipBehavior,
       padding: padding,
       child: child,
     );

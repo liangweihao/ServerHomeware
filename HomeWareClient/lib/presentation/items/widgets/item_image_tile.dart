@@ -11,7 +11,7 @@ import '../../../core/services/upload_service.dart';
 class ItemImageTile extends StatelessWidget {
   final String source;
   final double width;
-  final double height;
+  final double? height;
   final BoxFit fit;
   final BorderRadius? borderRadius;
   /// 网络/本地加载失败时回调（用于缩略图依次尝试备选图片）
@@ -31,6 +31,10 @@ class ItemImageTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final radius = borderRadius ?? BorderRadius.circular(AppRadius.md);
     Widget image;
+    // 仅按宽度解码，避免同时指定 cacheHeight 导致纵向被压扁
+    final cacheWidth = width.isFinite
+        ? (width * MediaQuery.devicePixelRatioOf(context)).round()
+        : null;
 
     if (ItemImageRefs.isRemotePath(source) ||
         source.startsWith('http://') ||
@@ -42,12 +46,7 @@ class ItemImageTile extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
-        cacheWidth: (width is double && width != double.infinity) ? width.toInt() : 720,
-        cacheHeight: (height is double && height != double.infinity) ? height.toInt() : null,
-        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (wasSynchronouslyLoaded) return child;
-          return child;
-        },
+        cacheWidth: cacheWidth,
         errorBuilder: (_, error, stack) {
           debugPrint('[ItemImageTile] ERROR: 加载失败 $url — $error');
           onError?.call();
@@ -73,7 +72,7 @@ class ItemImageTile extends StatelessWidget {
   Widget _errorBox() {
     return Container(
       width: width,
-      height: height,
+      height: height ?? 80,
       color: AppColors.gray100,
       child: const Icon(Icons.broken_image_outlined, color: AppColors.textHint),
     );
