@@ -5,6 +5,8 @@ import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/utils/error_handler.dart';
 import 'widgets/auth_button.dart';
+import 'widgets/auth_cartoon_wrap.dart';
+import '../common/widgets/cartoon_ui.dart';
 
 /// 加入家庭页
 class JoinFamilyPage extends ConsumerStatefulWidget {
@@ -71,7 +73,7 @@ class _JoinFamilyPageState extends ConsumerState<JoinFamilyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -97,7 +99,7 @@ class _JoinFamilyPageState extends ConsumerState<JoinFamilyPage> {
               const SizedBox(height: 32),
               // 标题
               Text(
-                '加入已有家庭',
+                CartoonUi.pageTitle('加入已有家庭', emoji: '👨‍👩‍👧‍👦'),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
@@ -113,48 +115,53 @@ class _JoinFamilyPageState extends ConsumerState<JoinFamilyPage> {
                     ),
               ),
               const SizedBox(height: 40),
-              // 邀请码输入
-              TextField(
-                controller: _codeController,
-                enabled: !_isLoading,
-                textCapitalization: TextCapitalization.characters,
-                decoration: InputDecoration(
-                  hintText: '请输入邀请码',
-                  errorText: _codeError,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: AppColors.gray300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: AppColors.primary),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: AppColors.danger),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: AppColors.danger),
-                  ),
+              wrapAuthFormSurface(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: _codeController,
+                      enabled: !_isLoading,
+                      textCapitalization: TextCapitalization.characters,
+                      decoration: InputDecoration(
+                        hintText: '请输入邀请码',
+                        errorText: _codeError,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: AppColors.gray300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: AppColors.primary),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: AppColors.danger),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: AppColors.danger),
+                        ),
+                      ),
+                      onChanged: (_) {
+                        if (_codeError != null) {
+                          setState(() {
+                            _codeError = null;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    AuthButton(
+                      label: '加入家庭',
+                      onPressed: _joinFamily,
+                      isLoading: _isLoading,
+                    ),
+                  ],
                 ),
-                onChanged: (_) {
-                  if (_codeError != null) {
-                    setState(() {
-                      _codeError = null;
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 24),
-              // 加入按钮
-              AuthButton(
-                label: '加入家庭',
-                onPressed: _joinFamily,
-                isLoading: _isLoading,
               ),
               const SizedBox(height: 24),
               // 创建新家庭

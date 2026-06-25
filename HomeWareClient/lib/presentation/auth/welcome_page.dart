@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
+import '../common/widgets/cartoon_ui.dart';
 
 /// 欢迎引导页
 class WelcomePage extends StatefulWidget {
@@ -56,7 +57,7 @@ class _WelcomePageState extends State<WelcomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.scaffoldBackground,
       body: SafeArea(
         child: Column(
           children: [
@@ -188,7 +189,7 @@ class _WelcomePageContent extends StatelessWidget {
           const SizedBox(height: 48),
           // 标题
           Text(
-            data.title,
+            CartoonUi.pageTitle(data.title, emoji: data.emoji),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w600,

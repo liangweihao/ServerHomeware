@@ -6,6 +6,9 @@ import '../../core/constants/app_radius.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/utils/error_handler.dart';
+import '../../core/theme/app_decorations.dart';
+import '../common/widgets/cartoon_scaffold.dart';
+import '../common/widgets/cartoon_ui.dart';
 
 /// 编辑资料页
 class EditProfilePage extends ConsumerStatefulWidget {
@@ -183,24 +186,21 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       displayChar = user!.phone!.substring(7, 11);
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        backgroundColor: AppColors.appBarBackground,
-        title: const Text('编辑资料'),
-        actions: [
-          TextButton(
-            onPressed: _isLoading ? null : _saveProfile,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('保存'),
-          ),
-        ],
-      ),
+    return CartoonScaffold(
+      title: '编辑资料',
+      titleEmoji: '✏️',
+      actions: [
+        TextButton(
+          onPressed: _isLoading ? null : _saveProfile,
+          child: _isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('保存'),
+        ),
+      ],
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -272,14 +272,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             
             const SizedBox(height: 32),
             
-            // 表单区域
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-              ),
+            // 表单区域 — 卡通主题 AppSurface 贴纸卡片
+            _wrapProfileCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -410,12 +404,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             const SizedBox(height: 20),
             
             // 修改密码
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-              ),
+            _wrapProfileCard(
               child: InkWell(
                 onTap: () {
                   // TODO: 修改密码
@@ -442,12 +431,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             const SizedBox(height: 40),
             
             // 注销账号
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-              ),
+            _wrapProfileCard(
               child: InkWell(
                 onTap: () {
                   // TODO: 注销账号
@@ -472,12 +456,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             const SizedBox(height: 40),
             
             // 退出登录
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-              ),
+            _wrapProfileCard(
               child: InkWell(
                 onTap: _showLogoutConfirm,
                 child: Padding(
@@ -501,6 +480,17 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     );
   }
   
+  /// 表单/操作区 AppSurface 包裹
+  Widget _wrapProfileCard({required Widget child}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: AppSurface(
+        padding: const EdgeInsets.all(20),
+        child: child,
+      ),
+    );
+  }
+
   /// 构建标签
   Widget _buildLabel(String text) {
     return Text(

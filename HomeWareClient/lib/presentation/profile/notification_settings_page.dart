@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
+import '../common/widgets/cartoon_scaffold.dart';
+import '../common/widgets/cartoon_ui.dart';
 
 // Notification settings providers
 final notificationsEnabledProvider = StateProvider<bool>((ref) => true);
@@ -47,12 +49,9 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
     final startHour = ref.watch(notificationStartHourProvider);
     final endHour = ref.watch(notificationEndHourProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        backgroundColor: AppColors.appBarBackground,
-        title: const Text('提醒设置'),
-      ),
+    return CartoonScaffold(
+      title: '提醒设置',
+      titleEmoji: '⚙️',
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

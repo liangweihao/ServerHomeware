@@ -11,6 +11,8 @@ import '../../core/services/family_service.dart';
 import '../../core/services/contribution_service.dart';
 import 'widgets/switch_family_bottom_sheet.dart';
 
+import '../common/widgets/cartoon_scaffold.dart';
+
 class ProfilePanelPage extends ConsumerStatefulWidget {
   const ProfilePanelPage({super.key});
 
@@ -193,13 +195,9 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
       displayChar = user!.phone!.substring(user.phone!.length - 4);
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        title: const Text('个人中心'),
-        backgroundColor: AppColors.appBarBackground,
-        elevation: 0,
-      ),
+    return CartoonScaffold(
+      title: '个人中心',
+      titleEmoji: '👤',
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20),

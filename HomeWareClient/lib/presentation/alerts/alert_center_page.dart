@@ -6,7 +6,13 @@ import '../../core/models/alert_tab.dart';
 import '../../core/providers/alert_provider.dart';
 import '../../core/providers/database_provider.dart';
 import '../../data/database/app_database.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/theme/app_visual_style.dart';
+import '../../core/theme/cartoon_copy.dart';
 import '../common/widgets/app_empty_state.dart';
+import '../common/widgets/cartoon_list_entrance.dart';
+import '../common/widgets/cartoon_scaffold.dart';
+import '../common/widgets/cartoon_tab_bar.dart';
 import 'widgets/alert_card.dart';
 
 export '../../core/models/alert_tab.dart';
@@ -117,23 +123,28 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('提醒中心'),
-        actions: [
-          TextButton(
-            onPressed: _markAllAsRead,
-            child: const Text('全部已读'),
+    final cartoonTabs = AlertTab.values
+        .map(
+          (t) => CartoonTabItem(
+            label: alertTabLabels[t]!,
+            emoji: alertTabEmojis[t],
           ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: alertTabLabels.values.map((label) => Tab(text: label)).toList(),
-          indicatorColor: Theme.of(context).primaryColor,
-          labelColor: Theme.of(context).primaryColor,
-          unselectedLabelColor: Theme.of(context).hintColor,
+        )
+        .toList();
+
+    return CartoonScaffold(
+      title: '提醒中心',
+      titleEmoji: '🔔',
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: TextButton(
+            onPressed: _markAllAsRead,
+            child: const Text('✓ 全部已读'),
+          ),
         ),
-      ),
+      ],
+      bottom: CartoonTabBar(controller: _tabController, tabs: cartoonTabs),
       body: TabBarView(
         controller: _tabController,
         children: [
@@ -155,6 +166,7 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
             icon: '😊',
             title: '一切安好',
             subtitle: '没有待处理的提醒',
+            cartoonKind: CartoonEmptyKind.alerts,
           );
         }
 
@@ -165,21 +177,24 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
             final (item, type) = alerts[index];
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: AlertCard(
-                item: item,
-                type: type,
-                onUse: type == AlertType.expiry ? () => _markAsUsed(item) : null,
-                onDiscard:
-                    type == AlertType.expiry ? () => _markAsDiscarded(item) : null,
-                onAddToShopping: (type == AlertType.stock || type == AlertType.restock)
-                    ? () => _addToShoppingList(item)
-                    : null,
-                onAcknowledge: type == AlertType.warranty
-                    ? () => ignoreAlertAction(ref, item.id, type)
-                    : null,
-                onIgnore: type == AlertType.expiry
-                    ? () => ignoreAlertAction(ref, item.id, type)
-                    : null,
+              child: CartoonListEntrance(
+                index: index,
+                child: AlertCard(
+                  item: item,
+                  type: type,
+                  onUse: type == AlertType.expiry ? () => _markAsUsed(item) : null,
+                  onDiscard:
+                      type == AlertType.expiry ? () => _markAsDiscarded(item) : null,
+                  onAddToShopping: (type == AlertType.stock || type == AlertType.restock)
+                      ? () => _addToShoppingList(item)
+                      : null,
+                  onAcknowledge: type == AlertType.warranty
+                      ? () => ignoreAlertAction(ref, item.id, type)
+                      : null,
+                  onIgnore: type == AlertType.expiry
+                      ? () => ignoreAlertAction(ref, item.id, type)
+                      : null,
+                ),
               ),
             );
           },

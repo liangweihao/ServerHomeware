@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_radius.dart';
+import '../../../core/theme/cartoon_motion.dart';
 
 enum ButtonVariant { primary, secondary, outline, ghost, danger }
 enum ButtonSize { large48, medium40, small32 }
@@ -69,8 +71,14 @@ class _AppButtonState extends State<AppButton> {
       ButtonVariant.danger => Colors.white,
     };
 
+    const borderRadius = AppRadius.xl;
+
     final borderSide = switch (widget.variant) {
-      ButtonVariant.outline => const BorderSide(color: AppColors.border, width: 1.5),
+      ButtonVariant.outline => BorderSide(
+          color: AppColors.primaryLight,
+          width: 2,
+        ),
+      ButtonVariant.primary => BorderSide(color: AppColors.primaryLight, width: 2),
       _ => BorderSide.none,
     };
 
@@ -118,7 +126,7 @@ class _AppButtonState extends State<AppButton> {
         disabledBackgroundColor: AppColors.disabled.withOpacity( 0.3),
         disabledForegroundColor: AppColors.disabled,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(borderRadius),
           side: borderSide,
         ),
         elevation: 0,
@@ -133,15 +141,20 @@ class _AppButtonState extends State<AppButton> {
       buttonWidget = SizedBox(width: double.infinity, child: buttonWidget);
     }
 
-    // 添加按下缩放动画
+    const pressScale = CartoonMotion.pressScale;
+    const pressDuration = CartoonMotion.pressDownDuration;
+    const releaseDuration = CartoonMotion.pressUpDuration;
+    const pressCurve = CartoonMotion.pressDownCurve;
+    const releaseCurve = CartoonMotion.pressUpCurve;
+
     return GestureDetector(
       onTapDown: isDisabled ? null : (_) => setState(() => _isPressed = true),
       onTapUp: isDisabled ? null : (_) => setState(() => _isPressed = false),
       onTapCancel: isDisabled ? null : () => setState(() => _isPressed = false),
       child: AnimatedScale(
-        scale: _isPressed ? 0.95 : 1.0,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
+        scale: _isPressed ? pressScale : 1.0,
+        duration: _isPressed ? pressDuration : releaseDuration,
+        curve: _isPressed ? pressCurve : releaseCurve,
         child: buttonWidget,
       ),
     );

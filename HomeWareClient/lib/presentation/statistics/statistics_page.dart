@@ -6,6 +6,9 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/providers/statistics_provider.dart';
 import '../common/widgets/app_empty_state.dart';
+import '../common/widgets/cartoon_chip.dart';
+import '../common/widgets/cartoon_scaffold.dart';
+import '../common/widgets/cartoon_ui.dart';
 
 class StatisticsPage extends ConsumerWidget {
   const StatisticsPage({super.key});
@@ -14,12 +17,9 @@ class StatisticsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final timeRange = ref.watch(timeRangeProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        backgroundColor: AppColors.appBarBackground,
-        title: const Text('数据统计'),
-      ),
+    return CartoonScaffold(
+      title: '数据统计',
+      titleEmoji: '📊',
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(consumptionStatsProvider);
@@ -55,39 +55,31 @@ class StatisticsPage extends ConsumerWidget {
   }
 
   Widget _buildTimeRangeSelector(BuildContext context, WidgetRef ref, TimeRange selected) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: Row(
-        children: [
-          for (final range in TimeRange.values)
-            Expanded(
-              child: GestureDetector(
+    return Row(
+      children: [
+        for (final range in TimeRange.values)
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: CartoonChip(
+                label: range == TimeRange.week
+                    ? '本周'
+                    : range == TimeRange.month
+                        ? '本月'
+                        : '本年',
+                emoji: range == TimeRange.week
+                    ? '📅'
+                    : range == TimeRange.month
+                        ? '🗓️'
+                        : '📆',
+                selected: selected == range,
                 onTap: () {
                   ref.read(timeRangeProvider.notifier).state = range;
                 },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: selected == range ? AppColors.primary : Colors.transparent,
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                  ),
-                  child: Center(
-                    child: Text(
-                      range == TimeRange.week ? '本周' : range == TimeRange.month ? '本月' : '本年',
-                      style: TextStyle(
-                        color: selected == range ? Colors.white : AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 
@@ -98,12 +90,8 @@ class StatisticsPage extends ConsumerWidget {
       data: (stats) {
         // 检查是否有数据
         if (stats.totalExpense == 0 && stats.monthlyTrend.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-            ),
+          return CartoonSectionCard(
+            colorIndex: 0,
             child: const AppEmptyState(
               icon: '📊',
               title: '数据不足',
@@ -111,12 +99,8 @@ class StatisticsPage extends ConsumerWidget {
             ),
           );
         }
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-          ),
+        return CartoonSectionCard(
+          colorIndex: 0,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -221,12 +205,8 @@ class StatisticsPage extends ConsumerWidget {
   Widget _buildCategorySection(BuildContext context, WidgetRef ref) {
     final categoryAsync = ref.watch(categoryStatsProvider);
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
+    return CartoonSectionCard(
+      colorIndex: 1,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -303,13 +283,18 @@ class StatisticsPage extends ConsumerWidget {
   Widget _buildWasteSection(BuildContext context, WidgetRef ref) {
     final wasteAsync = ref.watch(wasteStatsProvider);
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.dangerLight,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: Column(
+    return CartoonSectionCard(
+      colorIndex: 2,
+      child: _buildWasteContent(context, ref, wasteAsync),
+    );
+  }
+
+  Widget _buildWasteContent(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<WasteStats> wasteAsync,
+  ) {
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -378,19 +363,14 @@ class StatisticsPage extends ConsumerWidget {
             error: (error, stack) => Text('Error: $error'),
           ),
         ],
-      ),
     );
   }
 
   Widget _buildRankingSection(BuildContext context, WidgetRef ref) {
     final rankingAsync = ref.watch(consumptionRankingProvider);
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
+    return CartoonSectionCard(
+      colorIndex: 3,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

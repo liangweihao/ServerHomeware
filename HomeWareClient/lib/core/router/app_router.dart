@@ -14,7 +14,6 @@ import '../../presentation/profile/edit_profile_page.dart';
 import '../../presentation/profile/category_management_page.dart';
 import '../../presentation/profile/family_management_page.dart';
 import '../../presentation/profile/notification_settings_page.dart';
-import '../../presentation/profile/theme_settings_page.dart';
 import '../../presentation/locations/location_overview_page.dart';
 import '../../presentation/locations/location_detail_page.dart';
 import '../../presentation/shopping/shopping_list_page.dart';
@@ -282,13 +281,6 @@ final appRouter = GoRouter(
       name: 'notificationSettings',
       pageBuilder: (context, state) => SlideTransitionPage(
         child: const NotificationSettingsPage(),
-      ),
-    ),
-    GoRoute(
-      path: '/profile/theme-settings',
-      name: 'themeSettings',
-      pageBuilder: (context, state) => SlideTransitionPage(
-        child: const ThemeSettingsPage(),
       ),
     ),
     GoRoute(

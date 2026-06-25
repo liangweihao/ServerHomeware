@@ -19,6 +19,8 @@ import '../common/widgets/app_button.dart';
 import '../common/widgets/app_empty_state.dart';
 import '../common/widgets/app_progress_bar.dart';
 import '../common/widgets/app_tag.dart';
+import '../common/widgets/cartoon_scaffold.dart';
+import '../common/widgets/cartoon_ui.dart';
 import '../common/widgets/location_picker.dart';
 import 'widgets/usage_dialog.dart';
 import 'widgets/item_image_tile.dart';
@@ -43,56 +45,72 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
   Widget build(BuildContext context) {
     final detailAsync = ref.watch(itemDetailProvider(widget.id));
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        title: const Text('物品详情'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            onPressed: () => context.push('/items/${widget.id}/edit'),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (value) => _onMenuAction(value, detailAsync.valueOrNull),
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'move', child: Text('移动位置')),
-              const PopupMenuItem(value: 'expired', child: Text('标记过期')),
-              const PopupMenuItem(value: 'discard', child: Text('丢弃')),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'delete',
-                child: Text('删除', style: TextStyle(color: AppColors.danger)),
-              ),
-            ],
-          ),
-        ],
+    return detailAsync.when(
+      loading: () => CartoonScaffold(
+        title: '物品详情',
+        titleEmoji: '📦',
+        body: const Center(child: CircularProgressIndicator()),
       ),
-      body: detailAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) {
-          debugPrint('[ItemDetailPage] ERROR: 加载失败 $e');
-          return AppEmptyState(
+      error: (e, _) {
+        debugPrint('[ItemDetailPage] ERROR: 加载失败 $e');
+        return CartoonScaffold(
+          title: '物品详情',
+          titleEmoji: '📦',
+          body: AppEmptyState(
             icon: '⚠️',
             title: '加载失败',
             subtitle: e.toString(),
             actionLabel: '重试',
             onAction: _refresh,
-          );
-        },
-        data: (data) {
-          if (data == null) {
-            return AppEmptyState(
+          ),
+        );
+      },
+      data: (data) {
+        if (data == null) {
+          return CartoonScaffold(
+            title: '物品详情',
+            titleEmoji: '📦',
+            body: AppEmptyState(
               icon: '📦',
               title: '物品不存在',
               subtitle: '该物品可能已被删除',
               actionLabel: '返回',
               onAction: () => context.pop(),
-            );
-          }
-          return _buildBody(context, data);
-        },
-      ),
+            ),
+          );
+        }
+
+        return CartoonScaffold(
+          title: data.item.name,
+          titleEmoji: '📦',
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () => context.push('/items/${widget.id}/edit'),
+            ),
+            PopupMenuButton<String>(
+              onSelected: (value) => _onMenuAction(value, data),
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'move', child: Text('移动位置')),
+                const PopupMenuItem(value: 'expired', child: Text('标记过期')),
+                const PopupMenuItem(value: 'discard', child: Text('丢弃')),
+                const PopupMenuDivider(),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Text('删除', style: TextStyle(color: AppColors.danger)),
+                ),
+              ],
+            ),
+          ],
+          body: _buildBody(context, data),
+        );
+      },
     );
+  }
+
+  /// 主内容区块贴纸卡片包裹
+  Widget _wrapDetailSection({required Widget child, int colorIndex = 0}) {
+    return CartoonSectionCard(colorIndex: colorIndex, child: child);
   }
 
   Widget _buildBody(BuildContext context, ItemDetailData data) {
@@ -115,22 +133,30 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
                 const SizedBox(height: 20),
                 _buildSectionLabel('状态总览'),
                 const SizedBox(height: 12),
-                _buildMetricsRow(item),
-                const SizedBox(height: 16),
-                AppProgressBar(value: remainingRatio, height: 8),
-                const SizedBox(height: 8),
-                Text(
-                  '已使用约 $usedPercent%',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
+                _wrapDetailSection(
+                  colorIndex: 0,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildMetricsRow(item),
+                      const SizedBox(height: 16),
+                      AppProgressBar(value: remainingRatio, height: 8),
+                      const SizedBox(height: 8),
+                      Text(
+                        '已使用约 $usedPercent%',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
                       ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _predictionText(item),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
+                      const SizedBox(height: 4),
+                      Text(
+                        _predictionText(item),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
                       ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 24),
                 _buildSectionLabel('详细信息'),
@@ -139,7 +165,10 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
                 const SizedBox(height: 24),
                 _buildSectionLabel('使用记录'),
                 const SizedBox(height: 12),
-                _buildUsageTimeline(context, data),
+                _wrapDetailSection(
+                  colorIndex: 2,
+                  child: _buildUsageTimeline(context, data),
+                ),
               ],
             ),
           ),
@@ -426,24 +455,19 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     final item = data.item;
     final priceLine = _buildPriceLine(item);
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: const BorderSide(color: AppColors.gray200),
-      ),
-      child: Column(
-        children: [
-          _buildLocationRow(context, data),
-          _detailRow('💰', '购买价格', priceLine),
-          _detailRow('🛒', '购买渠道', item.purchaseChannel ?? '—'),
-          _detailRow('📅', '购买日期', _formatDate(item.purchaseDate)),
-          _detailRow('📅', '生产日期', _formatDate(item.productionDate)),
-          _detailRow('⏰', '到期日期', _formatDate(item.expiryDate)),
-          _detailRow('🔔', '提醒设置', _alertSettingsText(item)),
-        ],
-      ),
+    final content = Column(
+      children: [
+        _buildLocationRow(context, data),
+        _detailRow('💰', '购买价格', priceLine),
+        _detailRow('🛒', '购买渠道', item.purchaseChannel ?? '—'),
+        _detailRow('📅', '购买日期', _formatDate(item.purchaseDate)),
+        _detailRow('📅', '生产日期', _formatDate(item.productionDate)),
+        _detailRow('⏰', '到期日期', _formatDate(item.expiryDate)),
+        _detailRow('🔔', '提醒设置', _alertSettingsText(item)),
+      ],
     );
+
+    return _wrapDetailSection(colorIndex: 1, child: content);
   }
 
   /// 构建购买价格行，按最小单位显示单价

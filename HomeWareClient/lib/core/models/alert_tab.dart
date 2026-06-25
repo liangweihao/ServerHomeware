@@ -8,3 +8,11 @@ const alertTabLabels = {
   AlertTab.restock: '补购',
   AlertTab.warranty: '其他',
 };
+
+const alertTabEmojis = {
+  AlertTab.all: '📋',
+  AlertTab.expiry: '⏰',
+  AlertTab.stock: '📦',
+  AlertTab.restock: '🛒',
+  AlertTab.warranty: '📄',
+};

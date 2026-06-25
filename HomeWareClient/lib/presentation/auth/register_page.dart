@@ -7,6 +7,8 @@ import '../../core/utils/error_handler.dart';
 import 'widgets/phone_input.dart';
 import 'widgets/password_input.dart';
 import 'widgets/auth_button.dart';
+import 'widgets/auth_cartoon_wrap.dart';
+import '../common/widgets/cartoon_ui.dart';
 
 /// 注册页面
 class RegisterPage extends ConsumerStatefulWidget {
@@ -109,7 +111,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -123,56 +125,60 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               // 标题
               _buildTitle(),
               const SizedBox(height: 40),
-              // 手机号输入
-              PhoneInput(
-                controller: _phoneController,
-                errorText: _phoneError,
-                enabled: !_isLoading,
-                onChanged: (_) {
-                  if (_phoneError != null) {
-                    setState(() {
-                      _phoneError = null;
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 20),
-              // 昵称输入
-              TextField(
-                controller: _nicknameController,
-                enabled: !_isLoading,
-                decoration: InputDecoration(
-                  labelText: '昵称',
-                  hintText: '请输入昵称',
-                  errorText: _nicknameError,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: AppColors.gray300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: AppColors.primary),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: AppColors.danger),
-                  ),
+              wrapAuthFormSurface(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    PhoneInput(
+                      controller: _phoneController,
+                      errorText: _phoneError,
+                      enabled: !_isLoading,
+                      onChanged: (_) {
+                        if (_phoneError != null) {
+                          setState(() {
+                            _phoneError = null;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: _nicknameController,
+                      enabled: !_isLoading,
+                      decoration: InputDecoration(
+                        labelText: '昵称',
+                        hintText: '请输入昵称',
+                        errorText: _nicknameError,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: AppColors.gray300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: AppColors.primary),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: AppColors.danger),
+                        ),
+                      ),
+                      style: TextStyle(fontSize: 16, color: AppColors.gray900),
+                      onChanged: (_) {
+                        if (_nicknameError != null) {
+                          setState(() {
+                            _nicknameError = null;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    PasswordInput(
+                      controller: _passwordController,
+                      errorText: _passwordError,
+                      enabled: !_isLoading,
+                    ),
+                  ],
                 ),
-                style: TextStyle(fontSize: 16, color: AppColors.gray900),
-                onChanged: (_) {
-                  if (_nicknameError != null) {
-                    setState(() {
-                      _nicknameError = null;
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 20),
-              // 密码输入
-              PasswordInput(
-                controller: _passwordController,
-                errorText: _passwordError,
-                enabled: !_isLoading,
               ),
               const SizedBox(height: 32),
               // 注册按钮
@@ -196,7 +202,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '创建账号',
+          CartoonUi.pageTitle('创建账号', emoji: '✨'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.gray900,

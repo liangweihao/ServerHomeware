@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/utils/error_handler.dart';
+import 'widgets/auth_button.dart';
+import 'widgets/auth_cartoon_wrap.dart';
 import 'widgets/phone_input.dart';
 import 'widgets/password_input.dart';
-import 'widgets/auth_button.dart';
+import '../common/widgets/cartoon_ui.dart';
 
 /// 登录页面
 class LoginPage extends ConsumerStatefulWidget {
@@ -116,7 +118,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.scaffoldBackground,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -132,11 +134,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 // 标题
                 _buildTitleSection(),
                 const SizedBox(height: 40),
-                // 表单区域
-                _buildFormSection(),
-                const SizedBox(height: 20),
-                // 忘记密码
-                _buildForgotPassword(),
+                // 表单区域 — 卡通主题贴纸卡片
+                wrapAuthFormSurface(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildFormSection(),
+                      const SizedBox(height: 20),
+                      _buildForgotPassword(),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 32),
                 // 登录按钮
                 AuthButton(
@@ -190,7 +198,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '欢迎回来 👋',
+          CartoonUi.pageTitle('欢迎回来', emoji: '👋'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.gray900,

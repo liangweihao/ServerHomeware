@@ -211,7 +211,7 @@ class HomePage extends ConsumerWidget {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
-          childAspectRatio: 1.38,
+          childAspectRatio: 1.28,
           children: [
             StatCard(
               icon: Icons.schedule_outlined,
@@ -262,7 +262,7 @@ class HomePage extends ConsumerWidget {
         physics: const NeverScrollableScrollPhysics(),
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 1.38,
+        childAspectRatio: 1.28,
         children: const [
           ShimmerStatCard(),
           ShimmerStatCard(),

@@ -7,6 +7,9 @@ import '../../core/providers/database_provider.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_empty_state.dart';
 import '../common/widgets/app_button.dart';
+import '../common/widgets/cartoon_fab.dart';
+import '../common/widgets/cartoon_list_entrance.dart';
+import '../common/widgets/cartoon_scaffold.dart';
 import '../items/widgets/item_card.dart';
 import 'widgets/location_card.dart';
 import 'widgets/add_location_dialog.dart';
@@ -27,35 +30,41 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
   Widget build(BuildContext context) {
     final locationAsync = ref.watch(locationByIdProvider(widget.locationId));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: locationAsync.when(
-          loading: () => const Text('加载中...'),
-          error: (_, __) => const Text('位置详情'),
-          data: (loc) => Text(loc?.name ?? '位置详情'),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(_isEditMode ? Icons.check : Icons.edit),
-            onPressed: () => setState(() => _isEditMode = !_isEditMode),
-          ),
-        ],
+    return locationAsync.when(
+      loading: () => CartoonScaffold(
+        title: '加载中...',
+        body: const Center(child: CircularProgressIndicator()),
       ),
-      body: locationAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('加载失败: $error')),
-        data: (location) {
-          if (location == null) {
-            return const AppEmptyState(
+      error: (error, _) => CartoonScaffold(
+        title: '位置详情',
+        body: Center(child: Text('加载失败: $error')),
+      ),
+      data: (location) {
+        if (location == null) {
+          return CartoonScaffold(
+            title: '位置详情',
+            body: const AppEmptyState(
               icon: '😕',
               title: '位置不存在',
               subtitle: '该位置可能已被删除',
-            );
-          }
-          return _buildContent(context, ref, location);
-        },
-      ),
-      floatingActionButton: _isEditMode ? _buildEditFAB(context, ref) : null,
+            ),
+          );
+        }
+
+        return CartoonScaffold(
+          title: location.name,
+          titleEmoji: '📍',
+          actions: [
+            IconButton(
+              icon: Icon(_isEditMode ? Icons.check : Icons.edit),
+              onPressed: () => setState(() => _isEditMode = !_isEditMode),
+            ),
+          ],
+          body: _buildContent(context, ref, location),
+          floatingActionButton:
+              _isEditMode ? _buildEditFAB(context, ref) : null,
+        );
+      },
     );
   }
 
@@ -111,18 +120,24 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
               itemCount: children.length,
               itemBuilder: (context, index) {
                 final child = children[index];
-                return FutureBuilder<int>(
-                  future: db.getItemCountForLocation(child.id),
-                  builder: (context, snapshot) {
-                    return LocationCard(
-                      name: child.name,
-                      icon: child.icon,
-                      itemCount: snapshot.data ?? 0,
-                      onTap: () => context.push('/locations/${child.id}'),
-                      onDelete: _isEditMode ? () => _confirmDeleteLocation(context, ref, child) : null,
-                      showDelete: _isEditMode,
-                    );
-                  },
+                return CartoonListEntrance(
+                  index: index,
+                  child: FutureBuilder<int>(
+                    future: db.getItemCountForLocation(child.id),
+                    builder: (context, snapshot) {
+                      return LocationCard(
+                        name: child.name,
+                        icon: child.icon,
+                        itemCount: snapshot.data ?? 0,
+                        cartoonIndex: index,
+                        onTap: () => context.push('/locations/${child.id}'),
+                        onDelete: _isEditMode
+                            ? () => _confirmDeleteLocation(context, ref, child)
+                            : null,
+                        showDelete: _isEditMode,
+                      );
+                    },
+                  ),
                 );
               },
             ),
@@ -146,9 +161,12 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: items.length,
           itemBuilder: (context, index) {
-            return ItemCard(
-              item: items[index],
-              onTap: () => context.go('/items/${items[index].id}'),
+            return CartoonListEntrance(
+              index: index,
+              child: ItemCard(
+                item: items[index],
+                onTap: () => context.go('/items/${items[index].id}'),
+              ),
             );
           },
         ),
@@ -167,7 +185,7 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
   }
 
   Widget _buildEditFAB(BuildContext context, WidgetRef ref) {
-    return FloatingActionButton(
+    return CartoonFloatingActionButton(
       onPressed: () => _showAddChildLocation(context, ref),
       child: const Icon(Icons.add),
     );

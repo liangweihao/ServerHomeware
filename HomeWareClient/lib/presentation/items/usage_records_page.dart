@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/database_provider.dart';
 import '../../data/database/app_database.dart';
+import '../common/widgets/cartoon_list_entrance.dart';
+import '../common/widgets/cartoon_scaffold.dart';
 
 /// 物品全部使用记录页
 class UsageRecordsPage extends ConsumerWidget {
@@ -20,8 +22,8 @@ class UsageRecordsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final recordsAsync = ref.watch(_allUsageRecordsProvider(itemId));
 
-    return Scaffold(
-      appBar: AppBar(title: Text('$itemName · 使用记录')),
+    return CartoonScaffold(
+      title: '$itemName · 使用记录',
       body: recordsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('加载失败: $e')),
@@ -35,10 +37,13 @@ class UsageRecordsPage extends ConsumerWidget {
             itemCount: records.length,
             separatorBuilder: (_, __) => const SizedBox(height: 0),
             itemBuilder: (context, index) {
-              return _TimelineTile(
-                record: records[index],
-                isLast: index == records.length - 1,
-                item: item,
+              return CartoonListEntrance(
+                index: index,
+                child: _TimelineTile(
+                  record: records[index],
+                  isLast: index == records.length - 1,
+                  item: item,
+                ),
               );
             },
           );

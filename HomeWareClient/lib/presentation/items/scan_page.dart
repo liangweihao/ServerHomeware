@@ -6,6 +6,8 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 
+import '../common/widgets/cartoon_ui.dart';
+
 class ScanPage extends ConsumerStatefulWidget {
   const ScanPage({super.key});
 
@@ -93,9 +95,9 @@ class _ScanPageState extends ConsumerState<ScanPage> {
             child: AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
-              title: const Text(
-                '扫码录入',
-                style: TextStyle(color: Colors.white),
+              title: Text(
+                CartoonUi.pageTitle('扫码录入', emoji: '📷'),
+                style: const TextStyle(color: Colors.white),
               ),
               iconTheme: const IconThemeData(color: Colors.white),
               actions: [

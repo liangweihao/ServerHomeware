@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_radius.dart';
 import '../../../core/models/alert_type.dart';
+import '../../../core/theme/app_decorations.dart';
 import '../../../core/utils/alert_display_helper.dart';
+import '../../../core/theme/cartoon_decorations.dart';
 import '../../../data/database/app_database.dart';
 import '../../common/widgets/app_button.dart';
+import '../../common/widgets/cartoon_ui.dart';
 
 export '../../../core/models/alert_type.dart';
 
+/// 提醒卡片 — 贴纸外框 + 内容级 emoji 图标与标签
 class AlertCard extends StatelessWidget {
   final Item item;
   final AlertType type;
@@ -31,29 +36,18 @@ class AlertCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final (color, icon, title, description) = _getAlertInfo();
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return AppSurface(
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              width: 4,
+              width: 6,
               decoration: BoxDecoration(
                 color: color,
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
+                  topLeft: Radius.circular(AppRadius.xl),
+                  bottomLeft: Radius.circular(AppRadius.xl),
                 ),
               ),
             ),
@@ -65,7 +59,17 @@ class AlertCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(icon, style: const TextStyle(fontSize: 24)),
+                        Container(
+                          width: 40,
+                          height: 40,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.white.withValues(alpha: 0.85),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: color, width: 2.5),
+                          ),
+                          child: Text(icon, style: const TextStyle(fontSize: 20, height: 1)),
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -73,16 +77,19 @@ class AlertCard extends StatelessWidget {
                             children: [
                               Text(
                                 item.name,
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w800,
                                     ),
                               ),
-                              Text(
-                                title,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: color,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                              const SizedBox(height: 2),
+                              CartoonStickerBadge(
+                                label: title,
+                                accentColor: color,
+                                fontSize: 10,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
                               ),
                             ],
                           ),
@@ -94,6 +101,7 @@ class AlertCard extends StatelessWidget {
                       description,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
                           ),
                     ),
                     const SizedBox(height: 12),

@@ -5,7 +5,12 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/providers/database_provider.dart';
 import '../../data/database/app_database.dart';
+import '../../core/theme/cartoon_copy.dart';
 import '../common/widgets/app_empty_state.dart';
+import '../common/widgets/cartoon_fab.dart';
+import '../common/widgets/cartoon_list_entrance.dart';
+import '../common/widgets/cartoon_list_tile.dart';
+import '../common/widgets/cartoon_scaffold.dart';
 
 // Provider for family members
 final familyMembersProvider = FutureProvider<List<FamilyMember>>((ref) async {
@@ -20,12 +25,9 @@ class FamilyManagementPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final membersAsync = ref.watch(familyMembersProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        backgroundColor: AppColors.appBarBackground,
-        title: const Text('家庭成员'),
-      ),
+    return CartoonScaffold(
+      title: '家庭成员',
+      titleEmoji: '👨‍👩‍👧‍👦',
       body: membersAsync.when(
         data: (members) {
           if (members.isEmpty) {
@@ -34,6 +36,7 @@ class FamilyManagementPage extends ConsumerWidget {
               title: '暂无成员',
               subtitle: '添加家庭成员来记录使用者',
               actionLabel: '添加成员',
+              cartoonKind: CartoonEmptyKind.family,
               onAction: () => _showAddMemberDialog(context, ref),
             );
           }
@@ -43,7 +46,10 @@ class FamilyManagementPage extends ConsumerWidget {
             itemCount: members.length,
             itemBuilder: (context, index) {
               final member = members[index];
-              return _buildMemberItem(context, ref, member);
+              return CartoonListEntrance(
+                index: index,
+                child: _buildMemberItem(context, ref, member, index),
+              );
             },
           );
         },
@@ -54,51 +60,28 @@ class FamilyManagementPage extends ConsumerWidget {
           subtitle: error.toString(),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: CartoonFloatingActionButton(
         onPressed: () => _showAddMemberDialog(context, ref),
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildMemberItem(BuildContext context, WidgetRef ref, FamilyMember member) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          radius: 24,
-          backgroundColor: AppColors.primary.withOpacity(0.1),
-          backgroundImage: member.avatar != null ? AssetImage(member.avatar!) : null,
-          child: member.avatar == null
-              ? Text(
-                  member.name.isNotEmpty ? member.name[0] : '?',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                )
-              : null,
-        ),
-        title: Text(
-          member.name,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-        ),
-        subtitle: Text(
-          _getRoleText(member.role),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondary,
-              ),
-        ),
+  Widget _buildMemberItem(
+    BuildContext context,
+    WidgetRef ref,
+    FamilyMember member,
+    int index,
+  ) {
+    final leadingEmoji = member.name.isNotEmpty ? member.name[0] : '?';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: CartoonListTile(
+        title: member.name,
+        subtitle: _getRoleText(member.role),
+        leadingEmoji: leadingEmoji,
+        colorIndex: index,
         trailing: PopupMenuButton<String>(
           onSelected: (value) {
             if (value == 'edit') {
@@ -111,8 +94,8 @@ class FamilyManagementPage extends ConsumerWidget {
             const PopupMenuItem(value: 'edit', child: Text('编辑')),
             const PopupMenuItem(value: 'delete', child: Text('删除')),
           ],
-          ),
         ),
+        onTap: () => _showEditMemberDialog(context, ref, member),
       ),
     );
   }

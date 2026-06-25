@@ -5,6 +5,8 @@ import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/utils/error_handler.dart';
 import 'widgets/auth_button.dart';
+import 'widgets/auth_cartoon_wrap.dart';
+import '../common/widgets/cartoon_ui.dart';
 
 /// 创建家庭页
 class CreateFamilyPage extends ConsumerStatefulWidget {
@@ -71,7 +73,7 @@ class _CreateFamilyPageState extends ConsumerState<CreateFamilyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -102,7 +104,7 @@ class _CreateFamilyPageState extends ConsumerState<CreateFamilyPage> {
               const SizedBox(height: 32),
               // 标题
               Text(
-                '创建你的家庭',
+                CartoonUi.pageTitle('创建你的家庭', emoji: '🏠'),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
@@ -118,58 +120,62 @@ class _CreateFamilyPageState extends ConsumerState<CreateFamilyPage> {
                     ),
               ),
               const SizedBox(height: 40),
-              // 输入框
-              TextField(
-                controller: _nameController,
-                enabled: !_isLoading,
-                decoration: InputDecoration(
-                  hintText: '给你的家庭起个名字',
-                  errorText: _nameError,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: AppColors.gray300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: AppColors.primary),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: AppColors.danger),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: AppColors.danger),
-                  ),
-                  prefixIcon: const Icon(Icons.home_outlined),
-                  prefixIconColor: AppColors.gray400,
+              wrapAuthFormSurface(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: _nameController,
+                      enabled: !_isLoading,
+                      decoration: InputDecoration(
+                        hintText: '给你的家庭起个名字',
+                        errorText: _nameError,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: AppColors.gray300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: AppColors.primary),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: AppColors.danger),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: AppColors.danger),
+                        ),
+                        prefixIcon: const Icon(Icons.home_outlined),
+                        prefixIconColor: AppColors.gray400,
+                      ),
+                      onChanged: (_) {
+                        if (_nameError != null) {
+                          setState(() {
+                            _nameError = null;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      '家庭名称需要2-15个字符',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.gray400,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    AuthButton(
+                      label: '创建家庭',
+                      onPressed: _createFamily,
+                      isLoading: _isLoading,
+                    ),
+                  ],
                 ),
-                onChanged: (_) {
-                  if (_nameError != null) {
-                    setState(() {
-                      _nameError = null;
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-              // 提示文字
-              Text(
-                '家庭名称需要2-15个字符',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.gray400,
-                ),
-              ),
-              const SizedBox(height: 24),
-              // 创建按钮
-              AuthButton(
-                label: '创建家庭',
-                onPressed: _createFamily,
-                isLoading: _isLoading,
               ),
               const SizedBox(height: 24),
               // 加入已有家庭

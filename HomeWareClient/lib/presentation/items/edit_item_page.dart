@@ -10,6 +10,7 @@ import '../../core/services/item_service.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_button.dart';
 import '../common/widgets/app_empty_state.dart';
+import '../common/widgets/cartoon_scaffold.dart';
 import 'item_form_controller.dart';
 import 'item_form_view.dart';
 
@@ -140,8 +141,9 @@ class _EditItemPageState extends ConsumerState<EditItemPage> {
     }
 
     if (_originalItem == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('编辑物品')),
+      return CartoonScaffold(
+        title: '编辑物品',
+        titleEmoji: '✏️',
         body: AppEmptyState(
           icon: '📦',
           title: '物品不存在',
@@ -152,22 +154,21 @@ class _EditItemPageState extends ConsumerState<EditItemPage> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('编辑物品'),
-        actions: [
-          TextButton(
-            onPressed: _isSaving ? null : _save,
-            child: _isSaving
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('保存'),
-          ),
-        ],
-      ),
+    return CartoonScaffold(
+      title: '编辑物品',
+      titleEmoji: '✏️',
+      actions: [
+        TextButton(
+          onPressed: _isSaving ? null : _save,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('保存'),
+        ),
+      ],
       body: ColoredBox(
         color: AppColors.gray50,
         child: SafeArea(

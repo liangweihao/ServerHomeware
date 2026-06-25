@@ -9,23 +9,31 @@ import '../../core/providers/database_provider.dart';
 import '../../core/services/item_sync_service.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_empty_state.dart';
+import '../common/widgets/cartoon_fab.dart';
+import '../common/widgets/cartoon_chip.dart';
+import '../common/widgets/cartoon_list_entrance.dart';
+import '../common/widgets/cartoon_scaffold.dart';
+import '../common/widgets/cartoon_app_bar_icon.dart';
+import '../../core/theme/cartoon_copy.dart';
+import '../../core/theme/app_visual_style.dart';
+import '../../core/theme/cartoon_decorations.dart';
 import '../common/widgets/category_selector.dart';
 import '../common/widgets/filter_bottom_sheet.dart';
 import 'widgets/item_card.dart';
 
-/// 搜索关键词
+/// 搜索关键�?
 final itemSearchQueryProvider = StateProvider<String>((ref) => '');
 
-/// 分类筛选（categoryId）
+/// 分类筛选（categoryId�?
 final categoryFilterProvider = StateProvider<int?>((ref) => null);
 
-/// 状态筛选（0 使用中 … 3 已丢弃）
+/// 状态筛选（0 使用�?�?3 已丢弃）
 final statusFilterProvider = StateProvider<int?>((ref) => null);
 
-/// 仅显示即将过期（与状态 Chip 互斥）
+/// 仅显示即将过期（与状�?Chip 互斥�?
 final expiringSoonFilterProvider = StateProvider<bool>((ref) => false);
 
-/// 位置名称筛选（FilterBottomSheet）
+/// 位置名称筛选（FilterBottomSheet�?
 final locationFilterProvider = StateProvider<String?>((ref) => null);
 
 /// 排序方式
@@ -131,7 +139,7 @@ List<Item> _sortItems(List<Item> items, String sort) {
   return sorted;
 }
 
-/// 状态文案 ↔ status 字段
+/// 状态文�?�?status 字段
 int? _statusLabelToCode(String? label) {
   switch (label) {
     case '使用中':
@@ -286,7 +294,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
       initialCategory: categoryLabel,
       initialSort: sort,
       onStatusChanged: (label) {
-        debugPrint('[ItemListPage] INFO: 高级筛选状态 -> $label');
+        debugPrint('[ItemListPage] INFO: 高级筛选状�?-> $label');
         if (label == '即将过期') {
           ref.read(expiringSoonFilterProvider.notifier).state = true;
           ref.read(statusFilterProvider.notifier).state = null;
@@ -331,31 +339,19 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
     final hasExtraFilter = ref.watch(locationFilterProvider) != null ||
         ref.watch(itemSortProvider) != AppConstants.sortOptions.first;
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        backgroundColor: AppColors.appBarBackground,
-        elevation: 0,
-        centerTitle: false,
-        title: Text(
-          '物品',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.appBarForeground,
-              ),
+    return CartoonScaffold(
+      title: '物品',
+      titleEmoji: '📦',
+      actions: [
+        CartoonAppBarIcon(
+          icon: Icons.qr_code_scanner_outlined,
+          tooltip: '扫码录入',
+          onPressed: () {
+            debugPrint('[ItemListPage] INFO: 跳转扫码录入');
+            context.push('/items/scan');
+          },
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.qr_code_scanner_outlined),
-            tooltip: '扫码录入',
-            onPressed: () {
-              debugPrint('[ItemListPage] INFO: 跳转扫码录入');
-              context.push('/items/scan');
-            },
-          ),
-          const SizedBox(width: 4),
-        ],
-      ),
+      ],
       body: Column(
         children: [
           _buildSearchHeader(context, hasExtraFilter),
@@ -380,6 +376,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
                   subtitle: error.toString(),
                   actionLabel: '重试',
                   onAction: () => ref.invalidate(filteredItemsProvider),
+                  cartoonKind: CartoonEmptyKind.error,
                 ),
               ),
             ),
@@ -387,8 +384,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
         ],
       ),
       floatingActionButton: _showScrollToTop
-          ? FloatingActionButton(
-              mini: true,
+          ? CartoonFloatingActionButton(
               onPressed: () => _scrollController.animateTo(
                 0,
                 duration: const Duration(milliseconds: 300),
@@ -396,7 +392,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
               ),
               child: const Icon(Icons.vertical_align_top, color: Colors.white),
             )
-          : FloatingActionButton(
+          : CartoonFloatingActionButton(
               onPressed: () => context.push('/items/add'),
               child: const Icon(Icons.add, color: Colors.white),
             ),
@@ -405,41 +401,54 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
 
   /// 搜索 + 高级筛选入口（与背景融合，无独立白条）
   Widget _buildSearchHeader(BuildContext context, bool hasExtraFilter) {
+    Widget searchField = TextField(
+      controller: _searchController,
+      decoration: InputDecoration(
+        hintText: '🔍 搜搜看有什么~',
+        prefixIcon: Icon(
+          Icons.search,
+          color: AppColors.primary,
+        ),
+        suffixIcon: _searchController.text.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.clear, size: 20),
+                onPressed: () {
+                  _searchController.clear();
+                  ref.read(itemSearchQueryProvider.notifier).state = '';
+                  setState(() {});
+                },
+              )
+            : null,
+        filled: true,
+        fillColor: Colors.transparent,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      ),
+      onChanged: (value) {
+        ref.read(itemSearchQueryProvider.notifier).state = value;
+        setState(() {});
+      },
+    );
+
+    searchField = Container(
+      decoration: CartoonDecorations.stickerCard(
+        fillColor: AppColors.white,
+        borderColor: AppColors.primaryLight,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: searchField,
+    );
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),
       child: Row(
         children: [
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: '搜索名称、品牌…',
-                prefixIcon: const Icon(Icons.search, color: AppColors.textHint),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 20),
-                        onPressed: () {
-                          _searchController.clear();
-                          ref.read(itemSearchQueryProvider.notifier).state = '';
-                          setState(() {});
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: AppColors.gray100,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              ),
-              onChanged: (value) {
-                ref.read(itemSearchQueryProvider.notifier).state = value;
-                setState(() {});
-              },
-            ),
-          ),
+          Expanded(child: searchField),
           IconButton(
             icon: Badge(
               isLabelVisible: hasExtraFilter,
@@ -472,6 +481,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
           children: [
             _buildFilterChip(
               label: '全部',
+              emoji: '🌈',
               isSelected: statusFilter == null && !expiringSoon,
               onTap: () {
                 ref.read(statusFilterProvider.notifier).state = null;
@@ -481,6 +491,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
             const SizedBox(width: 8),
             _buildFilterChip(
               label: '使用中',
+              emoji: '✅',
               isSelected: statusFilter == 0 && !expiringSoon,
               onTap: () {
                 ref.read(statusFilterProvider.notifier).state = 0;
@@ -490,6 +501,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
             const SizedBox(width: 8),
             _buildFilterChip(
               label: '已用完',
+              emoji: '📭',
               isSelected: statusFilter == 1,
               onTap: () {
                 ref.read(statusFilterProvider.notifier).state = 1;
@@ -499,6 +511,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
             const SizedBox(width: 8),
             _buildFilterChip(
               label: '已过期',
+              emoji: '⏰',
               isSelected: statusFilter == 2,
               onTap: () {
                 ref.read(statusFilterProvider.notifier).state = 2;
@@ -508,6 +521,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
             const SizedBox(width: 8),
             _buildFilterChip(
               label: '已丢弃',
+              emoji: '🗑️',
               isSelected: statusFilter == 3,
               onTap: () {
                 ref.read(statusFilterProvider.notifier).state = 3;
@@ -522,7 +536,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
     );
   }
 
-  /// 分类 Chip：点击选分类，× 清除筛选
+  /// 分类 Chip：点击选分类，× 清除筛�?
   Widget _buildCategoryChip(
     BuildContext context,
     WidgetRef ref,
@@ -530,55 +544,26 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
     int? categoryFilter,
   ) {
     final isSelected = categoryFilter != null;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColors.primaryLighter : AppColors.gray100,
-        borderRadius: BorderRadius.circular(20),
-        border: isSelected
-            ? Border.all(color: AppColors.primary.withOpacity(0.35))
-            : null,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CartoonChip(
+          label: isSelected ? categoryLabel : '分类',
+          emoji: '🏷️',
+          selected: isSelected,
+          onTap: _openCategoryPicker,
+        ),
+        if (isSelected) ...[
+          const SizedBox(width: 4),
           GestureDetector(
-            onTap: _openCategoryPicker,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  isSelected ? categoryLabel : '分类',
-                  style: TextStyle(
-                    color:
-                        isSelected ? AppColors.primaryDark : AppColors.textSecondary,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                    fontSize: 13,
-                  ),
-                ),
-                Icon(
-                  Icons.expand_more,
-                  size: 16,
-                  color: isSelected ? AppColors.primaryDark : AppColors.textHint,
-                ),
-              ],
-            ),
+            onTap: () {
+              ref.read(categoryFilterProvider.notifier).state = null;
+            },
+            child: Icon(Icons.close, size: 16, color: AppColors.primaryDark),
           ),
-          if (isSelected) ...[
-            const SizedBox(width: 4),
-            GestureDetector(
-              onTap: () {
-                ref.read(categoryFilterProvider.notifier).state = null;
-              },
-              child: Icon(
-                Icons.close,
-                size: 14,
-                color: AppColors.primaryDark,
-              ),
-            ),
-          ],
         ],
-      ),
+      ],
     );
   }
 
@@ -586,27 +571,13 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
+    String? emoji,
   }) {
-    return GestureDetector(
+    return CartoonChip(
+      label: label,
+      selected: isSelected,
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryLighter : AppColors.gray100,
-          borderRadius: BorderRadius.circular(20),
-          border: isSelected
-              ? Border.all(color: AppColors.primary.withOpacity(0.35))
-              : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? AppColors.primaryDark : AppColors.textSecondary,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            fontSize: 13,
-          ),
-        ),
-      ),
+      emoji: emoji,
     );
   }
 
@@ -620,6 +591,8 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
         subtitle: '试试其他关键词？',
         actionLabel: '手动添加 "$searchQuery"',
         onAction: () => context.push('/items/add'),
+        cartoonKind: CartoonEmptyKind.search,
+        searchQuery: searchQuery,
       );
     }
 
@@ -629,6 +602,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
       subtitle: '扫一扫或手动添加第一件物品吧',
       actionLabel: '+ 添加第一件物品',
       onAction: () => context.push('/items/add'),
+      cartoonKind: CartoonEmptyKind.items,
     );
   }
 
@@ -643,12 +617,15 @@ class _ItemListPageState extends ConsumerState<ItemListPage> {
             ? _locationNamesCache[item.locationId]
             : null;
         final categoryMeta = _categoryMetaCache[item.categoryId];
-        return ItemCard(
-          item: item,
-          locationName: locationName,
-          categoryName: categoryMeta?.$1,
-          categoryColorHex: categoryMeta?.$2,
-          onTap: () => context.push('/items/${item.id}'),
+        return CartoonListEntrance(
+          index: index,
+          child: ItemCard(
+            item: item,
+            locationName: locationName,
+            categoryName: categoryMeta?.$1,
+            categoryColorHex: categoryMeta?.$2,
+            onTap: () => context.push('/items/${item.id}'),
+          ),
         );
       },
     );

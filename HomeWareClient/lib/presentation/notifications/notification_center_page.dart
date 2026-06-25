@@ -7,6 +7,9 @@ import '../../core/providers/alert_provider.dart';
 import '../../core/utils/alert_display_helper.dart';
 import '../common/widgets/app_button.dart';
 import '../common/widgets/app_empty_state.dart';
+import '../common/widgets/cartoon_list_entrance.dart';
+import '../common/widgets/cartoon_list_tile.dart';
+import '../common/widgets/cartoon_scaffold.dart';
 import '../common/widgets/shimmer_loading.dart';
 
 /// 首页 AppBar 通知中心（Epic E1）
@@ -19,25 +22,23 @@ class NotificationCenterPage extends ConsumerWidget {
     final unreadCountAsync = ref.watch(unreadAlertCountProvider);
     final unreadCount = unreadCountAsync.value ?? 0;
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        title: const Text('通知中心'),
-        actions: [
-          if (unreadCount > 0)
-            TextButton(
-              onPressed: () async {
-                await markAllAlertsReadAction(ref);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('已标记所有提醒为已读')),
-                  );
-                }
-              },
-              child: const Text('全部已读'),
-            ),
-        ],
-      ),
+    return CartoonScaffold(
+      title: '通知中心',
+      titleEmoji: '🔔',
+      actions: [
+        if (unreadCount > 0)
+          TextButton(
+            onPressed: () async {
+              await markAllAlertsReadAction(ref);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('已标记所有提醒为已读')),
+                );
+              }
+            },
+            child: const Text('全部已读'),
+          ),
+      ],
       body: notificationsAsync.when(
         loading: () => const _NotificationLoadingList(),
         error: (error, _) {
@@ -71,18 +72,22 @@ class NotificationCenterPage extends ConsumerWidget {
                     final entry = notifications[index];
                     final type = alertTypeFromKey(entry.alertTypeKey);
                     final info = getAlertDisplayInfo(entry.item, type);
-                    return _NotificationListTile(
-                      entry: entry,
-                      alertTitle: info.title,
-                      alertDescription: info.description,
-                      iconData: info.iconData,
-                      accentColor: info.color,
-                      onTap: () {
-                        debugPrint(
-                          '[NotificationCenter] INFO: 跳转物品详情 id=${entry.item.id}',
-                        );
-                        context.push('/items/${entry.item.id}');
-                      },
+                    return CartoonListEntrance(
+                      index: index,
+                      child: _NotificationListTile(
+                        index: index,
+                        entry: entry,
+                        alertTitle: info.title,
+                        alertDescription: info.description,
+                        iconData: info.iconData,
+                        accentColor: info.color,
+                        onTap: () {
+                          debugPrint(
+                            '[NotificationCenter] INFO: 跳转物品详情 id=${entry.item.id}',
+                          );
+                          context.push('/items/${entry.item.id}');
+                        },
+                      ),
                     );
                   },
                 ),
@@ -122,6 +127,7 @@ class _NotificationLoadingList extends StatelessWidget {
 }
 
 class _NotificationListTile extends StatelessWidget {
+  final int index;
   final NotificationEntry entry;
   final String alertTitle;
   final String alertDescription;
@@ -130,6 +136,7 @@ class _NotificationListTile extends StatelessWidget {
   final VoidCallback onTap;
 
   const _NotificationListTile({
+    required this.index,
     required this.entry,
     required this.alertTitle,
     required this.alertDescription,
@@ -144,68 +151,21 @@ class _NotificationListTile extends StatelessWidget {
         '${entry.item.name}，$alertTitle，$alertDescription'
         '${entry.locationPath != null ? '，${entry.locationPath}' : ''}';
 
+    final subtitle = entry.locationPath != null
+        ? '$alertDescription\n${entry.locationPath!}'
+        : alertDescription;
+
+    // 卡通主题：统一 CartoonListTile 行样式
     return Semantics(
       label: semanticsLabel,
       button: true,
-      child: Material(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 56),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(iconData, size: 22, color: accentColor),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${entry.item.name} · $alertTitle',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          alertDescription,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: accentColor,
-                              ),
-                        ),
-                        if (entry.locationPath != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            entry.locationPath!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppColors.textHint,
-                                ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(top: 2),
-                    child: Icon(Icons.chevron_right, color: AppColors.textHint),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+      child: CartoonListTile(
+        title: '${entry.item.name} · $alertTitle',
+        subtitle: subtitle,
+        leadingIcon: iconData,
+        leadingColor: accentColor,
+        colorIndex: index,
+        onTap: onTap,
       ),
     );
   }

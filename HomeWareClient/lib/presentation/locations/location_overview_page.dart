@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart';
+import '../../core/constants/app_colors.dart';
 import '../../core/providers/database_provider.dart';
+import '../../core/theme/cartoon_copy.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_empty_state.dart';
-import '../common/widgets/app_button.dart';
+import '../common/widgets/cartoon_list_entrance.dart';
+import '../common/widgets/cartoon_scaffold.dart';
 import 'widgets/location_card.dart';
 import 'widgets/add_location_dialog.dart';
 
@@ -15,16 +18,15 @@ class LocationOverviewPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('我的家'),
-        actions: [
-          TextButton(
-            onPressed: () => _showAddLocationDialog(context, ref),
-            child: const Text('添加空间'),
-          ),
-        ],
-      ),
+    return CartoonScaffold(
+      title: '我的家',
+      titleEmoji: '🏠',
+      actions: [
+        TextButton(
+          onPressed: () => _showAddLocationDialog(context, ref),
+          child: const Text('添加空间'),
+        ),
+      ],
       body: Consumer(
         builder: (context, ref, child) {
           final locationsAsync = ref.watch(topLevelLocationsProvider);
@@ -38,6 +40,7 @@ class LocationOverviewPage extends ConsumerWidget {
                   title: '还没有房间',
                   subtitle: '点击右上角添加第一个空间',
                   actionLabel: '添加空间',
+                  cartoonKind: CartoonEmptyKind.family,
                   onAction: () => _showAddLocationDialog(context, ref),
                 );
               }
@@ -61,17 +64,21 @@ class LocationOverviewPage extends ConsumerWidget {
       itemCount: locations.length,
       itemBuilder: (context, index) {
         final location = locations[index];
-        return FutureBuilder<int>(
-          future: ref.read(databaseProvider).getItemCountForLocation(location.id),
-          builder: (context, snapshot) {
-            final itemCount = snapshot.data ?? 0;
-            return LocationCard(
-              name: location.name,
-              icon: location.icon,
-              itemCount: itemCount,
-              onTap: () => context.go('/locations/${location.id}'),
-            );
-          },
+        return CartoonListEntrance(
+          index: index,
+          child: FutureBuilder<int>(
+            future: ref.read(databaseProvider).getItemCountForLocation(location.id),
+            builder: (context, snapshot) {
+              final itemCount = snapshot.data ?? 0;
+              return LocationCard(
+                name: location.name,
+                icon: location.icon,
+                itemCount: itemCount,
+                cartoonIndex: index,
+                onTap: () => context.go('/locations/${location.id}'),
+              );
+            },
+          ),
         );
       },
     );

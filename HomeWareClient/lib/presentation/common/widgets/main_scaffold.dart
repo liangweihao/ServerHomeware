@@ -1,26 +1,31 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/alert_provider.dart';
+import 'cartoon_bottom_nav.dart';
 
-
-class MainScaffold extends StatefulWidget {
+/// 主 Tab 脚手架 — 卡通浮动底栏
+class MainScaffold extends ConsumerStatefulWidget {
   final Widget child;
 
   const MainScaffold({super.key, required this.child});
 
   @override
-  State<MainScaffold> createState() => _MainScaffoldState();
+  ConsumerState<MainScaffold> createState() => _MainScaffoldState();
 }
 
-class _MainScaffoldState extends State<MainScaffold> {
-  int _selectedIndex = 0;
+class _MainScaffoldState extends ConsumerState<MainScaffold> {
+  /// 根据路由路径解析当前 Tab 索引
+  static int indexFromPath(String path) {
+    if (path.startsWith('/items')) return 1;
+    if (path.startsWith('/alerts')) return 2;
+    if (path.startsWith('/profile')) return 3;
+    return 0;
+  }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
     switch (index) {
       case 0:
         context.go('/');
@@ -43,6 +48,18 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    final path = GoRouterState.of(context).uri.path;
+    final currentIndex = indexFromPath(path);
+
+    final body = MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        padding: MediaQuery.paddingOf(context).copyWith(
+          bottom: CartoonBottomNav.totalHeight(context),
+        ),
+      ),
+      child: widget.child,
+    );
+
     return WillPopScope(
       onWillPop: () async {
         if (_isMainRoute()) {
@@ -51,38 +68,21 @@ class _MainScaffoldState extends State<MainScaffold> {
         return true;
       },
       child: Scaffold(
-        body: widget.child,
-        bottomNavigationBar: Consumer(
-          builder: (context, ref, child) {
+        extendBody: true,
+        backgroundColor: AppColors.scaffoldBackground,
+        body: body,
+        bottomNavigationBar: Builder(
+          builder: (context) {
             final alertCountAsync = ref.watch(unreadAlertCountProvider);
             final alertCount = alertCountAsync.value ?? 0;
-            
-            return BottomNavigationBar(
-              type: BottomNavigationBarType.fixed,
-              currentIndex: _selectedIndex,
-              onTap: _onItemTapped,
-              items: [
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: '首页',
-                ),
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.list),
-                  label: '物品',
-                ),
-                BottomNavigationBarItem(
-                  icon: Badge(
-                    label: alertCount > 0 ? Text(alertCount.toString()) : null,
-                    isLabelVisible: alertCount > 0,
-                    child: const Icon(Icons.notifications),
-                  ),
-                  label: '提醒',
-                ),
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.person),
-                  label: '我的',
-                ),
-              ],
+
+            return ColoredBox(
+              color: Colors.transparent,
+              child: CartoonBottomNav(
+                currentIndex: currentIndex,
+                onTap: _onItemTapped,
+                alertCount: alertCount,
+              ),
             );
           },
         ),

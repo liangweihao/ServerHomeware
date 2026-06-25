@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/theme/app_visual_style.dart';
 import '../common/widgets/app_button.dart';
 import 'widgets/welcome_step.dart';
 import 'widgets/room_select_step.dart';
@@ -90,16 +91,23 @@ class _OnboardingPageState extends State<OnboardingPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(3, (index) {
+                  final isActive = _currentPage == index;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: _currentPage == index ? 24 : 8,
-                    height: 8,
+                    width: isActive ? 24 : 8,
+                    height: 10,
                     decoration: BoxDecoration(
-                      color: _currentPage == index
+                      color: isActive
                           ? AppColors.primary
-                          : AppColors.divider,
-                      borderRadius: BorderRadius.circular(4),
+                          : AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isActive
+                            ? AppColors.primaryDark
+                            : AppColors.primaryLight,
+                        width: 2,
+                      ),
                     ),
                   );
                 }),

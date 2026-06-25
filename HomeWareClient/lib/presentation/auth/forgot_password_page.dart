@@ -10,6 +10,8 @@ import 'widgets/phone_input.dart';
 import 'widgets/code_input.dart';
 import 'widgets/password_input.dart';
 import 'widgets/auth_button.dart';
+import 'widgets/auth_cartoon_wrap.dart';
+import '../common/widgets/cartoon_ui.dart';
 
 /// 忘记密码页
 class ForgotPasswordPage extends ConsumerStatefulWidget {
@@ -179,7 +181,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -193,84 +195,92 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               // 标题
               _buildTitle(),
               const SizedBox(height: 40),
-              // 手机号输入
-              PhoneInput(
-                controller: _phoneController,
-                errorText: _phoneError,
-                enabled: !_isLoading && !_isSendingCode,
-                onChanged: (_) {
-                  if (_phoneError != null) {
-                    setState(() {
-                      _phoneError = null;
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              // 发送验证码按钮
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: (_codeSent && _countdown > 0) || _isLoading || _isSendingCode
-                          ? null
-                          : _sendCode,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _codeSent && _countdown > 0 ? AppColors.gray200 : AppColors.primary,
-                        disabledBackgroundColor: AppColors.gray300,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: _isSendingCode
-                          ? SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: const AlwaysStoppedAnimation<Color>(
-                                  AppColors.white,
-                                ),
-                              ),
-                            )
-                          : Text(
-                              _countdown > 0 ? '${_countdown}s' : '获取验证码',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color:
-                                    _codeSent && _countdown > 0 ? AppColors.gray500 : AppColors.white,
-                              ),
-                            ),
+              wrapAuthFormSurface(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    PhoneInput(
+                      controller: _phoneController,
+                      errorText: _phoneError,
+                      enabled: !_isLoading && !_isSendingCode,
+                      onChanged: (_) {
+                        if (_phoneError != null) {
+                          setState(() {
+                            _phoneError = null;
+                          });
+                        }
+                      },
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: (_codeSent && _countdown > 0) ||
+                                    _isLoading ||
+                                    _isSendingCode
+                                ? null
+                                : _sendCode,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _codeSent && _countdown > 0
+                                  ? AppColors.gray200
+                                  : AppColors.primary,
+                              disabledBackgroundColor: AppColors.gray300,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: _isSendingCode
+                                ? SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor:
+                                          const AlwaysStoppedAnimation<Color>(
+                                        AppColors.white,
+                                      ),
+                                    ),
+                                  )
+                                : Text(
+                                    _countdown > 0 ? '${_countdown}s' : '获取验证码',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: _codeSent && _countdown > 0
+                                          ? AppColors.gray500
+                                          : AppColors.white,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_codeSent) ...[
+                      const SizedBox(height: 32),
+                      CodeInput(
+                        controller: _codeController,
+                        errorText: _codeError,
+                        enabled: !_isLoading,
+                      ),
+                      const SizedBox(height: 24),
+                      PasswordInput(
+                        controller: _newPasswordController,
+                        hintText: '请设置新密码',
+                        errorText: _newPasswordError,
+                        enabled: !_isLoading,
+                      ),
+                      const SizedBox(height: 32),
+                      AuthButton(
+                        label: '重置密码',
+                        onPressed: _resetPassword,
+                        isLoading: _isLoading,
+                      ),
+                    ],
+                  ],
+                ),
               ),
-              if (_codeSent) ...[
-                const SizedBox(height: 32),
-                // 验证码输入
-                CodeInput(
-                  controller: _codeController,
-                  errorText: _codeError,
-                  enabled: !_isLoading,
-                ),
-                const SizedBox(height: 24),
-                // 新密码输入
-                PasswordInput(
-                  controller: _newPasswordController,
-                  hintText: '请设置新密码',
-                  errorText: _newPasswordError,
-                  enabled: !_isLoading,
-                ),
-                const SizedBox(height: 32),
-                // 重置按钮
-                AuthButton(
-                  label: '重置密码',
-                  onPressed: _resetPassword,
-                  isLoading: _isLoading,
-                ),
-              ],
             ],
           ),
         ),
@@ -283,7 +293,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '忘记密码',
+          CartoonUi.pageTitle('忘记密码', emoji: '🔑'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.gray900,

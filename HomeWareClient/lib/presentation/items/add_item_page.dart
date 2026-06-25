@@ -11,6 +11,7 @@ import '../../core/services/upload_service.dart';
 import '../../core/utils/item_image_storage.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_button.dart';
+import '../common/widgets/cartoon_scaffold.dart';
 import 'item_form_controller.dart';
 import 'item_form_view.dart';
 
@@ -227,22 +228,21 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('添加物品'),
-        actions: [
-          TextButton(
-            onPressed: _isSaving ? null : _saveAndExit,
-            child: _isSaving
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('保存'),
-          ),
-        ],
-      ),
+    return CartoonScaffold(
+      title: '添加物品',
+      titleEmoji: '📦',
+      actions: [
+        TextButton(
+          onPressed: _isSaving ? null : _saveAndExit,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('保存'),
+        ),
+      ],
       body: ColoredBox(
         color: AppColors.gray50,
         child: SafeArea(

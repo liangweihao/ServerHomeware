@@ -4,8 +4,12 @@ import 'package:drift/drift.dart' as drift;
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/providers/database_provider.dart';
+import '../../core/theme/app_decorations.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_empty_state.dart';
+import '../common/widgets/cartoon_fab.dart';
+import '../common/widgets/cartoon_scaffold.dart';
+import '../common/widgets/cartoon_ui.dart';
 
 // Provider for categories
 final categoriesProvider = FutureProvider<List<Category>>((ref) async {
@@ -31,12 +35,9 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoriesProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        backgroundColor: AppColors.appBarBackground,
-        title: const Text('分类管理'),
-      ),
+    return CartoonScaffold(
+      title: '分类管理',
+      titleEmoji: '🏷️',
       body: categoriesAsync.when(
         data: (categories) {
           if (categories.isEmpty) {
@@ -63,7 +64,7 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
           subtitle: error.toString(),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: CartoonFloatingActionButton(
         onPressed: () => _showAddCategoryDialog(context),
         child: const Icon(Icons.add),
       ),
@@ -73,8 +74,7 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
   Widget _buildCategoryItem(Category category) {
     final childCategoriesAsync = ref.watch(childCategoriesProvider(category.id));
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+    final card = Container(
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -210,6 +210,11 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
           ),
         ],
       ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: AppSurface(child: card),
     );
   }
 
