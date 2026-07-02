@@ -56,4 +56,17 @@ class AppEnv {
     final normalized = path.startsWith('/') ? path : '/$path';
     return '$staticBaseUrl$normalized';
   }
+
+  /// WebSocket 实时通知地址（`/ws/notifications`）
+  static Uri wsNotificationsUri(String token) {
+    final apiUri = Uri.parse(_normalizedBase);
+    final wsScheme = apiUri.scheme == 'https' ? 'wss' : 'ws';
+    return Uri(
+      scheme: wsScheme,
+      host: apiUri.host,
+      port: apiUri.hasPort ? apiUri.port : null,
+      path: '${apiUri.path}/ws/notifications',
+      queryParameters: {'token': token},
+    );
+  }
 }

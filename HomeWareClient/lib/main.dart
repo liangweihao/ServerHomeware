@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -8,6 +9,7 @@ import 'core/theme/app_theme.dart';
 import 'core/providers/theme_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/services/notification_scheduler.dart';
+import 'core/services/inventory_reminder_prefs.dart';
 import 'data/database/app_database.dart';
 import 'core/providers/auth_guard.dart';
 import 'presentation/common/widgets/app_theme_background.dart';
@@ -59,6 +61,16 @@ void main() async {
     debugPrint('Reschedule notifications error: $error');
   });
 
+  // 盘点提醒（纯本地，默认开启）
+  InventoryReminderPrefs.isEnabled().then((enabled) async {
+    if (enabled) {
+      final day = await InventoryReminderPrefs.dayOfMonth();
+      await notificationScheduler.scheduleInventoryReminder(dayOfMonth: day);
+    }
+  }).catchError((error) {
+    debugPrint('Schedule inventory reminder error: $error');
+  });
+
   // 启动前加载主题，避免首帧颜色闪烁
   final initialTheme = await loadInitialThemeVariant();
 
@@ -85,6 +97,12 @@ class MyApp extends ConsumerWidget {
       theme: AppTheme.lightThemeOf(themeVariant),
       routerConfig: appRouter,
       locale: const Locale('zh', 'CN'),
+      supportedLocales: const [Locale('zh', 'CN')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       debugShowCheckedModeBanner: false,
       builder: (context, child) => AppThemeBackground(
         child: AuthGuard(child: child ?? const SizedBox.shrink()),

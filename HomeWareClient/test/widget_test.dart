@@ -1,30 +1,37 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:home_stock/core/events/item_event_bus.dart';
+import 'package:home_stock/core/utils/search_utils.dart';
+import 'package:home_stock/data/database/app_database.dart';
 
-import 'package:home_stock/main.dart';
-
+/// 基础单元测试入口 — 替代默认 counter 模板
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('ItemEventBus smoke', () {
+    final bus = ItemEventBus();
+    bus.notifyCreated(itemId: 1);
+    expect(bus.state, 1);
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('search utils smoke', () {
+    final item = Item(
+      id: 1,
+      name: '测试',
+      categoryId: 1,
+      purchaseQuantity: 1,
+      packageQuantity: 1,
+      currentQuantity: 1,
+      unit: '件',
+      safetyStock: 1,
+      expiryAlertDays: 3,
+      stockAlert: true,
+      status: 0,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    final results = filterItemsByQuery(
+      items: [item],
+      locationNameByItemId: const {},
+      query: '测试',
+    );
+    expect(results.length, 1);
   });
 }
