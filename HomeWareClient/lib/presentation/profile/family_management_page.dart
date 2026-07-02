@@ -7,10 +7,12 @@ import '../../core/providers/database_provider.dart';
 import '../../data/database/app_database.dart';
 import '../../core/theme/cartoon_copy.dart';
 import '../common/widgets/app_empty_state.dart';
-import '../common/widgets/cartoon_fab.dart';
-import '../common/widgets/cartoon_list_entrance.dart';
+import '../common/widgets/app_fab.dart';
+import '../common/widgets/app_list_entrance.dart';
+import '../common/widgets/app_card.dart';
+import '../common/widgets/app_list_row.dart';
 import '../common/widgets/cartoon_list_tile.dart';
-import '../common/widgets/cartoon_scaffold.dart';
+import '../common/widgets/warm_scaffold.dart';
 
 // Provider for family members
 final familyMembersProvider = FutureProvider<List<FamilyMember>>((ref) async {
@@ -25,9 +27,8 @@ class FamilyManagementPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final membersAsync = ref.watch(familyMembersProvider);
 
-    return CartoonScaffold(
+    return WarmScaffold(
       title: '家庭成员',
-      titleEmoji: '👨‍👩‍👧‍👦',
       body: membersAsync.when(
         data: (members) {
           if (members.isEmpty) {
@@ -46,7 +47,7 @@ class FamilyManagementPage extends ConsumerWidget {
             itemCount: members.length,
             itemBuilder: (context, index) {
               final member = members[index];
-              return CartoonListEntrance(
+              return AppListEntrance(
                 index: index,
                 child: _buildMemberItem(context, ref, member, index),
               );
@@ -60,7 +61,7 @@ class FamilyManagementPage extends ConsumerWidget {
           subtitle: error.toString(),
         ),
       ),
-      floatingActionButton: CartoonFloatingActionButton(
+      floatingActionButton: AppFloatingActionButton(
         onPressed: () => _showAddMemberDialog(context, ref),
         child: const Icon(Icons.add),
       ),
@@ -73,15 +74,30 @@ class FamilyManagementPage extends ConsumerWidget {
     FamilyMember member,
     int index,
   ) {
-    final leadingEmoji = member.name.isNotEmpty ? member.name[0] : '?';
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: CartoonListTile(
+      child: AppColors.isUtilityStyle
+          ? _buildUtilityMemberTile(context, ref, member, index)
+          : _buildCartoonMemberTile(context, ref, member, index),
+    );
+  }
+
+  /// 工具风成员行 — AppCard + AppListRow
+  Widget _buildUtilityMemberTile(
+    BuildContext context,
+    WidgetRef ref,
+    FamilyMember member,
+    int index,
+  ) {
+    final initial = member.name.isNotEmpty ? member.name[0] : '?';
+
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: AppListRow(
+        leadingEmoji: initial,
         title: member.name,
         subtitle: _getRoleText(member.role),
-        leadingEmoji: leadingEmoji,
-        colorIndex: index,
+        showChevron: false,
         trailing: PopupMenuButton<String>(
           onSelected: (value) {
             if (value == 'edit') {
@@ -97,6 +113,37 @@ class FamilyManagementPage extends ConsumerWidget {
         ),
         onTap: () => _showEditMemberDialog(context, ref, member),
       ),
+    );
+  }
+
+  /// 卡通主题成员行（回退）
+  Widget _buildCartoonMemberTile(
+    BuildContext context,
+    WidgetRef ref,
+    FamilyMember member,
+    int index,
+  ) {
+    final leadingEmoji = member.name.isNotEmpty ? member.name[0] : '?';
+
+    return CartoonListTile(
+      title: member.name,
+      subtitle: _getRoleText(member.role),
+      leadingEmoji: leadingEmoji,
+      colorIndex: index,
+      trailing: PopupMenuButton<String>(
+        onSelected: (value) {
+          if (value == 'edit') {
+            _showEditMemberDialog(context, ref, member);
+          } else if (value == 'delete') {
+            _deleteMember(context, ref, member);
+          }
+        },
+        itemBuilder: (context) => [
+          const PopupMenuItem(value: 'edit', child: Text('编辑')),
+          const PopupMenuItem(value: 'delete', child: Text('删除')),
+        ],
+      ),
+      onTap: () => _showEditMemberDialog(context, ref, member),
     );
   }
 

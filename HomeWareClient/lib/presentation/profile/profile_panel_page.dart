@@ -1,18 +1,38 @@
-import 'dart:math';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../core/constants/app_colors.dart';
+import '../../core/models/contribution_stats.dart';
+import '../../core/providers/alert_provider.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/family_provider.dart';
-import '../../core/services/auth_service.dart';
+import '../../core/providers/home_provider.dart';
+import '../../core/providers/realtime_sync_status_provider.dart';
 import '../../core/services/api_service.dart';
-import '../../core/services/family_service.dart';
 import '../../core/services/contribution_service.dart';
+import '../../core/services/family_service.dart';
+import '../common/widgets/app_card.dart';
+import '../common/widgets/app_list_row.dart';
+import '../common/widgets/app_section_header.dart';
+import '../common/widgets/warm_scaffold.dart';
+import 'widgets/export_data_dialog.dart';
+import 'widgets/family_contribution_section.dart';
+import 'widgets/profile_contribution_card.dart';
+import 'widgets/profile_family_card.dart';
+import 'widgets/profile_fade_slide_in.dart';
+import 'widgets/profile_health_ring.dart';
+import 'widgets/profile_identity_header.dart';
+import 'widgets/profile_inventory_health.dart';
+import 'widgets/profile_overview_strip.dart';
+import '../../core/providers/profile_health_history_provider.dart';
+import 'widgets/profile_health_trend_card.dart';
+import 'widgets/profile_quick_action_grid.dart';
+import 'widgets/profile_quick_actions_config.dart';
 import 'widgets/switch_family_bottom_sheet.dart';
 
-import '../common/widgets/cartoon_scaffold.dart';
-
+/// 完整个人中心 — 从首页头像进入，含家庭/贡献/同步状态
 class ProfilePanelPage extends ConsumerStatefulWidget {
   const ProfilePanelPage({super.key});
 
@@ -24,7 +44,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
   bool _familyLoading = true;
   bool _contributionLoading = true;
   Map<String, dynamic>? _familyData;
-  Map<String, dynamic>? _contributionData;
+  UserContributionStats? _contributionStats;
   String _inviteCode = '';
   bool _familyNetworkError = false;
   bool _contributionNetworkError = false;
@@ -55,7 +75,6 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
       return;
     }
 
-    // 先用首页已拉取的缓存，家庭区块可立即展示
     final cachedFamily = ref.read(currentFamilyProvider).valueOrNull;
     if (cachedFamily != null && !forceRefreshFamily) {
       setState(() {
@@ -69,10 +88,6 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
       ref.invalidate(currentFamilyProvider);
     }
 
-    final familyService = FamilyService();
-    final contributionService = ContributionService();
-
-    // 家庭：复用 Provider，与首页共用一次 GET /families/current
     ref.read(currentFamilyProvider.future).then((family) {
       if (!mounted) return;
       setState(() {
@@ -82,7 +97,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
         _familyNetworkError = false;
       });
     }).catchError((e) {
-      debugPrint('Failed to load family: $e');
+      debugPrint('[ProfilePanelPage] ERROR: 家庭加载失败 $e');
       if (!mounted) return;
       setState(() {
         _familyData = null;
@@ -91,11 +106,10 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
       });
     });
 
-    // 贡献度 + 家庭列表并行，不阻塞家庭区块展示
     try {
       final results = await Future.wait([
-        contributionService.getUserContribution(userId: userId),
-        familyService.getUserFamilies(),
+        ContributionService().getUserContribution(userId: userId),
+        FamilyService().getUserFamilies(),
       ]);
 
       final contributionResult = results[0] as ApiResponse<Map<String, dynamic>>;
@@ -103,13 +117,14 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
 
       if (!mounted) return;
 
-      if (contributionResult.code == 200) {
+      if (contributionResult.code == 200 && contributionResult.data != null) {
         setState(() {
-          _contributionData = contributionResult.data;
+          _contributionStats =
+              UserContributionStats.fromApi(contributionResult.data);
           _contributionNetworkError = false;
         });
       } else {
-        setState(() => _contributionData = null);
+        setState(() => _contributionStats = null);
       }
 
       if (familiesResult.code == 200) {
@@ -118,18 +133,296 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
         });
       }
     } catch (e) {
-      debugPrint('Failed to load contribution/families: $e');
+      debugPrint('[ProfilePanelPage] ERROR: 贡献/家庭列表 $e');
       if (!mounted) return;
       setState(() => _contributionNetworkError = true);
     } finally {
+      if (mounted) setState(() => _contributionLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = ref.read(authProvider.notifier).currentUser;
+    final unreadAsync = ref.watch(unreadAlertCountProvider);
+    final unreadCount = unreadAsync.value ?? 0;
+    final statsAsync = ref.watch(homeStatsProvider);
+    final stats = statsAsync.valueOrNull;
+    final health = ProfileInventoryHealth.fromStats(stats);
+    final pendingCount = stats == null
+        ? 0
+        : stats.expiredCount + stats.expiringCount + stats.lowStockCount;
+
+    return WarmScaffold(
+      title: '个人中心',
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: () => _loadData(forceRefreshFamily: true),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            ProfileFadeSlideIn(
+              child: ProfileIdentityHeader(
+                nickname: user?.nickname ?? '用户',
+                phone: user?.phone ?? '',
+                familyName: _familyData?['name']?.toString(),
+                roleLabel: _roleLabel(user?.familyRole),
+                health: health,
+                onHealthTap: () => context.push('/alerts'),
+                onEdit: () => context.push('/profile/edit'),
+              ),
+            ),
+            if (health.hasIssues) ...[
+              const SizedBox(height: 12),
+              ProfileFadeSlideIn(
+                delay: const Duration(milliseconds: 60),
+                child: ProfileHealthBanner(
+                  health: health,
+                  onTap: () => context.push('/alerts'),
+                ),
+              ),
+            ],
+            const SizedBox(height: 14),
+            ProfileFadeSlideIn(
+              delay: const Duration(milliseconds: 80),
+              child: const ProfileHealthTrendCard(),
+            ),
+            const SizedBox(height: 14),
+            ProfileFadeSlideIn(
+              delay: const Duration(milliseconds: 100),
+              child: ProfileOverviewStrip(
+                tiles: [
+                  ProfileOverviewTile(
+                    label: '待处理',
+                    value: '$pendingCount',
+                    icon: Icons.notifications_active_outlined,
+                    accentColor: pendingCount > 0
+                        ? AppColors.danger
+                        : AppColors.success,
+                    urgent: pendingCount > 0,
+                    onTap: () => context.push('/alerts'),
+                  ),
+                  ProfileOverviewTile(
+                    label: '录入本月',
+                    value: '${_contributionStats?.recordCount ?? 0}',
+                    icon: Icons.add_box_outlined,
+                    accentColor: AppColors.success,
+                    onTap: () => context.push('/profile/family/contribution'),
+                  ),
+                  ProfileOverviewTile(
+                    label: '家庭物品',
+                    value: '${_familyData?['item_count'] ?? 0}',
+                    icon: Icons.inventory_2_outlined,
+                    accentColor: AppColors.primary,
+                    onTap: () => context.push('/items'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            ProfileFadeSlideIn(
+              delay: const Duration(milliseconds: 140),
+              child: ProfileFamilyCard(
+              familyName: _familyData?['name']?.toString(),
+              members: (_familyData?['members'] as List?) ?? [],
+              itemCount: (_familyData?['item_count'] as int?) ?? 0,
+              inviteCode: _inviteCode,
+              loading: _familyLoading,
+              networkError: _familyNetworkError,
+              onRetry: () => _loadData(forceRefreshFamily: true),
+              onCreateFamily: () => context.push('/create-family'),
+              onJoinFamily: () => context.push('/join-family'),
+              onCopyInvite: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('邀请码已复制')),
+                );
+              },
+              onRefreshInvite: _refreshInviteCode,
+              onManageMembers: () => context.push('/profile/family'),
+              onSwitchFamily: _showSwitchFamily,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ProfileFadeSlideIn(
+              delay: const Duration(milliseconds: 180),
+              child: ProfileContributionCard(
+              stats: _contributionStats,
+              loading: _contributionLoading,
+              networkError: _contributionNetworkError,
+              onRetry: () => _loadData(forceRefreshFamily: true),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ProfileFadeSlideIn(
+              delay: const Duration(milliseconds: 220),
+              child: const FamilyContributionSection(),
+            ),
+            const SizedBox(height: 16),
+            ProfileFadeSlideIn(
+              delay: const Duration(milliseconds: 260),
+              child: const AppSectionHeader(title: '常用功能'),
+            ),
+            const SizedBox(height: 10),
+            ProfileFadeSlideIn(
+              delay: const Duration(milliseconds: 280),
+              child: ProfileQuickActionGrid(
+                actions: buildProfileQuickActions(
+                  context,
+                  unreadCount: unreadCount,
+                  pendingCount: pendingCount,
+                  compact: true,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ProfileFadeSlideIn(
+              delay: const Duration(milliseconds: 320),
+              child: _buildRealtimeSyncStatus(),
+            ),
+            const SizedBox(height: 16),
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  AppListRow(
+                    icon: Icons.settings_outlined,
+                    title: '提醒设置',
+                    onTap: () =>
+                        context.push('/profile/notification-settings'),
+                  ),
+                  const AppListDivider(),
+                  AppListRow(
+                    icon: Icons.checklist_outlined,
+                    title: '盘点任务',
+                    onTap: () => context.push('/profile/inventory'),
+                  ),
+                  const AppListDivider(),
+                  AppListRow(
+                    icon: Icons.upload_outlined,
+                    title: '数据导出',
+                    onTap: () => ExportDataDialog.show(context, ref),
+                  ),
+                  const AppListDivider(),
+                  AppListRow(
+                    icon: Icons.palette_outlined,
+                    title: '主题样式',
+                    onTap: () => context.push('/profile/theme-settings'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: _showLogoutConfirm,
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.danger,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: const Text(
+                  '退出登录',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRealtimeSyncStatus() {
+    final status = ref.watch(realtimeSyncStatusProvider);
+    final (label, color, icon) = switch (status) {
+      RealtimeSyncStatus.connected => (
+          '实时同步已连接',
+          AppColors.success,
+          Icons.cloud_done_outlined,
+        ),
+      RealtimeSyncStatus.connecting => (
+          '正在连接实时同步…',
+          AppColors.warning,
+          Icons.cloud_sync_outlined,
+        ),
+      RealtimeSyncStatus.reconnecting => (
+          '实时同步重连中…',
+          AppColors.warning,
+          Icons.cloud_sync_outlined,
+        ),
+      RealtimeSyncStatus.disconnected => (
+          '实时同步未连接',
+          AppColors.textHint,
+          Icons.cloud_off_outlined,
+        ),
+    };
+
+    return AppCard(
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '家庭同步',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _refreshInviteCode() async {
+    try {
+      final familyId = (_familyData?['id'] as int?)?.toString() ?? '1';
+      final result =
+          await FamilyService().refreshInviteCode(familyId: familyId);
+      if (result.code == 200 && mounted) {
+        setState(() {
+          _inviteCode = result.data?['invite_code'] ?? '';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('邀请码已刷新')),
+        );
+      }
+    } catch (e) {
+      debugPrint('[ProfilePanelPage] ERROR: 刷新邀请码 $e');
       if (mounted) {
-        setState(() => _contributionLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('刷新失败: $e')),
+        );
       }
     }
   }
 
   void _showLogoutConfirm() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('确认退出？'),
@@ -143,769 +436,11 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
             onPressed: () async {
               Navigator.pop(context);
               await ref.read(authProvider.notifier).logout();
-              context.go('/login');
+              if (context.mounted) context.go('/login');
             },
             child: const Text('确认退出', style: TextStyle(color: AppColors.danger)),
           ),
         ],
-      ),
-    );
-  }
-
-  Future<void> _copyInviteCode() async {
-    if (_inviteCode.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('邀请码已复制')),
-      );
-    }
-  }
-
-  Future<void> _refreshInviteCode() async {
-    try {
-      final familyService = FamilyService();
-      // 服务端返回的 id 是 int 类型，需要转换为 String
-      final familyId = (_familyData?['id'] as int?)?.toString() ?? '1';
-      final result = await familyService.refreshInviteCode(familyId: familyId);
-      if (result.code == 200) {
-        setState(() {
-          _inviteCode = result.data?['invite_code'] ?? '';
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('邀请码已刷新')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('刷新失败: $e')),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = screenWidth - 40;
-    final user = ref.read(authProvider.notifier).currentUser;
-    final avatarIndex = AuthService.getAvatarColorIndex(user?.phone ?? '');
-    final colors = AuthService.getAvatarColors(avatarIndex);
-    String displayChar = '?';
-    if (user?.nickname != null && user!.nickname!.isNotEmpty) {
-      displayChar = user.nickname![0].toUpperCase();
-    } else if (user?.phone != null) {
-      displayChar = user!.phone!.substring(user.phone!.length - 4);
-    }
-
-    return CartoonScaffold(
-      title: '个人中心',
-      titleEmoji: '👤',
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: [
-              _buildHeaderSection(colors, displayChar, user),
-              const SizedBox(height: 20),
-              _buildFamilySection(cardWidth),
-              const SizedBox(height: 16),
-              _buildContributionSection(cardWidth),
-              const SizedBox(height: 16),
-              _buildFunctionList(cardWidth),
-              const SizedBox(height: 20),
-              _buildLogoutButton(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeaderSection(List<int> colors, String displayChar, dynamic user) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withOpacity(0.08),
-            Colors.white,
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-      child: Column(
-        children: [
-          Container(
-            width: 88,
-            height: 88,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [Color(colors[0]), Color(colors[1])],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                displayChar,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            user?.nickname ?? '用户',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            _maskPhone(user?.phone ?? ''),
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.gray500,
-            ),
-          ),
-          const SizedBox(height: 16),
-          OutlinedButton(
-            onPressed: () => context.push('/profile/edit'),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(120, 36),
-              side: BorderSide(color: AppColors.primary),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              '编辑资料',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFamilySection(double width) {
-    if (_familyLoading) {
-      return SizedBox(
-        width: width,
-        child: Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: AppColors.gray200),
-          ),
-          child: const Padding(
-            padding: EdgeInsets.all(24),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-        ),
-      );
-    }
-
-    if (_familyNetworkError) {
-      return SizedBox(
-        width: width,
-        child: Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: AppColors.gray200),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                const Text(
-                  '🏠 当前家庭',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  '❌ 网络连接失败',
-                  style: TextStyle(color: Colors.red, fontSize: 16),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '请检查网络后重试',
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => _loadData(forceRefreshFamily: true),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(120, 40),
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text('重新加载'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (_familyData == null) {
-      return SizedBox(
-        width: width,
-        child: Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: AppColors.gray200),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                const Text(
-                  '🏠 当前家庭',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  '🏠 您还没有加入任何家庭',
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '邀请家人一起管理物品吧！',
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => context.push('/create-family'),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(120, 40),
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('创建家庭'),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () => context.push('/join-family'),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(120, 40),
-                      backgroundColor: Colors.grey[100],
-                      foregroundColor: Colors.grey[700],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('加入家庭'),
-                  ),
-                ],
-              ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    final familyName = _familyData?['name'] ?? '未加入家庭';
-    final members = _familyData?['members'] ?? [];
-
-    return SizedBox(
-      width: width,
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: AppColors.gray200),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '🏠 当前家庭',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                familyName,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: List.generate(
-                  min(members.length, 5),
-                  (index) => _buildMemberAvatar(members[index]),
-                )..addAll([
-                    if (members.length > 5)
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.gray100,
-                        ),
-                        child: Center(
-                          child: Text(
-                            '+${members.length - 5}',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.gray500,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ]),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '${members.length}位成员 · ${_familyData?['item_count'] ?? 0}件物品',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.gray500,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Text(
-                    '邀请码：',
-                    style: TextStyle(fontSize: 13),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _inviteCode.isNotEmpty ? _inviteCode : '暂无',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: _copyInviteCode,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(90, 36),
-                      backgroundColor: AppColors.primaryLight,
-                      foregroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                    child: const Text('📋 复制'),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: _refreshInviteCode,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(90, 36),
-                      backgroundColor: AppColors.primaryLight,
-                      foregroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                    child: const Text('🔄 刷新'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  TextButton(
-                    onPressed: () => context.push('/profile/family'),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                    ),
-                    child: const Text('👥 管理成员'),
-                  ),
-                  const SizedBox(width: 16),
-                  TextButton(
-                    onPressed: () => _showSwitchFamily(),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                    ),
-                    child: const Text('🏠 切换家庭'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMemberAvatar(dynamic member) {
-    final name = member['nickname'] ?? member['phone'] ?? '?';
-    final displayChar = name is String && name.isNotEmpty 
-        ? name[0].toUpperCase() 
-        : '?';
-    final index = name.hashCode.abs() % 10;
-    final colors = AuthService.getAvatarColors(index);
-
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [Color(colors[0]), Color(colors[1])],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            displayChar,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContributionSection(double width) {
-    if (_contributionLoading) {
-      return SizedBox(
-        width: width,
-        child: Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: AppColors.gray200),
-          ),
-          child: const Padding(
-            padding: EdgeInsets.all(24),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-        ),
-      );
-    }
-
-    if (_contributionNetworkError) {
-      return SizedBox(
-        width: width,
-        child: Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: AppColors.gray200),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                const Text(
-                  '📊 我的贡献（本月）',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  '❌ 获取数据失败',
-                  style: TextStyle(color: Colors.red, fontSize: 16),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '请检查网络后重试',
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => _loadData(forceRefreshFamily: true),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(120, 40),
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text('重新加载'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (_contributionData == null) {
-      return SizedBox(
-        width: width,
-        child: Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: AppColors.gray200),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                const Text(
-                  '📊 我的贡献（本月）',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  '📊 暂无贡献数据',
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '加入家庭后即可记录贡献',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    final recordCount = _contributionData?['record_count'] ?? 0;
-    final consumeCount = _contributionData?['consume_count'] ?? 0;
-    final contribution = _contributionData?['contribution'] ?? 0;
-
-    return SizedBox(
-      width: width,
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: AppColors.gray200),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '📊 我的贡献（本月）',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.successLight,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text('录入', style: TextStyle(fontSize: 12, color: AppColors.gray500)),
-                          const SizedBox(height: 4),
-                          Text('$recordCount 件', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.infoLight,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text('消耗记录', style: TextStyle(fontSize: 12, color: AppColors.gray500)),
-                          const SizedBox(height: 4),
-                          Text('$consumeCount 次', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Text('家庭贡献度'),
-              const SizedBox(height: 8),
-              Stack(
-                children: [
-                  Container(
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: AppColors.gray200,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  Container(
-                    height: 8,
-                    width: width * 0.92 * (contribution / 100),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppColors.primary, AppColors.success],
-                      ),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('你的操作占全家的比例'),
-                  Text(
-                    '$contribution%',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                '本月你比上月多录入了5件 👍',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.gray500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFunctionList(double width) {
-    final functions = [
-      {'icon': '⚙️', 'title': '设置', 'route': '/profile/notification-settings'},
-      {'icon': '📋', 'title': '盘点任务', 'route': null},
-      {'icon': '📤', 'title': '数据导出', 'route': null},
-      {'icon': '❓', 'title': '帮助与反馈', 'route': null},
-      {'icon': '📱', 'title': '关于 HomeStock', 'route': null},
-    ];
-
-    return SizedBox(
-      width: width,
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: AppColors.gray200),
-        ),
-        child: Column(
-          children: functions
-              .map((func) => InkWell(
-                    onTap: () {
-                      if (func['route'] != null) {
-                        context.push(func['route']!);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${func['title']}功能开发中')),
-                        );
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                      child: Row(
-                        children: [
-                          Text(func['icon']!, style: const TextStyle(fontSize: 22)),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              func['title']!,
-                              style: const TextStyle(fontSize: 15),
-                            ),
-                          ),
-                          const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.gray400),
-                        ],
-                      ),
-                    ),
-                  ))
-              .toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLogoutButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: TextButton(
-        onPressed: _showLogoutConfirm,
-        style: TextButton.styleFrom(
-          foregroundColor: AppColors.danger,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        child: const Text(
-          '🚪 退出登录',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
       ),
     );
   }
@@ -918,13 +453,19 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
       currentFamilyId: (_familyData?['id'] as dynamic)?.toString(),
       currentFamilyData: _familyData,
       userId: user?.id,
-    ).then((_) {
-      _loadData(forceRefreshFamily: true);
-    });
+    ).then((_) => _loadData(forceRefreshFamily: true));
   }
 
-  String _maskPhone(String phone) {
-    if (phone.length != 11) return phone;
-    return '${phone.substring(0, 3)}****${phone.substring(7)}';
+  String? _roleLabel(String? role) {
+    switch (role) {
+      case 'admin':
+        return '管理员';
+      case 'owner':
+        return '户主';
+      case 'member':
+        return '成员';
+      default:
+        return null;
+    }
   }
 }

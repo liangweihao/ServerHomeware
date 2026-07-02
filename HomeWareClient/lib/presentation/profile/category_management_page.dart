@@ -6,9 +6,10 @@ import '../../core/constants/app_radius.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/theme/app_decorations.dart';
 import '../../data/database/app_database.dart';
+import '../common/widgets/app_card.dart';
 import '../common/widgets/app_empty_state.dart';
-import '../common/widgets/cartoon_fab.dart';
-import '../common/widgets/cartoon_scaffold.dart';
+import '../common/widgets/app_fab.dart';
+import '../common/widgets/warm_scaffold.dart';
 import '../common/widgets/cartoon_ui.dart';
 
 // Provider for categories
@@ -35,9 +36,8 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoriesProvider);
 
-    return CartoonScaffold(
+    return WarmScaffold(
       title: '分类管理',
-      titleEmoji: '🏷️',
       body: categoriesAsync.when(
         data: (categories) {
           if (categories.isEmpty) {
@@ -64,7 +64,7 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
           subtitle: error.toString(),
         ),
       ),
-      floatingActionButton: CartoonFloatingActionButton(
+      floatingActionButton: AppFloatingActionButton(
         onPressed: () => _showAddCategoryDialog(context),
         child: const Icon(Icons.add),
       ),
@@ -214,7 +214,9 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: AppSurface(child: card),
+      child: AppColors.isUtilityStyle
+          ? AppCard(padding: const EdgeInsets.all(16), child: card)
+          : AppSurface(child: card),
     );
   }
 

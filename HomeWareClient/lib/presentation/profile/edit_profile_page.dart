@@ -7,8 +7,8 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/utils/error_handler.dart';
 import '../../core/theme/app_decorations.dart';
-import '../common/widgets/cartoon_scaffold.dart';
-import '../common/widgets/cartoon_ui.dart';
+import '../common/widgets/app_card.dart';
+import '../common/widgets/warm_scaffold.dart';
 
 /// 编辑资料页
 class EditProfilePage extends ConsumerStatefulWidget {
@@ -186,9 +186,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       displayChar = user!.phone!.substring(7, 11);
     }
 
-    return CartoonScaffold(
+    return WarmScaffold(
       title: '编辑资料',
-      titleEmoji: '✏️',
       actions: [
         TextButton(
           onPressed: _isLoading ? null : _saveProfile,
@@ -480,8 +479,18 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     );
   }
   
-  /// 表单/操作区 AppSurface 包裹
+  /// 表单/操作区卡片包裹 — 工具风 AppCard / 卡通 AppSurface
   Widget _wrapProfileCard({required Widget child}) {
+    if (AppColors.isUtilityStyle) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: AppCard(
+          padding: const EdgeInsets.all(20),
+          child: child,
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: AppSurface(

@@ -1,25 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_radius.dart';
-import '../common/widgets/cartoon_scaffold.dart';
-import '../common/widgets/cartoon_ui.dart';
 
-// Notification settings providers
+import '../../core/constants/app_colors.dart';
+import '../common/widgets/app_card.dart';
+import '../common/widgets/app_list_row.dart';
+import '../common/widgets/warm_scaffold.dart';
+
+/// 通知开关与提醒策略 Provider
 final notificationsEnabledProvider = StateProvider<bool>((ref) => true);
 final defaultAlertDaysProvider = StateProvider<int>((ref) => 3);
 final notificationStartHourProvider = StateProvider<int>((ref) => 8);
 final notificationEndHourProvider = StateProvider<int>((ref) => 22);
 
+/// 提醒设置页 — AppCard + 标准列表行
 class NotificationSettingsPage extends ConsumerStatefulWidget {
   const NotificationSettingsPage({super.key});
 
   @override
-  ConsumerState<NotificationSettingsPage> createState() => _NotificationSettingsPageState();
+  ConsumerState<NotificationSettingsPage> createState() =>
+      _NotificationSettingsPageState();
 }
 
-class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsPage> {
+class _NotificationSettingsPageState
+    extends ConsumerState<NotificationSettingsPage> {
   @override
   void initState() {
     super.initState();
@@ -28,18 +32,34 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    ref.read(notificationsEnabledProvider.notifier).state = prefs.getBool('notifications_enabled') ?? true;
-    ref.read(defaultAlertDaysProvider.notifier).state = prefs.getInt('default_alert_days') ?? 3;
-    ref.read(notificationStartHourProvider.notifier).state = prefs.getInt('notification_start_hour') ?? 8;
-    ref.read(notificationEndHourProvider.notifier).state = prefs.getInt('notification_end_hour') ?? 22;
+    ref.read(notificationsEnabledProvider.notifier).state =
+        prefs.getBool('notifications_enabled') ?? true;
+    ref.read(defaultAlertDaysProvider.notifier).state =
+        prefs.getInt('default_alert_days') ?? 3;
+    ref.read(notificationStartHourProvider.notifier).state =
+        prefs.getInt('notification_start_hour') ?? 8;
+    ref.read(notificationEndHourProvider.notifier).state =
+        prefs.getInt('notification_end_hour') ?? 22;
   }
 
   Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notifications_enabled', ref.read(notificationsEnabledProvider));
-    await prefs.setInt('default_alert_days', ref.read(defaultAlertDaysProvider));
-    await prefs.setInt('notification_start_hour', ref.read(notificationStartHourProvider));
-    await prefs.setInt('notification_end_hour', ref.read(notificationEndHourProvider));
+    await prefs.setBool(
+      'notifications_enabled',
+      ref.read(notificationsEnabledProvider),
+    );
+    await prefs.setInt(
+      'default_alert_days',
+      ref.read(defaultAlertDaysProvider),
+    );
+    await prefs.setInt(
+      'notification_start_hour',
+      ref.read(notificationStartHourProvider),
+    );
+    await prefs.setInt(
+      'notification_end_hour',
+      ref.read(notificationEndHourProvider),
+    );
   }
 
   @override
@@ -49,88 +69,60 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
     final startHour = ref.watch(notificationStartHourProvider);
     final endHour = ref.watch(notificationEndHourProvider);
 
-    return CartoonScaffold(
+    return WarmScaffold(
       title: '提醒设置',
-      titleEmoji: '⚙️',
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // 全局开关
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: SwitchListTile(
-                title: const Text('开启通知'),
-                subtitle: const Text('接收物品过期和库存不足提醒'),
-                value: notificationsEnabled,
-                onChanged: (value) {
-                  ref.read(notificationsEnabledProvider.notifier).state = value;
-                  _saveSettings();
-                },
-              ),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: SwitchListTile(
+              title: const Text('开启通知'),
+              subtitle: const Text('接收物品过期和库存不足提醒'),
+              value: notificationsEnabled,
+              activeColor: AppColors.primary,
+              onChanged: (value) {
+                ref.read(notificationsEnabledProvider.notifier).state = value;
+                _saveSettings();
+              },
             ),
           ),
-
-          const SizedBox(height: 16),
-
-          // 过期提醒提前天数
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: ListTile(
-                title: const Text('过期提醒默认提前天数'),
-                subtitle: Text('提前 $defaultAlertDays 天提醒'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showAlertDaysDialog(context, defaultAlertDays),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // 提醒时间段
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: ListTile(
-                title: const Text('提醒时间段'),
-                subtitle: Text('${startHour.toString().padLeft(2, '0')}:00 - ${endHour.toString().padLeft(2, '0')}:00'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showTimeRangeDialog(context, startHour, endHour),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // 提示文字
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.infoLight,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-            ),
-            child: Row(
+          const SizedBox(height: 12),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: Column(
               children: [
-                Icon(Icons.info_outline, color: AppColors.info),
+                AppListRow(
+                  icon: Icons.event_outlined,
+                  title: '过期提醒默认提前天数',
+                  subtitle: '提前 $defaultAlertDays 天提醒',
+                  onTap: () => _showAlertDaysDialog(context, defaultAlertDays),
+                ),
+                const AppListDivider(),
+                AppListRow(
+                  icon: Icons.schedule_outlined,
+                  title: '提醒时间段',
+                  subtitle:
+                      '${startHour.toString().padLeft(2, '0')}:00 - ${endHour.toString().padLeft(2, '0')}:00',
+                  onTap: () => _showTimeRangeDialog(context, startHour, endHour),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          AppCard(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline, color: AppColors.info, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    '仅在设置的时间段内推送通知，\n避免打扰您的休息。',
+                    '仅在设置的时间段内推送通知，避免打扰您的休息。',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.info,
+                          color: AppColors.textSecondary,
+                          height: 1.4,
                         ),
                   ),
                 ),
@@ -143,7 +135,7 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
   }
 
   void _showAlertDaysDialog(BuildContext context, int currentDays) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) {
         int selectedDays = currentDays;
@@ -165,11 +157,11 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
                           : null,
                       icon: const Icon(Icons.remove_circle_outline),
                     ),
-                    Container(
+                    SizedBox(
                       width: 60,
-                      alignment: Alignment.center,
                       child: Text(
                         '$selectedDays',
+                        textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                     ),
@@ -191,7 +183,8 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
               ),
               TextButton(
                 onPressed: () {
-                  ref.read(defaultAlertDaysProvider.notifier).state = selectedDays;
+                  ref.read(defaultAlertDaysProvider.notifier).state =
+                      selectedDays;
                   _saveSettings();
                   Navigator.pop(context);
                 },
@@ -205,7 +198,7 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
   }
 
   void _showTimeRangeDialog(BuildContext context, int startHour, int endHour) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) {
         int selectedStart = startHour;
@@ -228,11 +221,16 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
                           const SizedBox(height: 8),
                           DropdownButton<int>(
                             value: selectedStart,
+                            isExpanded: true,
                             items: List.generate(24, (i) => i)
-                                .map((h) => DropdownMenuItem(
-                                      value: h,
-                                      child: Text('${h.toString().padLeft(2, '0')}:00'),
-                                    ))
+                                .map(
+                                  (h) => DropdownMenuItem(
+                                    value: h,
+                                    child: Text(
+                                      '${h.toString().padLeft(2, '0')}:00',
+                                    ),
+                                  ),
+                                )
                                 .toList(),
                             onChanged: (value) {
                               if (value != null) {
@@ -243,7 +241,10 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
                         ],
                       ),
                     ),
-                    const Text(' 至 '),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Text('至'),
+                    ),
                     Expanded(
                       child: Column(
                         children: [
@@ -251,11 +252,16 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
                           const SizedBox(height: 8),
                           DropdownButton<int>(
                             value: selectedEnd,
+                            isExpanded: true,
                             items: List.generate(24, (i) => i)
-                                .map((h) => DropdownMenuItem(
-                                      value: h,
-                                      child: Text('${h.toString().padLeft(2, '0')}:00'),
-                                    ))
+                                .map(
+                                  (h) => DropdownMenuItem(
+                                    value: h,
+                                    child: Text(
+                                      '${h.toString().padLeft(2, '0')}:00',
+                                    ),
+                                  ),
+                                )
                                 .toList(),
                             onChanged: (value) {
                               if (value != null) {
@@ -283,8 +289,10 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
                     );
                     return;
                   }
-                  ref.read(notificationStartHourProvider.notifier).state = selectedStart;
-                  ref.read(notificationEndHourProvider.notifier).state = selectedEnd;
+                  ref.read(notificationStartHourProvider.notifier).state =
+                      selectedStart;
+                  ref.read(notificationEndHourProvider.notifier).state =
+                      selectedEnd;
                   _saveSettings();
                   Navigator.pop(context);
                 },

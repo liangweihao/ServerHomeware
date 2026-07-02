@@ -1,216 +1,212 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/theme/app_decorations.dart';
-import '../../core/providers/auth_provider.dart';
-import '../../core/providers/database_provider.dart';
-import '../../core/services/auth_service.dart';
-import '../../core/services/export_service.dart';
 
+import '../../core/constants/app_colors.dart';
+import '../../core/providers/alert_provider.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/providers/family_provider.dart';
+import '../../core/providers/home_provider.dart';
+import '../common/widgets/app_card.dart';
+import '../common/widgets/app_list_row.dart';
+import '../common/widgets/app_section_header.dart';
+import '../common/widgets/warm_scaffold.dart';
+import 'widgets/export_data_dialog.dart';
+import 'widgets/profile_fade_slide_in.dart';
+import 'widgets/profile_health_ring.dart';
+import 'widgets/profile_identity_header.dart';
+import 'widgets/profile_inventory_health.dart';
+import 'widgets/profile_overview_strip.dart';
+import '../../core/providers/profile_health_history_provider.dart';
+import 'widgets/profile_health_trend_card.dart';
+import 'widgets/profile_quick_action_grid.dart';
+import 'widgets/profile_quick_actions_config.dart';
+
+/// 个人中心 Tab — Bento 布局 + 健康度 + 动效
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 获取当前用户信息
     final user = ref.watch(authProvider.notifier).currentUser;
+    final unreadAsync = ref.watch(unreadAlertCountProvider);
+    final unreadCount = unreadAsync.value ?? 0;
+    final statsAsync = ref.watch(homeStatsProvider);
+    final familyAsync = ref.watch(currentFamilyProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      body: CustomScrollView(
-        slivers: [
-          // AppBar
-          SliverAppBar(
-            floating: true,
-            backgroundColor: AppColors.appBarBackground,
-            elevation: 0,
-            title: Text(
-              '我的',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.appBarForeground,
-                  ),
-            ),
-          ),
+    final stats = statsAsync.valueOrNull;
+    final health = ProfileInventoryHealth.fromStats(stats);
+    final pendingCount = stats == null
+        ? 0
+        : stats.expiredCount + stats.expiringCount + stats.lowStockCount;
 
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
+    final familyName = familyAsync.valueOrNull?['name']?.toString();
 
-                // 个人信息卡片
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: AppSurface(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      children: [
-                        Hero(
-                          tag: 'user_avatar',
-                          child: _buildAvatar(user?.nickname ?? '?', user?.phone ?? 'default', 32),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                user?.nickname ?? '用户',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _getRoleText(user?.familyRole),
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: AppColors.textSecondary,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.edit_outlined),
-                          onPressed: () {
-                            context.push('/profile/edit');
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // 功能列表
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: AppSurface(
-                    child: Column(
-                      children: [
-                      _buildSettingItem(
-                        context,
-                        icon: '🏠',
-                        title: '空间管理',
-                        onTap: () => context.push('/locations'),
-                      ),
-                      _buildDivider(),
-                      _buildSettingItem(
-                        context,
-                        icon: '🏷️',
-                        title: '分类管理',
-                        onTap: () => context.push('/profile/categories'),
-                      ),
-                      _buildDivider(),
-                      _buildSettingItem(
-                        context,
-                        icon: '👨‍👩‍👧‍👦',
-                        title: '家庭成员',
-                        onTap: () => context.push('/profile/family'),
-                      ),
-                      _buildDivider(),
-                      _buildSettingItem(
-                        context,
-                        icon: '📊',
-                        title: '数据统计',
-                        onTap: () => context.push('/statistics'),
-                      ),
-                      _buildDivider(),
-                      _buildSettingItem(
-                        context,
-                        icon: '🛒',
-                        title: '购物清单',
-                        onTap: () => context.push('/shopping'),
-                      ),
-                      _buildDivider(),
-                      _buildSettingItem(
-                        context,
-                        icon: '🔔',
-                        title: '提醒设置',
-                        onTap: () => context.push('/profile/notification-settings'),
-                      ),
-                      _buildDivider(),
-                      _buildSettingItem(
-                        context,
-                        icon: '🎨',
-                        title: '主题样式',
-                        onTap: () => context.push('/profile/theme-settings'),
-                      ),
-                    ],
-                  ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // 第二组功能
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: AppSurface(
-                    child: Column(
-                      children: [
-                      _buildSettingItem(
-                        context,
-                        icon: '📤',
-                        title: '数据导出',
-                        onTap: () => _showExportDialog(context, ref),
-                      ),
-                      _buildDivider(),
-                      _buildSettingItem(
-                        context,
-                        icon: 'ℹ️',
-                        title: '关于',
-                        onTap: () => _showAboutDialog(context),
-                      ),
-                    ],
-                  ),
-                  ),
-                ),
-
-                const SizedBox(height: 32),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return const Padding(
-      padding: EdgeInsets.only(left: 56),
-      child: Divider(height: 1),
-    );
-  }
-
-  Widget _buildSettingItem(
-    BuildContext context, {
-    required String icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
+    return WarmScaffold(
+      title: '我的',
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: () async {
+          debugPrint('[ProfilePage] INFO: 下拉刷新');
+          ref.invalidate(homeStatsProvider);
+          ref.invalidate(currentFamilyProvider);
+          ref.invalidate(unreadAlertCountProvider);
+          ref.invalidate(profileHealthHistoryProvider);
+          await Future.wait([
+            ref.read(homeStatsProvider.future),
+            ref.read(currentFamilyProvider.future),
+          ]);
+        },
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Text(
-              icon,
-              style: const TextStyle(fontSize: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.bodyLarge,
+            ProfileFadeSlideIn(
+              child: ProfileIdentityHeader(
+                nickname: user?.nickname ?? '用户',
+                phone: user?.phone ?? '',
+                familyName: familyName,
+                roleLabel: _roleLabel(user?.familyRole),
+                health: health,
+                onHealthTap: () => context.push('/alerts'),
+                onEdit: () => context.push('/profile/edit'),
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: AppColors.textHint,
+            if (health.hasIssues) ...[
+              const SizedBox(height: 12),
+              ProfileFadeSlideIn(
+                delay: const Duration(milliseconds: 60),
+                child: ProfileHealthBanner(
+                  health: health,
+                  onTap: () => context.push('/alerts'),
+                ),
+              ),
+            ],
+            const SizedBox(height: 14),
+            ProfileFadeSlideIn(
+              delay: const Duration(milliseconds: 80),
+              child: const ProfileHealthTrendCard(),
+            ),
+            const SizedBox(height: 14),
+            ProfileFadeSlideIn(
+              delay: const Duration(milliseconds: 100),
+              child: ProfileOverviewStrip(
+                tiles: [
+                  ProfileOverviewTile(
+                    label: '待处理',
+                    value: '$pendingCount',
+                    icon: Icons.notifications_active_outlined,
+                    accentColor:
+                        pendingCount > 0 ? AppColors.danger : AppColors.success,
+                    urgent: pendingCount > 0,
+                    onTap: () => context.push('/alerts'),
+                  ),
+                  ProfileOverviewTile(
+                    label: '购物清单',
+                    value: '${stats?.shoppingCount ?? 0}',
+                    icon: Icons.shopping_cart_outlined,
+                    accentColor: AppColors.accentAmber,
+                    onTap: () => context.push('/shopping'),
+                  ),
+                  ProfileOverviewTile(
+                    label: '本月支出',
+                    value: stats == null
+                        ? '—'
+                        : '¥${stats.monthlyExpense.toStringAsFixed(0)}',
+                    icon: Icons.account_balance_wallet_outlined,
+                    accentColor: AppColors.accentSky,
+                    onTap: () => context.push('/statistics'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            ProfileFadeSlideIn(
+              delay: const Duration(milliseconds: 140),
+              child: const AppSectionHeader(title: '常用功能'),
+            ),
+            const SizedBox(height: 10),
+            ProfileFadeSlideIn(
+              delay: const Duration(milliseconds: 160),
+              child: ProfileQuickActionGrid(
+                actions: buildProfileQuickActions(
+                  context,
+                  unreadCount: unreadCount,
+                  pendingCount: pendingCount,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ProfileFadeSlideIn(
+              delay: const Duration(milliseconds: 200),
+              child: const AppSectionHeader(title: '管理与偏好'),
+            ),
+            const SizedBox(height: 10),
+            ProfileFadeSlideIn(
+              delay: const Duration(milliseconds: 220),
+              child: AppCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    AppListRow(
+                      icon: Icons.place_outlined,
+                      title: '空间管理',
+                      onTap: () => context.push('/locations'),
+                    ),
+                    const AppListDivider(),
+                    AppListRow(
+                      icon: Icons.label_outlined,
+                      title: '分类管理',
+                      onTap: () => context.push('/profile/categories'),
+                    ),
+                    const AppListDivider(),
+                    AppListRow(
+                      icon: Icons.people_outline,
+                      title: '家庭成员',
+                      onTap: () => context.push('/profile/family'),
+                    ),
+                    const AppListDivider(),
+                    AppListRow(
+                      icon: Icons.notifications_active_outlined,
+                      title: '提醒设置',
+                      onTap: () => context.push('/profile/notification-settings'),
+                    ),
+                    const AppListDivider(),
+                    AppListRow(
+                      icon: Icons.palette_outlined,
+                      title: '主题样式',
+                      onTap: () => context.push('/profile/theme-settings'),
+                    ),
+                    const AppListDivider(),
+                    AppListRow(
+                      icon: Icons.upload_outlined,
+                      title: '数据导出',
+                      onTap: () => ExportDataDialog.show(context, ref),
+                    ),
+                    const AppListDivider(),
+                    AppListRow(
+                      icon: Icons.info_outline,
+                      title: '关于 HomeStock',
+                      onTap: () => _showAboutDialog(context),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () => context.push('/profile/panel'),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '查看完整个人中心',
+                    style: TextStyle(color: AppColors.primary, fontSize: 14),
+                  ),
+                  Icon(Icons.chevron_right, size: 18, color: AppColors.primary),
+                ],
+              ),
             ),
           ],
         ),
@@ -218,78 +214,21 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  void _showExportDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('数据导出'),
-        content: const Text('选择导出范围'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await exportData(context, ref, ExportScope.all);
-            },
-            child: const Text('全部物品'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await exportData(context, ref, ExportScope.inUse);
-            },
-            child: const Text('仅使用中'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await exportData(context, ref, ExportScope.expired);
-            },
-            child: const Text('仅已过期'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> exportData(
-    BuildContext context,
-    WidgetRef ref,
-    ExportScope scope,
-  ) async {
-    try {
-      final db = ref.read(databaseProvider);
-      final exportService = ExportService(db);
-
-      final filePath = await exportService.exportToCsv(scope);
-
-      if (filePath != null) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('导出成功'),
-              action: SnackBarAction(
-                label: '分享',
-                onPressed: () => exportService.shareFile(filePath),
-              ),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('导出失败: $e')),
-        );
-      }
+  String? _roleLabel(String? role) {
+    switch (role) {
+      case 'admin':
+        return '管理员';
+      case 'owner':
+        return '户主';
+      case 'member':
+        return '成员';
+      default:
+        return null;
     }
   }
 
   void _showAboutDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('关于 HomeStock'),
@@ -299,7 +238,9 @@ class ProfilePage extends ConsumerWidget {
           children: [
             Text('版本: 1.0.0'),
             SizedBox(height: 8),
-            Text('HomeStock 是一款家庭物品管理应用，帮助你管理家庭物品、追踪保质期、预测消耗。'),
+            Text(
+              'HomeStock 是一款家庭物品管理应用，帮助你管理家庭物品、追踪保质期、预测消耗。',
+            ),
           ],
         ),
         actions: [
@@ -310,57 +251,5 @@ class ProfilePage extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  /// 构建用户头像
-  Widget _buildAvatar(String nickname, String phone, double size) {
-    final avatarIndex = AuthService.getAvatarColorIndex(phone);
-    final colors = AuthService.getAvatarColors(avatarIndex);
-    
-    // 获取显示字符
-    String displayChar = '?';
-    if (nickname.isNotEmpty) {
-      displayChar = nickname[0].toUpperCase();
-    } else if (phone.length >= 4) {
-      displayChar = phone.substring(7, 11);
-    }
-    
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [
-            Color(colors[0]),
-            Color(colors[1]),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Center(
-        child: Text(
-          displayChar,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: size * 0.4,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// 获取角色文本
-  String _getRoleText(String? role) {
-    switch (role) {
-      case 'admin':
-        return '管理员';
-      case 'member':
-        return '成员';
-      default:
-        return '成员';
-    }
   }
 }
