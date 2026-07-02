@@ -2,17 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_radius.dart';
 import '../../core/models/notification_entry.dart';
+import '../../core/models/alert_type.dart';
 import '../../core/providers/alert_provider.dart';
 import '../../core/utils/alert_display_helper.dart';
 import '../common/widgets/app_button.dart';
 import '../common/widgets/app_empty_state.dart';
-import '../common/widgets/cartoon_list_entrance.dart';
+import '../common/widgets/app_list_entrance.dart';
 import '../common/widgets/cartoon_list_tile.dart';
-import '../common/widgets/cartoon_scaffold.dart';
+import '../common/widgets/warm_scaffold.dart';
 import '../common/widgets/shimmer_loading.dart';
 
-/// 首页 AppBar 通知中心（Epic E1）
+/// 首页 AppBar 通知中心 — 工具风白卡列表 / 卡通双分支
 class NotificationCenterPage extends ConsumerWidget {
   const NotificationCenterPage({super.key});
 
@@ -22,9 +24,8 @@ class NotificationCenterPage extends ConsumerWidget {
     final unreadCountAsync = ref.watch(unreadAlertCountProvider);
     final unreadCount = unreadCountAsync.value ?? 0;
 
-    return CartoonScaffold(
+    return WarmScaffold(
       title: '通知中心',
-      titleEmoji: '🔔',
       actions: [
         if (unreadCount > 0)
           TextButton(
@@ -72,23 +73,27 @@ class NotificationCenterPage extends ConsumerWidget {
                     final entry = notifications[index];
                     final type = alertTypeFromKey(entry.alertTypeKey);
                     final info = getAlertDisplayInfo(entry.item, type);
-                    return CartoonListEntrance(
+                    final tile = _NotificationListTile(
                       index: index,
-                      child: _NotificationListTile(
-                        index: index,
-                        entry: entry,
-                        alertTitle: info.title,
-                        alertDescription: info.description,
-                        iconData: info.iconData,
-                        accentColor: info.color,
-                        onTap: () {
-                          debugPrint(
-                            '[NotificationCenter] INFO: 跳转物品详情 id=${entry.item.id}',
-                          );
-                          context.push('/items/${entry.item.id}');
-                        },
-                      ),
+                      entry: entry,
+                      alertTitle: info.title,
+                      alertDescription: info.description,
+                      iconData: info.iconData,
+                      accentColor: info.color,
+                      onTap: () {
+                        final alertKey = entry.alertTypeKey;
+                        final detailUri = type == AlertType.expiry
+                            ? '/items/${entry.item.id}?action=consume&alert=$alertKey'
+                            : '/items/${entry.item.id}?alert=$alertKey';
+                        debugPrint(
+                          '[NotificationCenter] INFO: 跳转物品详情 id=${entry.item.id}',
+                        );
+                        context.push(detailUri);
+                      },
                     );
+
+                    if (AppColors.isUtilityStyle) return tile;
+                    return AppListEntrance(index: index, child: tile);
                   },
                 ),
               ),
@@ -155,17 +160,78 @@ class _NotificationListTile extends StatelessWidget {
         ? '$alertDescription\n${entry.locationPath!}'
         : alertDescription;
 
-    // 卡通主题：统一 CartoonListTile 行样式
     return Semantics(
       label: semanticsLabel,
       button: true,
-      child: CartoonListTile(
-        title: '${entry.item.name} · $alertTitle',
-        subtitle: subtitle,
-        leadingIcon: iconData,
-        leadingColor: accentColor,
-        colorIndex: index,
+      child: AppColors.isUtilityStyle
+          ? _buildUtilityTile(subtitle)
+          : CartoonListTile(
+              title: '${entry.item.name} · $alertTitle',
+              subtitle: subtitle,
+              leadingIcon: iconData,
+              leadingColor: accentColor,
+              colorIndex: index,
+              onTap: onTap,
+            ),
+    );
+  }
+
+  /// 工具风通知行 — 白卡 + 左侧图标 + chevron
+  Widget _buildUtilityTile(String subtitle) {
+    return Material(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      elevation: 1,
+      shadowColor: Colors.black.withValues(alpha: 0.06),
+      child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(iconData, color: accentColor, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${entry.item.name} · $alertTitle',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color: AppColors.textPrimary,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: AppColors.textHint, size: 20),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -8,7 +8,6 @@ import 'widgets/auth_button.dart';
 import 'widgets/auth_cartoon_wrap.dart';
 import 'widgets/phone_input.dart';
 import 'widgets/password_input.dart';
-import '../common/widgets/cartoon_ui.dart';
 
 /// 登录页面
 class LoginPage extends ConsumerStatefulWidget {
@@ -198,7 +197,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          CartoonUi.pageTitle('欢迎回来', emoji: '👋'),
+          authPageTitle('欢迎回来', emoji: '👋'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.gray900,

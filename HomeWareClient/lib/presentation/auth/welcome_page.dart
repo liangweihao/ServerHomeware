@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
-import '../common/widgets/cartoon_ui.dart';
+import 'widgets/auth_cartoon_wrap.dart';
 
 /// 欢迎引导页
 class WelcomePage extends StatefulWidget {
@@ -189,7 +189,7 @@ class _WelcomePageContent extends StatelessWidget {
           const SizedBox(height: 48),
           // 标题
           Text(
-            CartoonUi.pageTitle(data.title, emoji: data.emoji),
+            authPageTitle(data.title, emoji: data.emoji),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w600,

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'auth_provider.dart';
 import '../exceptions/auth_exception.dart';
 import '../services/api_service.dart';
+import 'realtime_sync_provider.dart';
 
 /// 全局认证守卫 Widget
 /// 监听认证状态变化，当 token 无效时自动跳转到登录页面
@@ -44,7 +45,7 @@ class AuthGuard extends ConsumerWidget {
       },
     );
 
-    return child;
+    return RealtimeSyncBinder(child: child);
   }
 
   /// 处理全局认证错误（来自API响应）

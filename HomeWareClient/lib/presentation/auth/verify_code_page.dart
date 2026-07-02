@@ -10,7 +10,6 @@ import 'widgets/phone_input.dart';
 import 'widgets/code_input.dart';
 import 'widgets/auth_button.dart';
 import 'widgets/auth_cartoon_wrap.dart';
-import '../common/widgets/cartoon_ui.dart';
 
 /// 验证码登录页
 class VerifyCodePage extends ConsumerStatefulWidget {
@@ -254,7 +253,7 @@ class _VerifyCodePageState extends ConsumerState<VerifyCodePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          CartoonUi.pageTitle('验证码登录', emoji: '📱'),
+          authPageTitle('验证码登录', emoji: '📱'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.gray900,

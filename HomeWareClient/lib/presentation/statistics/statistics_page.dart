@@ -5,10 +5,11 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/providers/statistics_provider.dart';
+import '../common/widgets/app_card.dart';
 import '../common/widgets/app_empty_state.dart';
-import '../common/widgets/cartoon_chip.dart';
-import '../common/widgets/cartoon_scaffold.dart';
-import '../common/widgets/cartoon_ui.dart';
+import '../common/widgets/app_section_header.dart';
+import '../common/widgets/app_segment_chip.dart';
+import '../common/widgets/warm_scaffold.dart';
 
 class StatisticsPage extends ConsumerWidget {
   const StatisticsPage({super.key});
@@ -17,9 +18,8 @@ class StatisticsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final timeRange = ref.watch(timeRangeProvider);
 
-    return CartoonScaffold(
+    return WarmScaffold(
       title: '数据统计',
-      titleEmoji: '📊',
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(consumptionStatsProvider);
@@ -61,7 +61,7 @@ class StatisticsPage extends ConsumerWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: CartoonChip(
+              child: AppSegmentChip(
                 label: range == TimeRange.week
                     ? '本周'
                     : range == TimeRange.month
@@ -90,7 +90,7 @@ class StatisticsPage extends ConsumerWidget {
       data: (stats) {
         // 检查是否有数据
         if (stats.totalExpense == 0 && stats.monthlyTrend.isEmpty) {
-          return CartoonSectionCard(
+          return AppSectionCard(
             colorIndex: 0,
             child: const AppEmptyState(
               icon: '📊',
@@ -99,17 +99,12 @@ class StatisticsPage extends ConsumerWidget {
             ),
           );
         }
-        return CartoonSectionCard(
+        return AppSectionCard(
           colorIndex: 0,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '💰 消费概览',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
+              const AppSectionHeader(title: '消费概览', emoji: '💰'),
               const SizedBox(height: 16),
               Text(
                 '¥${stats.totalExpense.toStringAsFixed(2)}',
@@ -205,17 +200,12 @@ class StatisticsPage extends ConsumerWidget {
   Widget _buildCategorySection(BuildContext context, WidgetRef ref) {
     final categoryAsync = ref.watch(categoryStatsProvider);
 
-    return CartoonSectionCard(
+    return AppSectionCard(
       colorIndex: 1,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '📊 分类占比',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
+          const AppSectionHeader(title: '分类占比', emoji: '📊'),
           const SizedBox(height: 16),
           categoryAsync.when(
             data: (categories) {
@@ -283,7 +273,7 @@ class StatisticsPage extends ConsumerWidget {
   Widget _buildWasteSection(BuildContext context, WidgetRef ref) {
     final wasteAsync = ref.watch(wasteStatsProvider);
 
-    return CartoonSectionCard(
+    return AppSectionCard(
       colorIndex: 2,
       child: _buildWasteContent(context, ref, wasteAsync),
     );
@@ -297,18 +287,7 @@ class StatisticsPage extends ConsumerWidget {
     return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Text('🗑️', style: TextStyle(fontSize: 20)),
-              const SizedBox(width: 8),
-              Text(
-                '浪费统计',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-            ],
-          ),
+          const AppSectionHeader(title: '浪费统计', emoji: '🗑️'),
           const SizedBox(height: 16),
           wasteAsync.when(
             data: (waste) {
@@ -369,17 +348,12 @@ class StatisticsPage extends ConsumerWidget {
   Widget _buildRankingSection(BuildContext context, WidgetRef ref) {
     final rankingAsync = ref.watch(consumptionRankingProvider);
 
-    return CartoonSectionCard(
+    return AppSectionCard(
       colorIndex: 3,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '🏆 消耗排行',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
+          const AppSectionHeader(title: '消耗排行', emoji: '🏆'),
           const SizedBox(height: 16),
           rankingAsync.when(
             data: (ranking) {

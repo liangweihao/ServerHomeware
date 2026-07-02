@@ -112,11 +112,17 @@ class ItemService {
     }
   }
 
-  /// 获取物品列表（分页）
+  /// 获取物品列表（分页 + 筛选 + 排序）
   /// 调用服务端 GET /api/v1/items 接口
   Future<ApiResponse<Map<String, dynamic>>> getItems({
     int page = 1,
-    int pageSize = 100,
+    int pageSize = 20,
+    int? status,
+    String? sortBy,
+    String? sortOrder,
+    int? expiringWithinDays,
+    bool? lowStock,
+    String? keyword,
   }) async {
     try {
       final token = await _getToken();
@@ -125,9 +131,23 @@ class ItemService {
         return ApiResponse<Map<String, dynamic>>(code: 401, message: '未登录');
       }
 
-      _log('INFO: 调用 GET /api/v1/items?page=$page&page_size=$pageSize');
+      final query = <String, String>{
+        'page': '$page',
+        'page_size': '$pageSize',
+      };
+      if (status != null) query['status'] = '$status';
+      if (sortBy != null) query['sort_by'] = sortBy;
+      if (sortOrder != null) query['sort_order'] = sortOrder;
+      if (expiringWithinDays != null) {
+        query['expiring_within_days'] = '$expiringWithinDays';
+      }
+      if (lowStock == true) query['low_stock'] = 'true';
+      if (keyword != null && keyword.isNotEmpty) query['keyword'] = keyword;
+
+      final uri = Uri.parse('$_baseUrl/items').replace(queryParameters: query);
+      _log('INFO: 调用 GET $uri');
       final response = await http.get(
-        Uri.parse('$_baseUrl/items?page=$page&page_size=$pageSize'),
+        uri,
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -207,13 +227,14 @@ class ItemService {
     }
   }
 
-  /// 同步使用记录到服务端
-  /// 调用服务端 POST /api/v1/usage_records 接口
-  Future<ApiResponse<Map<String, dynamic>>> recordUsage({
+  /// 创建使用记录（入库/消耗/丢弃等）
+  Future<ApiResponse<Map<String, dynamic>>> createUsageRecord({
     required int itemId,
+    required int type,
     required double quantity,
     required double remainingQuantity,
     String? operatorName,
+    String? notes,
   }) async {
     try {
       final token = await _getToken();
@@ -223,15 +244,18 @@ class ItemService {
 
       final body = <String, dynamic>{
         'item_id': itemId,
-        'type': 1, // 使用
+        'type': type,
         'quantity': quantity,
         'remaining_quantity': remainingQuantity,
       };
       if (operatorName != null && operatorName.isNotEmpty) {
         body['operator_name'] = operatorName;
       }
+      if (notes != null && notes.isNotEmpty) {
+        body['notes'] = notes;
+      }
 
-      _log('INFO: 同步使用记录到服务端 itemId=$itemId qty=$quantity');
+      _log('INFO: POST usage_records itemId=$itemId type=$type qty=$quantity');
       final response = await http.post(
         Uri.parse('$_baseUrl/usage_records'),
         headers: {
@@ -242,9 +266,28 @@ class ItemService {
       );
       return _handleResponse(response);
     } catch (e) {
-      _log('ERROR: 同步使用记录失败 - $e');
-      return ApiResponse<Map<String, dynamic>>(code: 500, message: '同步使用记录失败: $e');
+      _log('ERROR: 创建使用记录失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: '创建使用记录失败: $e',
+      );
     }
+  }
+
+  /// 同步消耗记录到服务端（type=1）
+  Future<ApiResponse<Map<String, dynamic>>> recordUsage({
+    required int itemId,
+    required double quantity,
+    required double remainingQuantity,
+    String? operatorName,
+  }) {
+    return createUsageRecord(
+      itemId: itemId,
+      type: 1,
+      quantity: quantity,
+      remainingQuantity: remainingQuantity,
+      operatorName: operatorName,
+    );
   }
 
   /// 获取全部使用记录（自动翻页）

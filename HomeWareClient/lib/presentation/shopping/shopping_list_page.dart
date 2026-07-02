@@ -6,11 +6,10 @@ import '../../core/constants/app_colors.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/providers/shopping_provider.dart';
 import '../common/widgets/app_empty_state.dart';
-import '../common/widgets/cartoon_app_bar_icon.dart';
-import '../common/widgets/cartoon_fab.dart';
-import '../common/widgets/cartoon_list_entrance.dart';
-import '../common/widgets/cartoon_scaffold.dart';
-import '../common/widgets/cartoon_tab_bar.dart';
+import '../common/widgets/app_fab.dart';
+import '../common/widgets/app_list_entrance.dart';
+import '../common/widgets/warm_scaffold.dart';
+import '../common/widgets/app_tab_bar.dart';
 import 'widgets/shopping_item_card.dart';
 import 'widgets/add_shopping_dialog.dart';
 
@@ -60,13 +59,12 @@ class _ShoppingListPageState extends ConsumerState<ShoppingListPage>
 
   @override
   Widget build(BuildContext context) {
-    // 卡通主题：CartoonScaffold + 贴纸 Tab / FAB
-    return CartoonScaffold(
+    // 暖色主题：WarmScaffold + 贴纸 Tab / FAB
+    return WarmScaffold(
       title: '购物清单',
-      titleEmoji: '🛒',
       actions: [
-        CartoonAppBarIcon(
-          icon: Icons.share,
+        IconButton(
+          icon: const Icon(Icons.share_outlined),
           tooltip: '分享清单',
           onPressed: () async {
             final pendingItems = await ref.read(pendingShoppingItemsProvider.future);
@@ -74,12 +72,12 @@ class _ShoppingListPageState extends ConsumerState<ShoppingListPage>
           },
         ),
       ],
-      bottom: CartoonTabBar(
+      bottom: AppTabBar(
         controller: _tabController,
         tabs: const [
-          CartoonTabItem(label: '待购', emoji: '📝'),
-          CartoonTabItem(label: '已购', emoji: '✅'),
-          CartoonTabItem(label: '历史', emoji: '📜'),
+          AppTabItem(label: '待购', emoji: '📝'),
+          AppTabItem(label: '已购', emoji: '✅'),
+          AppTabItem(label: '历史', emoji: '📜'),
         ],
       ),
       body: TabBarView(
@@ -90,7 +88,7 @@ class _ShoppingListPageState extends ConsumerState<ShoppingListPage>
           _buildHistoryTab(),
         ],
       ),
-      floatingActionButton: CartoonFloatingActionButton(
+      floatingActionButton: AppFloatingActionButton(
         onPressed: () {
           AddShoppingDialog.show(
             context,
@@ -150,7 +148,7 @@ class _ShoppingListPageState extends ConsumerState<ShoppingListPage>
                   ...items.asMap().entries.map((entry) {
                     final index = entry.key;
                     final item = entry.value;
-                    return CartoonListEntrance(
+                    return AppListEntrance(
                       index: index,
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 12),
@@ -216,7 +214,7 @@ class _ShoppingListPageState extends ConsumerState<ShoppingListPage>
                     final autoCount = autoAsync.value?.length ?? 0;
                     final index = autoCount + entry.key;
                     final item = entry.value;
-                    return CartoonListEntrance(
+                    return AppListEntrance(
                       index: index,
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 12),
@@ -273,7 +271,7 @@ class _ShoppingListPageState extends ConsumerState<ShoppingListPage>
           itemCount: items.length,
           itemBuilder: (context, index) {
             final item = items[index];
-            return CartoonListEntrance(
+            return AppListEntrance(
               index: index,
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 12),

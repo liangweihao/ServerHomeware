@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/models/alert_type.dart';
-import '../../../core/theme/app_decorations.dart';
 import '../../../core/utils/alert_display_helper.dart';
-import '../../../core/theme/cartoon_decorations.dart';
 import '../../../data/database/app_database.dart';
 import '../../common/widgets/app_button.dart';
-import '../../common/widgets/cartoon_ui.dart';
+import '../../common/widgets/app_reason_tag.dart';
 
 export '../../../core/models/alert_type.dart';
 
-/// 提醒卡片 — 贴纸外框 + 内容级 emoji 图标与标签
+/// 提醒卡片 — 工具风白底 + 左侧色条 + AppReasonTag 标签
 class AlertCard extends StatelessWidget {
   final Item item;
   final AlertType type;
@@ -20,11 +18,13 @@ class AlertCard extends StatelessWidget {
   final VoidCallback? onAddToShopping;
   final VoidCallback? onAcknowledge;
   final VoidCallback? onIgnore;
+  final VoidCallback? onTap;
 
   const AlertCard({
     super.key,
     required this.item,
     required this.type,
+    this.onTap,
     this.onUse,
     this.onDiscard,
     this.onAddToShopping,
@@ -34,91 +34,111 @@ class AlertCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (color, icon, title, description) = _getAlertInfo();
+    final info = getAlertDisplayInfo(item, type);
 
-    return AppSurface(
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              width: 6,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(AppRadius.xl),
-                  bottomLeft: Radius.circular(AppRadius.xl),
+    return Material(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      elevation: 1,
+      shadowColor: Colors.black.withValues(alpha: 0.06),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                width: 4,
+                decoration: BoxDecoration(
+                  color: info.color,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(AppRadius.md),
+                    bottomLeft: Radius.circular(AppRadius.md),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: AppColors.white.withValues(alpha: 0.85),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: color, width: 2.5),
-                          ),
-                          child: Text(icon, style: const TextStyle(fontSize: 20, height: 1)),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.name,
-                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                              ),
-                              const SizedBox(height: 2),
-                              CartoonStickerBadge(
-                                label: title,
-                                accentColor: color,
-                                fontSize: 10,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          _buildIcon(info),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.name,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 4),
+                                AppReasonTag.plain(
+                                  label: info.title,
+                                  color: info.color,
+                                  emoji: info.icon,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      description,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildActionButtons(context),
-                  ],
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        info.description,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildActionButtons(context),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  (Color, String, String, String) _getAlertInfo() {
-    final info = getAlertDisplayInfo(item, type);
-    return (info.color, info.icon, info.title, info.description);
+  /// 提醒类型图标 — 工具风用 Material Icon，卡通主题保留 emoji
+  Widget _buildIcon(AlertDisplayInfo info) {
+    if (AppColors.isUtilityStyle) {
+      return Container(
+        width: 40,
+        height: 40,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: info.color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(info.iconData, color: info.color, size: 22),
+      );
+    }
+
+    return Container(
+      width: 40,
+      height: 40,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: info.color, width: 2),
+      ),
+      child: Text(info.icon, style: const TextStyle(fontSize: 20, height: 1)),
+    );
   }
 
   Widget _buildActionButtons(BuildContext context) {
@@ -212,6 +232,10 @@ class AlertCard extends StatelessWidget {
         break;
     }
 
-    return Row(children: buttons);
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: buttons,
+    );
   }
 }

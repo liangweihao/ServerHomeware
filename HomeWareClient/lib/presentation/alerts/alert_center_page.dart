@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
-import '../../core/events/item_event_bus.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../core/constants/app_colors.dart';
 import '../../core/models/alert_tab.dart';
 import '../../core/providers/alert_provider.dart';
 import '../../core/providers/database_provider.dart';
+import '../../core/utils/alert_display_helper.dart';
 import '../../data/database/app_database.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/theme/app_visual_style.dart';
-import '../../core/theme/cartoon_copy.dart';
-import '../common/widgets/app_empty_state.dart';
-import '../common/widgets/cartoon_list_entrance.dart';
-import '../common/widgets/cartoon_scaffold.dart';
-import '../common/widgets/cartoon_tab_bar.dart';
+import '../common/widgets/async_list_body.dart';
+import '../common/widgets/warm_scaffold.dart';
+import '../items/widgets/usage_dialog.dart';
 import 'widgets/alert_card.dart';
 
 export '../../core/models/alert_tab.dart';
 
+/// 提醒中心 — 工具风 Tab + 批量已读
 class AlertCenterPage extends ConsumerStatefulWidget {
-  const AlertCenterPage({super.key});
+  const AlertCenterPage({super.key, this.initialTab});
+
+  /// 路由 `?tab=expiry|stock|restock|warranty` 指定初始 Tab
+  final AlertTab? initialTab;
 
   @override
   ConsumerState<AlertCenterPage> createState() => _AlertCenterPageState();
@@ -31,7 +34,16 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    final tab = widget.initialTab ?? AlertTab.all;
+    final index = AlertTab.values.indexOf(tab).clamp(0, AlertTab.values.length - 1);
+    _tabController = TabController(
+      length: AlertTab.values.length,
+      vsync: this,
+      initialIndex: index,
+    );
+    if (widget.initialTab != null) {
+      debugPrint('[AlertCenter] INFO: 初始 Tab=${widget.initialTab}');
+    }
   }
 
   @override
@@ -41,53 +53,21 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
   }
 
   void _markAsUsed(Item item) async {
-    final db = ref.read(databaseProvider);
-    final newQuantity = item.currentQuantity - 1;
-
-    await db.updateItem(item.copyWith(
-      currentQuantity: newQuantity,
-      status: newQuantity <= 0 ? 1 : item.status,
-      updatedAt: DateTime.now(),
-    ));
-
-    await db.insertUsageRecord(UsageRecordsCompanion.insert(
-      itemId: item.id,
-      type: 1,
-      quantity: 1,
-      remainingQuantity: newQuantity,
-    ));
-
-    ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
-    invalidateAlertProviders(ref);
-
-    if (mounted) {
+    debugPrint('[AlertCenter] INFO: 今天用掉 itemId=${item.id}');
+    final ok = await recordQuickUsage(ref: ref, item: item);
+    if (mounted && ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('已记录使用1件${item.name}')),
+        SnackBar(content: Text('已记录使用 1 件${item.name}')),
       );
     }
   }
 
   void _markAsDiscarded(Item item) async {
-    final db = ref.read(databaseProvider);
-
-    await db.updateItem(item.copyWith(
-      status: 3,
-      updatedAt: DateTime.now(),
-    ));
-
-    await db.insertUsageRecord(UsageRecordsCompanion.insert(
-      itemId: item.id,
-      type: 2,
-      quantity: item.currentQuantity,
-      remainingQuantity: 0,
-    ));
-
-    ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
-    invalidateAlertProviders(ref);
-
+    debugPrint('[AlertCenter] INFO: 已丢弃 itemId=${item.id}');
+    await recordItemDiscard(ref: ref, item: item);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${item.name}已标记为丢弃')),
+        SnackBar(content: Text('${item.name} 已标记为丢弃')),
       );
     }
   }
@@ -107,12 +87,13 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${item.name}已加入购物清单')),
+        SnackBar(content: Text('${item.name} 已加入购物清单')),
       );
     }
   }
 
   Future<void> _markAllAsRead() async {
+    debugPrint('[AlertCenter] INFO: 全部已读');
     await markAllAlertsReadAction(ref);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -123,28 +104,24 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
 
   @override
   Widget build(BuildContext context) {
-    final cartoonTabs = AlertTab.values
-        .map(
-          (t) => CartoonTabItem(
-            label: alertTabLabels[t]!,
-            emoji: alertTabEmojis[t],
-          ),
-        )
-        .toList();
-
-    return CartoonScaffold(
+    return WarmScaffold(
       title: '提醒中心',
-      titleEmoji: '🔔',
       actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: TextButton(
-            onPressed: _markAllAsRead,
-            child: const Text('✓ 全部已读'),
-          ),
+        TextButton(
+          onPressed: _markAllAsRead,
+          child: const Text('全部已读'),
         ),
       ],
-      bottom: CartoonTabBar(controller: _tabController, tabs: cartoonTabs),
+      bottom: TabBar(
+        controller: _tabController,
+        isScrollable: true,
+        labelColor: AppColors.primaryDark,
+        unselectedLabelColor: AppColors.textSecondary,
+        indicatorColor: AppColors.primary,
+        tabs: AlertTab.values
+            .map((t) => Tab(text: alertTabLabels[t]))
+            .toList(),
+      ),
       body: TabBarView(
         controller: _tabController,
         children: [
@@ -157,31 +134,66 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
   Widget _buildAlertList(AlertTab tab) {
     final alertsAsync = ref.watch(alertListProvider(tab));
 
-    return alertsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('加载失败: $error')),
-      data: (alerts) {
-        if (alerts.isEmpty) {
-          return const AppEmptyState(
-            icon: '😊',
-            title: '一切安好',
-            subtitle: '没有待处理的提醒',
-            cartoonKind: CartoonEmptyKind.alerts,
-          );
-        }
+    return RefreshIndicator(
+      onRefresh: () async => invalidateAlertProviders(ref),
+      child: alertsAsync.when(
+        loading: () => const AsyncListBody(
+          isLoading: true,
+          isEmpty: false,
+          emptyIcon: Icons.notifications_outlined,
+          emptyTitle: '',
+          child: SizedBox.shrink(),
+        ),
+        error: (error, _) => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            AsyncListBody(
+              isLoading: false,
+              isEmpty: false,
+              errorMessage: '$error',
+              onRetry: () => invalidateAlertProviders(ref),
+              emptyIcon: Icons.error_outline,
+              emptyTitle: '',
+              child: const SizedBox.shrink(),
+            ),
+          ],
+        ),
+        data: (alerts) {
+          if (alerts.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: const [
+                AsyncListBody(
+                  isLoading: false,
+                  isEmpty: true,
+                  emptyIcon: Icons.check_circle_outline,
+                  emptyTitle: '一切安好',
+                  emptySubtitle: '没有待处理的提醒',
+                  child: SizedBox.shrink(),
+                ),
+              ],
+            );
+          }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: alerts.length,
-          itemBuilder: (context, index) {
-            final (item, type) = alerts[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: CartoonListEntrance(
-                index: index,
+          return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            itemCount: alerts.length,
+            itemBuilder: (context, index) {
+              final (item, type) = alerts[index];
+              final alertKey = alertTypeToKey(type);
+              final detailUri = type == AlertType.expiry
+                  ? '/items/${item.id}?action=consume&alert=$alertKey'
+                  : '/items/${item.id}?alert=$alertKey';
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
                 child: AlertCard(
                   item: item,
                   type: type,
+                  onTap: () {
+                    debugPrint('[AlertCenter] INFO: 打开详情 itemId=${item.id}');
+                    context.push(detailUri);
+                  },
                   onUse: type == AlertType.expiry ? () => _markAsUsed(item) : null,
                   onDiscard:
                       type == AlertType.expiry ? () => _markAsDiscarded(item) : null,
@@ -195,11 +207,11 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
                       ? () => ignoreAlertAction(ref, item.id, type)
                       : null,
                 ),
-              ),
-            );
-          },
-        );
-      },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

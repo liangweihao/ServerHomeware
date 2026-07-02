@@ -6,7 +6,6 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/utils/error_handler.dart';
 import 'widgets/auth_button.dart';
 import 'widgets/auth_cartoon_wrap.dart';
-import '../common/widgets/cartoon_ui.dart';
 
 /// 加入家庭页
 class JoinFamilyPage extends ConsumerStatefulWidget {
@@ -99,7 +98,7 @@ class _JoinFamilyPageState extends ConsumerState<JoinFamilyPage> {
               const SizedBox(height: 32),
               // 标题
               Text(
-                CartoonUi.pageTitle('加入已有家庭', emoji: '👨‍👩‍👧‍👦'),
+                authPageTitle('加入已有家庭', emoji: '👨‍👩‍👧‍👦'),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,

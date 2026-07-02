@@ -9,6 +9,37 @@ class ContributionService {
   static String get _baseUrl => AppEnv.apiBaseUrl;
   static const _keyToken = 'auth_token';
 
+  /// 获取家庭贡献排行
+  Future<ApiResponse<Map<String, dynamic>>> getFamilyLeaderboard() async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        _log('ERROR: 未登录');
+        return ApiResponse<Map<String, dynamic>>(
+          code: 401,
+          message: '未登录',
+        );
+      }
+
+      _log('INFO: 调用家庭贡献排行接口');
+      final response = await http.get(
+        Uri.parse('$_baseUrl/contributions/family/leaderboard'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 获取家庭排行失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: '获取家庭排行失败: $e',
+      );
+    }
+  }
+
   /// 获取用户贡献数据
   /// 调用服务端相关接口获取用户贡献信息
   Future<ApiResponse<Map<String, dynamic>>> getUserContribution({

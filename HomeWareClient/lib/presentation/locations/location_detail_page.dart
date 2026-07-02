@@ -7,9 +7,9 @@ import '../../core/providers/database_provider.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_empty_state.dart';
 import '../common/widgets/app_button.dart';
-import '../common/widgets/cartoon_fab.dart';
-import '../common/widgets/cartoon_list_entrance.dart';
-import '../common/widgets/cartoon_scaffold.dart';
+import '../common/widgets/app_fab.dart';
+import '../common/widgets/app_list_entrance.dart';
+import '../common/widgets/warm_scaffold.dart';
 import '../items/widgets/item_card.dart';
 import 'widgets/location_card.dart';
 import 'widgets/add_location_dialog.dart';
@@ -31,17 +31,17 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
     final locationAsync = ref.watch(locationByIdProvider(widget.locationId));
 
     return locationAsync.when(
-      loading: () => CartoonScaffold(
+      loading: () => WarmScaffold(
         title: '加载中...',
         body: const Center(child: CircularProgressIndicator()),
       ),
-      error: (error, _) => CartoonScaffold(
+      error: (error, _) => WarmScaffold(
         title: '位置详情',
         body: Center(child: Text('加载失败: $error')),
       ),
       data: (location) {
         if (location == null) {
-          return CartoonScaffold(
+          return WarmScaffold(
             title: '位置详情',
             body: const AppEmptyState(
               icon: '😕',
@@ -51,9 +51,8 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
           );
         }
 
-        return CartoonScaffold(
+        return WarmScaffold(
           title: location.name,
-          titleEmoji: '📍',
           actions: [
             IconButton(
               icon: Icon(_isEditMode ? Icons.check : Icons.edit),
@@ -120,7 +119,7 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
               itemCount: children.length,
               itemBuilder: (context, index) {
                 final child = children[index];
-                return CartoonListEntrance(
+                return AppListEntrance(
                   index: index,
                   child: FutureBuilder<int>(
                     future: db.getItemCountForLocation(child.id),
@@ -161,7 +160,7 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: items.length,
           itemBuilder: (context, index) {
-            return CartoonListEntrance(
+            return AppListEntrance(
               index: index,
               child: ItemCard(
                 item: items[index],
@@ -185,7 +184,7 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
   }
 
   Widget _buildEditFAB(BuildContext context, WidgetRef ref) {
-    return CartoonFloatingActionButton(
+    return AppFloatingActionButton(
       onPressed: () => _showAddChildLocation(context, ref),
       child: const Icon(Icons.add),
     );

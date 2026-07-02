@@ -8,7 +8,6 @@ import 'widgets/phone_input.dart';
 import 'widgets/password_input.dart';
 import 'widgets/auth_button.dart';
 import 'widgets/auth_cartoon_wrap.dart';
-import '../common/widgets/cartoon_ui.dart';
 
 /// 注册页面
 class RegisterPage extends ConsumerStatefulWidget {
@@ -202,7 +201,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          CartoonUi.pageTitle('创建账号', emoji: '✨'),
+          authPageTitle('创建账号', emoji: '✨'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.gray900,

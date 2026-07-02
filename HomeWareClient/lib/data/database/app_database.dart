@@ -66,6 +66,8 @@ class Items extends Table {
   DateTimeColumn get predictedEmptyDate => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  /// 服务端 items.id — 本地主键与服务端不一致时用于 API / usage 映射
+  IntColumn get serverItemId => integer().nullable()();
 }
 
 // 使用记录表
@@ -76,6 +78,8 @@ class UsageRecords extends Table {
   RealColumn get quantity => real()();
   RealColumn get remainingQuantity => real()();
   TextColumn get operatorName => text().nullable()();
+  /// 服务端 usage_records.id — 用于多端去重与补推
+  IntColumn get serverRecordId => integer().nullable()();
   TextColumn get notes => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
@@ -132,7 +136,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(_openConnection());
   
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -143,6 +147,12 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
           await m.createTable(alertReadStates);
+        }
+        if (from < 3) {
+          await m.addColumn(usageRecords, usageRecords.serverRecordId);
+        }
+        if (from < 4) {
+          await m.addColumn(items, items.serverItemId);
         }
       },
     );
@@ -255,6 +265,55 @@ class AppDatabase extends _$AppDatabase {
     return (select(items)..where((i) => i.id.equals(id))).getSingleOrNull();
   }
 
+  /// 按服务端 item_id 查找本地物品（映射列优先）
+  Future<Item?> getItemByServerItemId(int serverItemId) {
+    return (select(items)
+          ..where((i) => i.serverItemId.equals(serverItemId)))
+        .getSingleOrNull();
+  }
+
+  /// 本地 itemId → 服务端 item_id（推送 usage 用）
+  Future<int?> resolveServerItemId(int localItemId) async {
+    final item = await getItemById(localItemId);
+    if (item == null) {
+      debugPrint('[ItemIdMap] WARN: 本地物品不存在 id=$localItemId');
+      return null;
+    }
+    return item.serverItemId ?? item.id;
+  }
+
+  /// 服务端 item_id → 本地 itemId（拉取 usage 用）
+  Future<int?> resolveLocalItemId(int serverItemId) async {
+    final mapped = await getItemByServerItemId(serverItemId);
+    if (mapped != null) return mapped.id;
+
+    final direct = await getItemById(serverItemId);
+    if (direct != null) return direct.id;
+
+    debugPrint('[ItemIdMap] WARN: 未找到 serverItemId=$serverItemId 的本地物品');
+    return null;
+  }
+
+  /// 绑定本地物品与服务端 id
+  Future<void> setItemServerItemId(int localItemId, int serverItemId) {
+    return (update(items)..where((i) => i.id.equals(localItemId))).write(
+      ItemsCompanion(
+        serverItemId: Value(serverItemId),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  /// 仅在未绑定时写入 serverItemId（兼容历史数据）
+  Future<void> ensureItemServerItemId(int localItemId, int serverItemId) async {
+    final item = await getItemById(localItemId);
+    if (item == null || item.serverItemId != null) return;
+    await setItemServerItemId(localItemId, serverItemId);
+    debugPrint(
+      '[ItemIdMap] INFO: 回填映射 local=$localItemId server=$serverItemId',
+    );
+  }
+
   // 插入物品并返回 ID
   Future<int> insertItem(ItemsCompanion item) {
     return into(items).insert(item);
@@ -297,6 +356,28 @@ class AppDatabase extends _$AppDatabase {
   // 插入使用记录
   Future<int> insertUsageRecord(UsageRecordsCompanion record) {
     return into(usageRecords).insert(record);
+  }
+
+  /// 按本地 id 查询
+  Future<UsageRecord?> getUsageRecordById(int id) {
+    return (select(usageRecords)..where((r) => r.id.equals(id)))
+        .getSingleOrNull();
+  }
+
+  /// 尚未同步到服务端的记录
+  Future<List<UsageRecord>> getUnsyncedUsageRecords({int limit = 200}) {
+    return (select(usageRecords)
+          ..where((r) => r.serverRecordId.isNull())
+          ..orderBy([(r) => OrderingTerm(expression: r.createdAt, mode: OrderingMode.asc)])
+          ..limit(limit))
+        .get();
+  }
+
+  /// 写入服务端记录 id
+  Future<void> setUsageRecordServerId(int localId, int serverId) {
+    return (update(usageRecords)..where((r) => r.id.equals(localId))).write(
+      UsageRecordsCompanion(serverRecordId: Value(serverId)),
+    );
   }
 
   // ==================== ShoppingList DAO ====================
@@ -354,6 +435,18 @@ class AppDatabase extends _$AppDatabase {
           ..where((i) => i.locationId.equals(locationId))
           ..orderBy([(i) => OrderingTerm(expression: i.expiryDate, mode: OrderingMode.asc)])
           ..where((i) => i.status.equals(0)))
+        .get();
+  }
+
+  /// 获取指定位置及所有子位置下的使用中物品（盘点用）
+  Future<List<Item>> getItemsInLocationTree(int locationId) async {
+    final childLocations = await getLocationAndChildren(locationId);
+    final locationIds = [locationId, ...childLocations.map((l) => l.id)];
+
+    return (select(items)
+          ..where((i) => i.locationId.isIn(locationIds))
+          ..where((i) => i.status.equals(0))
+          ..orderBy([(i) => OrderingTerm(expression: i.expiryDate, mode: OrderingMode.asc)]))
         .get();
   }
 

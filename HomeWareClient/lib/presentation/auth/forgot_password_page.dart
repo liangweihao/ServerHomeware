@@ -11,7 +11,6 @@ import 'widgets/code_input.dart';
 import 'widgets/password_input.dart';
 import 'widgets/auth_button.dart';
 import 'widgets/auth_cartoon_wrap.dart';
-import '../common/widgets/cartoon_ui.dart';
 
 /// 忘记密码页
 class ForgotPasswordPage extends ConsumerStatefulWidget {
@@ -293,7 +292,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          CartoonUi.pageTitle('忘记密码', emoji: '🔑'),
+          authPageTitle('忘记密码', emoji: '🔑'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.gray900,

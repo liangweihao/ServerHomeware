@@ -8,8 +8,8 @@ import '../../core/providers/database_provider.dart';
 import '../../core/theme/cartoon_copy.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/app_empty_state.dart';
-import '../common/widgets/cartoon_list_entrance.dart';
-import '../common/widgets/cartoon_scaffold.dart';
+import '../common/widgets/app_list_entrance.dart';
+import '../common/widgets/warm_scaffold.dart';
 import 'widgets/location_card.dart';
 import 'widgets/add_location_dialog.dart';
 
@@ -18,9 +18,8 @@ class LocationOverviewPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return CartoonScaffold(
+    return WarmScaffold(
       title: '我的家',
-      titleEmoji: '🏠',
       actions: [
         TextButton(
           onPressed: () => _showAddLocationDialog(context, ref),
@@ -64,7 +63,7 @@ class LocationOverviewPage extends ConsumerWidget {
       itemCount: locations.length,
       itemBuilder: (context, index) {
         final location = locations[index];
-        return CartoonListEntrance(
+        return AppListEntrance(
           index: index,
           child: FutureBuilder<int>(
             future: ref.read(databaseProvider).getItemCountForLocation(location.id),

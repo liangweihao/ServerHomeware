@@ -6,7 +6,6 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/utils/error_handler.dart';
 import 'widgets/auth_button.dart';
 import 'widgets/auth_cartoon_wrap.dart';
-import '../common/widgets/cartoon_ui.dart';
 
 /// 创建家庭页
 class CreateFamilyPage extends ConsumerStatefulWidget {
@@ -104,7 +103,7 @@ class _CreateFamilyPageState extends ConsumerState<CreateFamilyPage> {
               const SizedBox(height: 32),
               // 标题
               Text(
-                CartoonUi.pageTitle('创建你的家庭', emoji: '🏠'),
+                authPageTitle('创建你的家庭', emoji: '🏠'),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,

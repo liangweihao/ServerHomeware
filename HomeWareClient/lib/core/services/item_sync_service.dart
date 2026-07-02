@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:drift/drift.dart' show Value;
 import '../../data/database/app_database.dart';
 import '../utils/item_image_storage.dart';
+import '../utils/item_server_mapper.dart';
 import 'item_service.dart';
 
 /// 物品服务端 → 本地数据库同步服务
@@ -43,6 +44,7 @@ class ItemSyncService {
         // 检查本地是否已存在
         final existing = await _db.getItemById(id);
         if (existing != null) {
+          await _db.ensureItemServerItemId(id, id);
           // 已存在：用服务端数据更新核心字段（封面图、数量、单位等）
           final preview = serverItem['preview_image']?.toString();
           final currentQty = serverItem['current_quantity'];
@@ -52,6 +54,8 @@ class ItemSyncService {
           final srvUnit = serverItem['unit'];
           final srvStatus = serverItem['status'];
           final srvExpiry = serverItem['expiry_date'];
+          final srvAvgDaily = serverItem['avg_daily_consumption'];
+          final srvPredictedEmpty = serverItem['predicted_empty_date'];
 
           final shouldUpdatePreview = preview != null &&
               preview.isNotEmpty &&
@@ -59,6 +63,8 @@ class ItemSyncService {
 
           final needsUpdate = currentQty != null ||
               purchaseQty != null ||
+              srvAvgDaily != null ||
+              srvPredictedEmpty != null ||
               shouldUpdatePreview;
 
           if (needsUpdate) {
@@ -84,6 +90,10 @@ class ItemSyncService {
               expiryDate: srvExpiry != null
                   ? Value(DateTime.tryParse(srvExpiry.toString()))
                   : const Value.absent(),
+              avgDailyConsumption:
+                  ItemServerMapper.avgDailyConsumptionFromJson(serverItem),
+              predictedEmptyDate:
+                  ItemServerMapper.predictedEmptyDateFromJson(serverItem),
               images: shouldUpdatePreview
                   ? Value(jsonEncode([preview]))
                   : const Value.absent(),
@@ -125,6 +135,7 @@ class ItemSyncService {
 
     return ItemsCompanion(
       id: Value(_parseId(json['id']) ?? 0),
+      serverItemId: Value(_parseId(json['id']) ?? 0),
       name: Value(name),
       brand: json['brand'] != null
           ? Value(json['brand'].toString())
@@ -160,6 +171,10 @@ class ItemSyncService {
           : const Value.absent(),
       expiryAlertDays: const Value(3),
       stockAlert: const Value(true),
+      avgDailyConsumption:
+          ItemServerMapper.avgDailyConsumptionFromJson(json),
+      predictedEmptyDate:
+          ItemServerMapper.predictedEmptyDateFromJson(json),
       // 以下字段列表接口不返回或无对应列，设为 absent
       specification: const Value.absent(),
       barcode: const Value.absent(),
@@ -172,8 +187,6 @@ class ItemSyncService {
       afterOpenDays: const Value.absent(),
       warrantyDate: const Value.absent(),
       notes: const Value.absent(),
-      avgDailyConsumption: const Value.absent(),
-      predictedEmptyDate: const Value.absent(),
       // 如果有预览图，以 JSON 数组格式存入本地
       images: json['preview_image'] != null
           ? Value(jsonEncode([json['preview_image']]))

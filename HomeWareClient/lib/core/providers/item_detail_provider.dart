@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/services/item_service.dart';
+import '../../core/utils/item_api_id.dart';
 import '../../core/utils/item_image_storage.dart';
 import '../../data/database/app_database.dart';
 import 'database_provider.dart';
@@ -75,7 +76,7 @@ final itemDetailProvider =
   Item updatedItem = item;
   try {
     final itemService = ItemService();
-    final remote = await itemService.getItemDetail(itemId: id);
+    final remote = await itemService.getItemDetail(itemId: item.serverApiId);
     if (remote.code == 200 && remote.data != null) {
       final data = remote.data!;
       final images = data['images'] as List<dynamic>?;

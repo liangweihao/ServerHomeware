@@ -1395,6 +1395,17 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _serverItemIdMeta = const VerificationMeta(
+    'serverItemId',
+  );
+  @override
+  late final GeneratedColumn<int> serverItemId = GeneratedColumn<int>(
+    'server_item_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1429,6 +1440,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     predictedEmptyDate,
     createdAt,
     updatedAt,
+    serverItemId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1686,6 +1698,15 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
+    if (data.containsKey('server_item_id')) {
+      context.handle(
+        _serverItemIdMeta,
+        serverItemId.isAcceptableOrUnknown(
+          data['server_item_id']!,
+          _serverItemIdMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1823,6 +1844,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      serverItemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}server_item_id'],
+      ),
     );
   }
 
@@ -1865,6 +1890,9 @@ class Item extends DataClass implements Insertable<Item> {
   final DateTime? predictedEmptyDate;
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  /// 服务端 items.id — 本地主键与服务端不一致时用于 API / usage 映射
+  final int? serverItemId;
   const Item({
     required this.id,
     required this.name,
@@ -1898,6 +1926,7 @@ class Item extends DataClass implements Insertable<Item> {
     this.predictedEmptyDate,
     required this.createdAt,
     required this.updatedAt,
+    this.serverItemId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1972,6 +2001,9 @@ class Item extends DataClass implements Insertable<Item> {
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || serverItemId != null) {
+      map['server_item_id'] = Variable<int>(serverItemId);
+    }
     return map;
   }
 
@@ -2047,6 +2079,9 @@ class Item extends DataClass implements Insertable<Item> {
           : Value(predictedEmptyDate),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      serverItemId: serverItemId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverItemId),
     );
   }
 
@@ -2092,6 +2127,7 @@ class Item extends DataClass implements Insertable<Item> {
       ),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      serverItemId: serializer.fromJson<int?>(json['serverItemId']),
     );
   }
   @override
@@ -2130,6 +2166,7 @@ class Item extends DataClass implements Insertable<Item> {
       'predictedEmptyDate': serializer.toJson<DateTime?>(predictedEmptyDate),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'serverItemId': serializer.toJson<int?>(serverItemId),
     };
   }
 
@@ -2166,6 +2203,7 @@ class Item extends DataClass implements Insertable<Item> {
     Value<DateTime?> predictedEmptyDate = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
+    Value<int?> serverItemId = const Value.absent(),
   }) => Item(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -2217,6 +2255,7 @@ class Item extends DataClass implements Insertable<Item> {
         : this.predictedEmptyDate,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    serverItemId: serverItemId.present ? serverItemId.value : this.serverItemId,
   );
   Item copyWithCompanion(ItemsCompanion data) {
     return Item(
@@ -2296,6 +2335,9 @@ class Item extends DataClass implements Insertable<Item> {
           : this.predictedEmptyDate,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      serverItemId: data.serverItemId.present
+          ? data.serverItemId.value
+          : this.serverItemId,
     );
   }
 
@@ -2333,7 +2375,8 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('avgDailyConsumption: $avgDailyConsumption, ')
           ..write('predictedEmptyDate: $predictedEmptyDate, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('serverItemId: $serverItemId')
           ..write(')'))
         .toString();
   }
@@ -2372,6 +2415,7 @@ class Item extends DataClass implements Insertable<Item> {
     predictedEmptyDate,
     createdAt,
     updatedAt,
+    serverItemId,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -2408,7 +2452,8 @@ class Item extends DataClass implements Insertable<Item> {
           other.avgDailyConsumption == this.avgDailyConsumption &&
           other.predictedEmptyDate == this.predictedEmptyDate &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.serverItemId == this.serverItemId);
 }
 
 class ItemsCompanion extends UpdateCompanion<Item> {
@@ -2444,6 +2489,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<DateTime?> predictedEmptyDate;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<int?> serverItemId;
   const ItemsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -2477,6 +2523,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.predictedEmptyDate = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.serverItemId = const Value.absent(),
   });
   ItemsCompanion.insert({
     this.id = const Value.absent(),
@@ -2511,6 +2558,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.predictedEmptyDate = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.serverItemId = const Value.absent(),
   }) : name = Value(name),
        categoryId = Value(categoryId);
   static Insertable<Item> custom({
@@ -2546,6 +2594,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<DateTime>? predictedEmptyDate,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<int>? serverItemId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2582,6 +2631,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
         'predicted_empty_date': predictedEmptyDate,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (serverItemId != null) 'server_item_id': serverItemId,
     });
   }
 
@@ -2618,6 +2668,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<DateTime?>? predictedEmptyDate,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<int?>? serverItemId,
   }) {
     return ItemsCompanion(
       id: id ?? this.id,
@@ -2652,6 +2703,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       predictedEmptyDate: predictedEmptyDate ?? this.predictedEmptyDate,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      serverItemId: serverItemId ?? this.serverItemId,
     );
   }
 
@@ -2758,6 +2810,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (serverItemId.present) {
+      map['server_item_id'] = Variable<int>(serverItemId.value);
+    }
     return map;
   }
 
@@ -2795,7 +2850,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('avgDailyConsumption: $avgDailyConsumption, ')
           ..write('predictedEmptyDate: $predictedEmptyDate, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('serverItemId: $serverItemId')
           ..write(')'))
         .toString();
   }
@@ -2872,6 +2928,17 @@ class $UsageRecordsTable extends UsageRecords
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _serverRecordIdMeta = const VerificationMeta(
+    'serverRecordId',
+  );
+  @override
+  late final GeneratedColumn<int> serverRecordId = GeneratedColumn<int>(
+    'server_record_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -2901,6 +2968,7 @@ class $UsageRecordsTable extends UsageRecords
     quantity,
     remainingQuantity,
     operatorName,
+    serverRecordId,
     notes,
     createdAt,
   ];
@@ -2963,6 +3031,15 @@ class $UsageRecordsTable extends UsageRecords
         ),
       );
     }
+    if (data.containsKey('server_record_id')) {
+      context.handle(
+        _serverRecordIdMeta,
+        serverRecordId.isAcceptableOrUnknown(
+          data['server_record_id']!,
+          _serverRecordIdMeta,
+        ),
+      );
+    }
     if (data.containsKey('notes')) {
       context.handle(
         _notesMeta,
@@ -3008,6 +3085,10 @@ class $UsageRecordsTable extends UsageRecords
         DriftSqlType.string,
         data['${effectivePrefix}operator_name'],
       ),
+      serverRecordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}server_record_id'],
+      ),
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
@@ -3032,6 +3113,9 @@ class UsageRecord extends DataClass implements Insertable<UsageRecord> {
   final double quantity;
   final double remainingQuantity;
   final String? operatorName;
+
+  /// 服务端 usage_records.id — 用于多端去重与补推
+  final int? serverRecordId;
   final String? notes;
   final DateTime createdAt;
   const UsageRecord({
@@ -3041,6 +3125,7 @@ class UsageRecord extends DataClass implements Insertable<UsageRecord> {
     required this.quantity,
     required this.remainingQuantity,
     this.operatorName,
+    this.serverRecordId,
     this.notes,
     required this.createdAt,
   });
@@ -3054,6 +3139,9 @@ class UsageRecord extends DataClass implements Insertable<UsageRecord> {
     map['remaining_quantity'] = Variable<double>(remainingQuantity);
     if (!nullToAbsent || operatorName != null) {
       map['operator_name'] = Variable<String>(operatorName);
+    }
+    if (!nullToAbsent || serverRecordId != null) {
+      map['server_record_id'] = Variable<int>(serverRecordId);
     }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
@@ -3072,6 +3160,9 @@ class UsageRecord extends DataClass implements Insertable<UsageRecord> {
       operatorName: operatorName == null && nullToAbsent
           ? const Value.absent()
           : Value(operatorName),
+      serverRecordId: serverRecordId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverRecordId),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
@@ -3091,6 +3182,7 @@ class UsageRecord extends DataClass implements Insertable<UsageRecord> {
       quantity: serializer.fromJson<double>(json['quantity']),
       remainingQuantity: serializer.fromJson<double>(json['remainingQuantity']),
       operatorName: serializer.fromJson<String?>(json['operatorName']),
+      serverRecordId: serializer.fromJson<int?>(json['serverRecordId']),
       notes: serializer.fromJson<String?>(json['notes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -3105,6 +3197,7 @@ class UsageRecord extends DataClass implements Insertable<UsageRecord> {
       'quantity': serializer.toJson<double>(quantity),
       'remainingQuantity': serializer.toJson<double>(remainingQuantity),
       'operatorName': serializer.toJson<String?>(operatorName),
+      'serverRecordId': serializer.toJson<int?>(serverRecordId),
       'notes': serializer.toJson<String?>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -3117,6 +3210,7 @@ class UsageRecord extends DataClass implements Insertable<UsageRecord> {
     double? quantity,
     double? remainingQuantity,
     Value<String?> operatorName = const Value.absent(),
+    Value<int?> serverRecordId = const Value.absent(),
     Value<String?> notes = const Value.absent(),
     DateTime? createdAt,
   }) => UsageRecord(
@@ -3126,6 +3220,9 @@ class UsageRecord extends DataClass implements Insertable<UsageRecord> {
     quantity: quantity ?? this.quantity,
     remainingQuantity: remainingQuantity ?? this.remainingQuantity,
     operatorName: operatorName.present ? operatorName.value : this.operatorName,
+    serverRecordId: serverRecordId.present
+        ? serverRecordId.value
+        : this.serverRecordId,
     notes: notes.present ? notes.value : this.notes,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -3141,6 +3238,9 @@ class UsageRecord extends DataClass implements Insertable<UsageRecord> {
       operatorName: data.operatorName.present
           ? data.operatorName.value
           : this.operatorName,
+      serverRecordId: data.serverRecordId.present
+          ? data.serverRecordId.value
+          : this.serverRecordId,
       notes: data.notes.present ? data.notes.value : this.notes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -3155,6 +3255,7 @@ class UsageRecord extends DataClass implements Insertable<UsageRecord> {
           ..write('quantity: $quantity, ')
           ..write('remainingQuantity: $remainingQuantity, ')
           ..write('operatorName: $operatorName, ')
+          ..write('serverRecordId: $serverRecordId, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -3169,6 +3270,7 @@ class UsageRecord extends DataClass implements Insertable<UsageRecord> {
     quantity,
     remainingQuantity,
     operatorName,
+    serverRecordId,
     notes,
     createdAt,
   );
@@ -3182,6 +3284,7 @@ class UsageRecord extends DataClass implements Insertable<UsageRecord> {
           other.quantity == this.quantity &&
           other.remainingQuantity == this.remainingQuantity &&
           other.operatorName == this.operatorName &&
+          other.serverRecordId == this.serverRecordId &&
           other.notes == this.notes &&
           other.createdAt == this.createdAt);
 }
@@ -3193,6 +3296,7 @@ class UsageRecordsCompanion extends UpdateCompanion<UsageRecord> {
   final Value<double> quantity;
   final Value<double> remainingQuantity;
   final Value<String?> operatorName;
+  final Value<int?> serverRecordId;
   final Value<String?> notes;
   final Value<DateTime> createdAt;
   const UsageRecordsCompanion({
@@ -3202,6 +3306,7 @@ class UsageRecordsCompanion extends UpdateCompanion<UsageRecord> {
     this.quantity = const Value.absent(),
     this.remainingQuantity = const Value.absent(),
     this.operatorName = const Value.absent(),
+    this.serverRecordId = const Value.absent(),
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
@@ -3212,6 +3317,7 @@ class UsageRecordsCompanion extends UpdateCompanion<UsageRecord> {
     required double quantity,
     required double remainingQuantity,
     this.operatorName = const Value.absent(),
+    this.serverRecordId = const Value.absent(),
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : itemId = Value(itemId),
@@ -3225,6 +3331,7 @@ class UsageRecordsCompanion extends UpdateCompanion<UsageRecord> {
     Expression<double>? quantity,
     Expression<double>? remainingQuantity,
     Expression<String>? operatorName,
+    Expression<int>? serverRecordId,
     Expression<String>? notes,
     Expression<DateTime>? createdAt,
   }) {
@@ -3235,6 +3342,7 @@ class UsageRecordsCompanion extends UpdateCompanion<UsageRecord> {
       if (quantity != null) 'quantity': quantity,
       if (remainingQuantity != null) 'remaining_quantity': remainingQuantity,
       if (operatorName != null) 'operator_name': operatorName,
+      if (serverRecordId != null) 'server_record_id': serverRecordId,
       if (notes != null) 'notes': notes,
       if (createdAt != null) 'created_at': createdAt,
     });
@@ -3247,6 +3355,7 @@ class UsageRecordsCompanion extends UpdateCompanion<UsageRecord> {
     Value<double>? quantity,
     Value<double>? remainingQuantity,
     Value<String?>? operatorName,
+    Value<int?>? serverRecordId,
     Value<String?>? notes,
     Value<DateTime>? createdAt,
   }) {
@@ -3257,6 +3366,7 @@ class UsageRecordsCompanion extends UpdateCompanion<UsageRecord> {
       quantity: quantity ?? this.quantity,
       remainingQuantity: remainingQuantity ?? this.remainingQuantity,
       operatorName: operatorName ?? this.operatorName,
+      serverRecordId: serverRecordId ?? this.serverRecordId,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -3283,6 +3393,9 @@ class UsageRecordsCompanion extends UpdateCompanion<UsageRecord> {
     if (operatorName.present) {
       map['operator_name'] = Variable<String>(operatorName.value);
     }
+    if (serverRecordId.present) {
+      map['server_record_id'] = Variable<int>(serverRecordId.value);
+    }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
@@ -3301,6 +3414,7 @@ class UsageRecordsCompanion extends UpdateCompanion<UsageRecord> {
           ..write('quantity: $quantity, ')
           ..write('remainingQuantity: $remainingQuantity, ')
           ..write('operatorName: $operatorName, ')
+          ..write('serverRecordId: $serverRecordId, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -5185,6 +5299,7 @@ typedef $$ItemsTableCreateCompanionBuilder =
       Value<DateTime?> predictedEmptyDate,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<int?> serverItemId,
     });
 typedef $$ItemsTableUpdateCompanionBuilder =
     ItemsCompanion Function({
@@ -5220,6 +5335,7 @@ typedef $$ItemsTableUpdateCompanionBuilder =
       Value<DateTime?> predictedEmptyDate,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<int?> serverItemId,
     });
 
 class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
@@ -5387,6 +5503,11 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get serverItemId => $composableBuilder(
+    column: $table.serverItemId,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -5559,6 +5680,11 @@ class $$ItemsTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get serverItemId => $composableBuilder(
+    column: $table.serverItemId,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ItemsTableAnnotationComposer
@@ -5709,6 +5835,11 @@ class $$ItemsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get serverItemId => $composableBuilder(
+    column: $table.serverItemId,
+    builder: (column) => column,
+  );
 }
 
 class $$ItemsTableTableManager
@@ -5771,6 +5902,7 @@ class $$ItemsTableTableManager
                 Value<DateTime?> predictedEmptyDate = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<int?> serverItemId = const Value.absent(),
               }) => ItemsCompanion(
                 id: id,
                 name: name,
@@ -5804,6 +5936,7 @@ class $$ItemsTableTableManager
                 predictedEmptyDate: predictedEmptyDate,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                serverItemId: serverItemId,
               ),
           createCompanionCallback:
               ({
@@ -5839,6 +5972,7 @@ class $$ItemsTableTableManager
                 Value<DateTime?> predictedEmptyDate = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<int?> serverItemId = const Value.absent(),
               }) => ItemsCompanion.insert(
                 id: id,
                 name: name,
@@ -5872,6 +6006,7 @@ class $$ItemsTableTableManager
                 predictedEmptyDate: predictedEmptyDate,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                serverItemId: serverItemId,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -5903,6 +6038,7 @@ typedef $$UsageRecordsTableCreateCompanionBuilder =
       required double quantity,
       required double remainingQuantity,
       Value<String?> operatorName,
+      Value<int?> serverRecordId,
       Value<String?> notes,
       Value<DateTime> createdAt,
     });
@@ -5914,6 +6050,7 @@ typedef $$UsageRecordsTableUpdateCompanionBuilder =
       Value<double> quantity,
       Value<double> remainingQuantity,
       Value<String?> operatorName,
+      Value<int?> serverRecordId,
       Value<String?> notes,
       Value<DateTime> createdAt,
     });
@@ -5954,6 +6091,11 @@ class $$UsageRecordsTableFilterComposer
 
   ColumnFilters<String> get operatorName => $composableBuilder(
     column: $table.operatorName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get serverRecordId => $composableBuilder(
+    column: $table.serverRecordId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6007,6 +6149,11 @@ class $$UsageRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get serverRecordId => $composableBuilder(
+    column: $table.serverRecordId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
@@ -6046,6 +6193,11 @@ class $$UsageRecordsTableAnnotationComposer
 
   GeneratedColumn<String> get operatorName => $composableBuilder(
     column: $table.operatorName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get serverRecordId => $composableBuilder(
+    column: $table.serverRecordId,
     builder: (column) => column,
   );
 
@@ -6093,6 +6245,7 @@ class $$UsageRecordsTableTableManager
                 Value<double> quantity = const Value.absent(),
                 Value<double> remainingQuantity = const Value.absent(),
                 Value<String?> operatorName = const Value.absent(),
+                Value<int?> serverRecordId = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => UsageRecordsCompanion(
@@ -6102,6 +6255,7 @@ class $$UsageRecordsTableTableManager
                 quantity: quantity,
                 remainingQuantity: remainingQuantity,
                 operatorName: operatorName,
+                serverRecordId: serverRecordId,
                 notes: notes,
                 createdAt: createdAt,
               ),
@@ -6113,6 +6267,7 @@ class $$UsageRecordsTableTableManager
                 required double quantity,
                 required double remainingQuantity,
                 Value<String?> operatorName = const Value.absent(),
+                Value<int?> serverRecordId = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => UsageRecordsCompanion.insert(
@@ -6122,6 +6277,7 @@ class $$UsageRecordsTableTableManager
                 quantity: quantity,
                 remainingQuantity: remainingQuantity,
                 operatorName: operatorName,
+                serverRecordId: serverRecordId,
                 notes: notes,
                 createdAt: createdAt,
               ),

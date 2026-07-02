@@ -4,15 +4,22 @@ import '../../presentation/home/home_page.dart';
 import '../../presentation/items/item_list_page.dart';
 import '../../presentation/items/item_detail_page.dart';
 import '../../presentation/items/add_item_page.dart';
+import '../../presentation/items/add_item_method_page.dart';
+import '../../presentation/inventory/inventory_task_page.dart';
+import '../../presentation/items/widgets/add_item_wizard_view.dart';
 import '../../presentation/items/edit_item_page.dart';
 import '../../presentation/items/usage_records_page.dart';
 import '../../presentation/items/scan_page.dart';
 import '../../presentation/alerts/alert_center_page.dart';
 import '../../presentation/profile/profile_page.dart';
 import '../../presentation/profile/profile_panel_page.dart';
+import '../../presentation/profile/family_contribution_page.dart';
 import '../../presentation/profile/edit_profile_page.dart';
 import '../../presentation/profile/category_management_page.dart';
 import '../../presentation/profile/family_management_page.dart';
+import '../../presentation/profile/member_contribution_detail_page.dart';
+import '../../presentation/profile/widgets/member_contribution_navigation.dart';
+import '../../presentation/profile/theme_settings_page.dart';
 import '../../presentation/profile/notification_settings_page.dart';
 import '../../presentation/locations/location_overview_page.dart';
 import '../../presentation/locations/location_detail_page.dart';
@@ -20,7 +27,7 @@ import '../../presentation/shopping/shopping_list_page.dart';
 import '../../presentation/statistics/statistics_page.dart';
 import '../../presentation/notifications/notification_center_page.dart';
 import '../../presentation/search/search_page.dart';
-import '../../presentation/common/widgets/main_scaffold.dart';
+import '../../presentation/home/home_section_list_page.dart';
 import '../../presentation/auth/splash_page.dart';
 import '../../presentation/auth/welcome_page.dart';
 import '../../presentation/auth/login_page.dart';
@@ -142,50 +149,91 @@ final appRouter = GoRouter(
       ),
     ),
 
-    // 带底部导航的路由（ShellRoute）
-    ShellRoute(
-      builder: (context, state, child) {
-        return MainScaffold(child: child);
+    // 主入口 — 单页首页，无底部 Tab
+    GoRoute(
+      path: '/',
+      name: 'home',
+      pageBuilder: (context, state) => FadeTransitionPage(
+        child: const HomePage(),
+      ),
+    ),
+    GoRoute(
+      path: '/home/section/:section',
+      name: 'homeSection',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: HomeSectionListPage(
+          section: state.pathParameters['section']!,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/items',
+      name: 'items',
+      pageBuilder: (context, state) {
+        final location = state.uri.queryParameters['location'];
+        final tab = state.uri.queryParameters['tab'];
+        return FadeTransitionPage(
+          child: ItemListPage(
+            initialLocationFilter: location,
+            initialTab: tab,
+          ),
+        );
       },
-      routes: [
-        GoRoute(
-          path: '/',
-          name: 'home',
-          pageBuilder: (context, state) => FadeTransitionPage(
-            child: const HomePage(),
-          ),
-        ),
-        GoRoute(
-          path: '/items',
-          name: 'items',
-          pageBuilder: (context, state) => FadeTransitionPage(
-            child: const ItemListPage(),
-          ),
-        ),
-        GoRoute(
-          path: '/alerts',
-          name: 'alerts',
-          pageBuilder: (context, state) => FadeTransitionPage(
-            child: const AlertCenterPage(),
-          ),
-        ),
-        GoRoute(
-          path: '/profile',
-          name: 'profile',
-          pageBuilder: (context, state) => FadeTransitionPage(
-            child: const ProfilePage(),
-          ),
-        ),
-      ],
+    ),
+    GoRoute(
+      path: '/alerts',
+      name: 'alerts',
+      pageBuilder: (context, state) {
+        final tabKey = state.uri.queryParameters['tab'];
+        AlertTab? initialTab;
+        if (tabKey != null) {
+          initialTab = switch (tabKey) {
+            'expiry' || 'expired' || 'expiring' => AlertTab.expiry,
+            'stock' || 'low_stock' => AlertTab.stock,
+            'restock' => AlertTab.restock,
+            'warranty' => AlertTab.warranty,
+            'all' => AlertTab.all,
+            _ => null,
+          };
+        }
+        return FadeTransitionPage(
+          child: AlertCenterPage(initialTab: initialTab),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/profile',
+      name: 'profile',
+      pageBuilder: (context, state) => FadeTransitionPage(
+        child: const ProfilePage(),
+      ),
     ),
 
-    // 不带底部导航的全屏页面
+    // 全屏二级页面
+    GoRoute(
+      path: '/items/add/method',
+      name: 'addItemMethod',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const AddItemMethodPage(),
+      ),
+    ),
     GoRoute(
       path: '/items/add',
       name: 'addItem',
-      pageBuilder: (context, state) => SlideTransitionPage(
-        child: const AddItemPage(),
-      ),
+      pageBuilder: (context, state) {
+        final barcode = state.uri.queryParameters['barcode'];
+        final initialName = state.uri.queryParameters['name'];
+        final resumeDraft = state.uri.queryParameters['resumeDraft'] == '1';
+        final stepParam = state.uri.queryParameters['step'];
+        return SlideTransitionPage(
+          child: AddItemPage(
+            initialBarcode: barcode,
+            initialName: initialName,
+            resumeDraft: resumeDraft,
+            initialStep: addItemWizardStepFromQuery(stepParam),
+          ),
+        );
+      },
     ),
     GoRoute(
       path: '/items/scan',
@@ -216,7 +264,11 @@ final appRouter = GoRouter(
       path: '/items/:id',
       name: 'itemDetail',
       pageBuilder: (context, state) => SlideTransitionPage(
-        child: ItemDetailPage(id: int.parse(state.pathParameters['id']!)),
+        child: ItemDetailPage(
+          id: int.parse(state.pathParameters['id']!),
+          initialAction: state.uri.queryParameters['action'],
+          alertTypeKey: state.uri.queryParameters['alert'],
+        ),
       ),
     ),
     GoRoute(
@@ -270,6 +322,28 @@ final appRouter = GoRouter(
       ),
     ),
     GoRoute(
+      path: '/profile/family/contribution',
+      name: 'familyContribution',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const FamilyContributionPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/profile/family/member',
+      name: 'memberContributionDetail',
+      pageBuilder: (context, state) {
+        final query = state.uri.queryParameters;
+        final member = memberContributionFromQuery(query);
+        final total = familyTotalActionsFromQuery(query);
+        return SlideTransitionPage(
+          child: MemberContributionDetailPage(
+            member: member,
+            familyTotalActions: total,
+          ),
+        );
+      },
+    ),
+    GoRoute(
       path: '/profile/family',
       name: 'familyManagement',
       pageBuilder: (context, state) => SlideTransitionPage(
@@ -284,10 +358,24 @@ final appRouter = GoRouter(
       ),
     ),
     GoRoute(
+      path: '/profile/theme-settings',
+      name: 'themeSettings',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const ThemeSettingsPage(),
+      ),
+    ),
+    GoRoute(
       path: '/profile/edit',
       name: 'editProfile',
       pageBuilder: (context, state) => SlideTransitionPage(
         child: const EditProfilePage(),
+      ),
+    ),
+    GoRoute(
+      path: '/profile/inventory',
+      name: 'inventoryTask',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const InventoryTaskPage(),
       ),
     ),
     GoRoute(
