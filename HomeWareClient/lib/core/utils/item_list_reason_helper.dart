@@ -93,7 +93,7 @@ ItemListReason computeItemListReason(Item item) {
     return ItemListReason(
       emoji: '📉',
       label: '库存不足',
-      color: AppColors.warning,
+      color: AppColors.reasonLowStock,
       urgency: 80,
     );
   }

@@ -47,7 +47,7 @@ class AppColorPalette {
   bool get usesGradientBackground => false;
 }
 
-/// 预设色板 — 仅卡通主题
+/// 预设色板
 abstract final class AppColorPalettes {
   /// 卡通轻插画 — 暖米白底 + 珊瑚主色 + 描边卡片
   static const cartoon = AppColorPalette(
@@ -58,5 +58,38 @@ abstract final class AppColorPalettes {
     primaryHex: '#FF8A65',
     background: Color(0xFFFFF8F0),
     visualStyle: AppVisualStyle.cartoon,
+  );
+
+  /// 居家暖色 — 书旗向米白 + 暖棕（保留可选，非默认）
+  static const communityWarm = AppColorPalette(
+    primary: Color(0xFFC8956A),
+    primaryDark: Color(0xFF8B7355),
+    primaryLight: Color(0xFFE8D4C4),
+    primaryLighter: Color(0xFFF5F0E8),
+    primaryHex: '#C8956A',
+    background: Color(0xFFFAF7F2),
+    visualStyle: AppVisualStyle.communityWarm,
+  );
+
+  /// 清爽工具风 — 暖灰底 + 白卡，主色仅作点缀（非大面积铺色）
+  static const utilityClean = AppColorPalette(
+    primary: Color(0xFFFF6633),
+    primaryDark: Color(0xFFE85A2B),
+    primaryLight: Color(0xFFFFB899),
+    primaryLighter: Color(0xFFF5F3F0),
+    primaryHex: '#FF6633',
+    background: Color(0xFFFAFAF8),
+    visualStyle: AppVisualStyle.utilityClean,
+  );
+
+  /// 糖果轻点 — 锁定配色见 lwh/code_changed/20260702_vivid_clean_ui_style_spec.md
+  static const vividClean = AppColorPalette(
+    primary: Color(0xFFFF6B5A),
+    primaryDark: Color(0xFFE85A4A),
+    primaryLight: Color(0xFFFFB4AA),
+    primaryLighter: Color(0xFFF5F3F0),
+    primaryHex: '#FF6B5A',
+    background: Color(0xFFFAFAF8),
+    visualStyle: AppVisualStyle.vividClean,
   );
 }

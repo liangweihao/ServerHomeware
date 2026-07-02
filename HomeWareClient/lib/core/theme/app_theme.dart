@@ -7,7 +7,7 @@ import 'app_theme_extension.dart';
 import 'app_theme_variant.dart';
 import 'app_visual_style.dart';
 
-/// Material 3 主题 — 卡通轻插画风格
+/// Material 3 主题 — 支持卡通 / 工具风（点评+闲鱼向）
 class AppTheme {
   /// 根据主题变体构建浅色主题
   static ThemeData lightThemeOf(AppThemeVariant variant) {
@@ -17,38 +17,58 @@ class AppTheme {
   /// 根据色板构建浅色主题
   static ThemeData lightThemeFromPalette([AppColorPalette? palette]) {
     final p = palette ?? AppColors.activePalette;
-    const cardRadius = AppRadius.xl;
+    final isUtility = p.visualStyle == AppVisualStyle.utilityClean ||
+        p.visualStyle == AppVisualStyle.vividClean;
+    final isCartoon = p.visualStyle == AppVisualStyle.cartoon;
+    final cardRadius = isUtility ? AppRadius.md : AppRadius.xl;
+    final borderWidth = isCartoon ? 2.0 : 1.0;
 
     final baseTheme = ThemeData(
       useMaterial3: true,
       primaryColor: p.primary,
       scaffoldBackgroundColor: p.background,
       cardColor: AppColors.card,
-      dividerColor: p.primaryLight.withValues(alpha: 0.5),
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: p.primary,
-        brightness: Brightness.light,
-      ).copyWith(
-        primary: p.primary,
-        onPrimary: AppColors.white,
-        primaryContainer: p.primaryLighter,
-        onPrimaryContainer: p.primaryDark,
-        secondary: p.primaryLight,
-        onSecondary: p.primaryDark,
-        surface: AppColors.card,
-        onSurface: AppColors.textPrimary,
-      ),
+      dividerColor: AppColors.homeDivider,
+      colorScheme: isUtility
+          ? ColorScheme.light(
+              primary: p.primary,
+              onPrimary: AppColors.white,
+              primaryContainer: AppColors.gray100,
+              onPrimaryContainer: AppColors.textPrimary,
+              secondary: AppColors.textSecondary,
+              onSecondary: AppColors.white,
+              surface: AppColors.white,
+              onSurface: AppColors.textPrimary,
+              surfaceContainerHighest: AppColors.gray100,
+              outline: AppColors.border,
+              error: AppColors.danger,
+              onError: AppColors.white,
+            )
+          : ColorScheme.fromSeed(
+              seedColor: p.primary,
+              brightness: Brightness.light,
+            ).copyWith(
+              primary: p.primary,
+              onPrimary: AppColors.white,
+              primaryContainer: p.primaryLighter,
+              onPrimaryContainer: p.primaryDark,
+              secondary: p.primaryLight,
+              onSecondary: p.primaryDark,
+              surface: AppColors.card,
+              onSurface: AppColors.textPrimary,
+            ),
       extensions: [
-        AppThemeExtension(visualStyle: AppVisualStyle.cartoon),
+        AppThemeExtension(visualStyle: p.visualStyle),
       ],
 
       appBarTheme: AppBarTheme(
-        backgroundColor: p.background,
+        backgroundColor: AppColors.appBarBackground,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        titleTextStyle: const TextStyle(
-          fontSize: 18,
+        iconTheme: IconThemeData(color: AppColors.textPrimary),
+        titleTextStyle: TextStyle(
+          fontSize: 17,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
@@ -56,27 +76,31 @@ class AppTheme {
 
       cardTheme: CardThemeData(
         color: AppColors.card,
-        elevation: 0,
+        elevation: isUtility ? 1 : 0,
+        shadowColor: Colors.black.withValues(alpha: 0.06),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(cardRadius),
+          side: isCartoon
+              ? BorderSide(color: p.primaryDark, width: 2)
+              : BorderSide.none,
         ),
         margin: EdgeInsets.zero,
       ),
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.white,
+        fillColor: isUtility ? AppColors.gray100 : AppColors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(cardRadius),
-          borderSide: BorderSide(color: p.primaryLight, width: 2),
+          borderRadius: BorderRadius.circular(isUtility ? AppRadius.sm : cardRadius),
+          borderSide: BorderSide(color: AppColors.border, width: borderWidth),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(cardRadius),
-          borderSide: BorderSide(color: p.primaryLight, width: 2),
+          borderRadius: BorderRadius.circular(isUtility ? AppRadius.sm : cardRadius),
+          borderSide: BorderSide(color: AppColors.border, width: borderWidth),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(cardRadius),
-          borderSide: BorderSide(color: p.primary, width: 2),
+          borderRadius: BorderRadius.circular(isUtility ? AppRadius.sm : cardRadius),
+          borderSide: BorderSide(color: p.primary, width: borderWidth),
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -90,15 +114,15 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
       ),
 
-      dividerTheme: const DividerThemeData(
-        color: AppColors.divider,
+      dividerTheme: DividerThemeData(
+        color: AppColors.homeDivider,
         thickness: 1,
         space: 0,
       ),
 
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: p.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: isUtility ? AppColors.accentHighlight : p.primary,
+        foregroundColor: isUtility ? AppColors.onAccentHighlight : Colors.white,
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(cardRadius),
@@ -108,23 +132,14 @@ class AppTheme {
       progressIndicatorTheme: ProgressIndicatorThemeData(color: p.primary),
     );
 
-    // Nunito 圆体 + 加粗标题
-    final nunito = GoogleFonts.nunitoTextTheme(baseTheme.textTheme).apply(
-      bodyColor: AppColors.textPrimary,
-      displayColor: AppColors.textPrimary,
-    );
+    final textTheme = _buildTextTheme(baseTheme.textTheme, isCartoon: isCartoon);
+
     return baseTheme.copyWith(
-      textTheme: nunito.copyWith(
-        titleLarge: nunito.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-        titleMedium: nunito.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-        titleSmall: nunito.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-        bodyLarge: nunito.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
-      ),
-      primaryTextTheme: nunito,
+      textTheme: textTheme,
+      primaryTextTheme: textTheme,
       appBarTheme: baseTheme.appBarTheme.copyWith(
-        titleTextStyle: GoogleFonts.nunito(
-          fontSize: 20,
-          fontWeight: FontWeight.w800,
+        titleTextStyle: textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
       ),
@@ -132,25 +147,61 @@ class AppTheme {
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(cardRadius),
-          side: BorderSide(color: p.primaryDark, width: 2),
+          side: isCartoon
+              ? BorderSide(color: p.primaryDark, width: 2)
+              : BorderSide.none,
         ),
         backgroundColor: AppColors.white,
-        contentTextStyle: GoogleFonts.nunito(
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
           color: AppColors.textPrimary,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w500,
         ),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(cardRadius),
-          side: BorderSide(color: p.primaryDark, width: 3),
+          side: isCartoon
+              ? BorderSide(color: p.primaryDark, width: 3)
+              : BorderSide(color: AppColors.border, width: 1),
         ),
-        titleTextStyle: GoogleFonts.nunito(
-          fontWeight: FontWeight.w800,
+        titleTextStyle: textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
       ),
+    );
+  }
+
+  /// 工具风用 Noto Sans SC，卡通用 Nunito 圆体
+  static TextTheme _buildTextTheme(TextTheme base, {required bool isCartoon}) {
+    if (isCartoon) {
+      final nunito = GoogleFonts.nunitoTextTheme(base).apply(
+        bodyColor: AppColors.textPrimary,
+        displayColor: AppColors.textPrimary,
+      );
+      return nunito.copyWith(
+        titleLarge: nunito.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+        titleMedium: nunito.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+        titleSmall: nunito.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+        bodyLarge: nunito.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+      );
+    }
+
+    return GoogleFonts.notoSansScTextTheme(base).apply(
+      bodyColor: AppColors.textPrimary,
+      displayColor: AppColors.textPrimary,
+    ).copyWith(
+      titleLarge: base.titleLarge?.copyWith(
+        fontWeight: FontWeight.w600,
+        fontSize: 20,
+      ),
+      titleMedium: base.titleMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        fontSize: 17,
+      ),
+      bodyLarge: base.bodyLarge?.copyWith(fontWeight: FontWeight.w400),
+      bodyMedium: base.bodyMedium?.copyWith(fontWeight: FontWeight.w400),
     );
   }
 

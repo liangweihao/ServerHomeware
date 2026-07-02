@@ -7,6 +7,9 @@ import '../theme/app_theme_variant.dart';
 /// SharedPreferences 中主题变体的存储键
 const kAppThemeVariantPrefKey = 'app_theme_variant';
 
+/// 旧版 cartoon / 居家暖色 缓存迁移标记
+const kThemeLegacyMigratedKey = 'theme_legacy_migrated_v2';
+
 /// 启动时注入的初始主题（由 main 预加载后 override）
 final initialThemeVariantProvider = Provider<AppThemeVariant>(
   (ref) => AppThemeVariant.defaultVariant,
@@ -48,6 +51,26 @@ class AppThemeVariantNotifier extends Notifier<AppThemeVariant> {
 Future<AppThemeVariant> loadInitialThemeVariant() async {
   try {
     final prefs = await SharedPreferences.getInstance();
+    final storedKey = prefs.getString(kAppThemeVariantPrefKey);
+
+    // 旧版 cartoon / 居家暖色 → 清爽工具风，一次性迁移
+    final legacyKeys = {
+      AppThemeVariant.cartoon.storageKey,
+      AppThemeVariant.communityWarm.storageKey,
+    };
+    if (storedKey != null &&
+        legacyKeys.contains(storedKey) &&
+        !(prefs.getBool(kThemeLegacyMigratedKey) ?? false)) {
+      debugPrint(
+        '[Theme] INFO: 检测到旧版主题 $storedKey，迁移为 ${AppThemeVariant.utilityClean.label}',
+      );
+      await prefs.setString(
+        kAppThemeVariantPrefKey,
+        AppThemeVariant.utilityClean.storageKey,
+      );
+      await prefs.setBool(kThemeLegacyMigratedKey, true);
+    }
+
     final variant = AppThemeVariant.fromStorage(
       prefs.getString(kAppThemeVariantPrefKey),
     );
