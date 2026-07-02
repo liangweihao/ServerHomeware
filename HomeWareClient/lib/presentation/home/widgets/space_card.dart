@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_radius.dart';
 import '../../../core/theme/app_decorations.dart';
 import '../../../data/database/app_database.dart';
 import '../../../core/theme/cartoon_palette.dart';
 import '../../common/widgets/cartoon_pressable.dart';
 import '../../common/widgets/cartoon_ui.dart';
+import '../../common/widgets/tag_chip.dart';
 
-/// 首页空间卡片 — 贴纸 emoji + 数量标签
+/// 首页空间卡片 — 工具风紧凑白卡 / 卡通贴纸双分支
 class SpaceCard extends StatelessWidget {
   final Location location;
   final int itemCount;
@@ -23,6 +25,72 @@ class SpaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (AppColors.isUtilityStyle) {
+      return _buildUtilityCard(context);
+    }
+    return _buildCartoonCard(context);
+  }
+
+  /// 工具风 — 白底轻阴影，与 ItemCard Feed 一致
+  Widget _buildUtilityCard(BuildContext context) {
+    return SizedBox(
+      width: 108,
+      child: Material(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        elevation: 1,
+        shadowColor: Colors.black.withValues(alpha: 0.06),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.gray100,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    location.icon ?? '📦',
+                    style: const TextStyle(fontSize: 18, height: 1),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  location.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                    fontSize: 12,
+                    height: 1.2,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                TagChip(
+                  label: '$itemCount 件',
+                  color: AppColors.textSecondary,
+                  background: AppColors.gray100,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 卡通风 — 贴纸色块
+  Widget _buildCartoonCard(BuildContext context) {
     final (fill, border) = CartoonPalette.pairAt(cartoonIndex);
 
     final body = Column(

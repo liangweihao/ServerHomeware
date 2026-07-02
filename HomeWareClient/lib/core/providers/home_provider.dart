@@ -2,24 +2,29 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/database/app_database.dart';
 import '../events/item_event_bus.dart';
+import '../services/profile_health_history_service.dart';
 import '../services/usage_record_sync_service.dart';
 import 'database_provider.dart';
 
 // 首页统计数据
 class HomeStats {
+  final int expiredCount;
   final int expiringCount;
   final int lowStockCount;
   final int shoppingCount;
   final double monthlyExpense;
+  final String? latestExpiredItem;
   final String? latestExpiringItem;
   final String? latestLowStockItem;
   final double? monthlyExpenseChange;
 
   HomeStats({
+    required this.expiredCount,
     required this.expiringCount,
     required this.lowStockCount,
     required this.shoppingCount,
     required this.monthlyExpense,
+    this.latestExpiredItem,
     this.latestExpiringItem,
     this.latestLowStockItem,
     this.monthlyExpenseChange,
@@ -32,13 +37,24 @@ final homeStatsProvider = FutureProvider<HomeStats>((ref) async {
   final db = ref.watch(databaseProvider);
   
   await db.ensureInitialized();
-  
-  // 获取过期预警数量（7天内过期）
-  final sevenDaysLater = DateTime.now().add(const Duration(days: 7));
-  final expiryItems = await (db.select(db.items)
+
+  final now = DateTime.now();
+  final todayStart = DateTime(now.year, now.month, now.day);
+  final sevenDaysEnd = todayStart.add(const Duration(days: 7));
+
+  // 已过期（今日之前）
+  final expiredItems = await (db.select(db.items)
         ..where((i) => i.status.equals(0))
-        ..where((i) => i.expiryDate.isSmallerOrEqualValue(sevenDaysLater))
-        ..where((i) => i.expiryDate.isNotNull()))
+        ..where((i) => i.expiryDate.isNotNull())
+        ..where((i) => i.expiryDate.isSmallerThanValue(todayStart)))
+      .get();
+
+  // 临期（今日起 7 天内，不含已过期）
+  final expiringItems = await (db.select(db.items)
+        ..where((i) => i.status.equals(0))
+        ..where((i) => i.expiryDate.isNotNull())
+        ..where((i) => i.expiryDate.isBiggerOrEqualValue(todayStart))
+        ..where((i) => i.expiryDate.isSmallerOrEqualValue(sevenDaysEnd)))
       .get();
   
   // 获取库存不足数量
@@ -52,7 +68,6 @@ final homeStatsProvider = FutureProvider<HomeStats>((ref) async {
   final pendingShoppingCount = shoppingItems.where((s) => !s.isPurchased).length;
   
   // 计算本月消费
-  final now = DateTime.now();
   final monthStart = DateTime(now.year, now.month, 1);
   final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
   
@@ -87,15 +102,26 @@ final homeStatsProvider = FutureProvider<HomeStats>((ref) async {
     expenseChange = ((monthlyExpense - lastMonthExpense) / lastMonthExpense) * 100;
   }
   
-  // 获取最新过期物品
+  // 获取最新已过期物品
+  String? latestExpiredItem;
+  if (expiredItems.isNotEmpty) {
+    expiredItems.sort((a, b) {
+      if (a.expiryDate == null) return 1;
+      if (b.expiryDate == null) return -1;
+      return b.expiryDate!.compareTo(a.expiryDate!);
+    });
+    latestExpiredItem = expiredItems.first.name;
+  }
+
+  // 获取最新临期物品
   String? latestExpiringItem;
-  if (expiryItems.isNotEmpty) {
-    expiryItems.sort((a, b) {
+  if (expiringItems.isNotEmpty) {
+    expiringItems.sort((a, b) {
       if (a.expiryDate == null) return 1;
       if (b.expiryDate == null) return -1;
       return a.expiryDate!.compareTo(b.expiryDate!);
     });
-    latestExpiringItem = expiryItems.first.name;
+    latestExpiringItem = expiringItems.first.name;
   }
   
   // 获取最新库存不足物品
@@ -104,15 +130,20 @@ final homeStatsProvider = FutureProvider<HomeStats>((ref) async {
     latestLowStockItem = stockItems.first.name;
   }
   
-  return HomeStats(
-    expiringCount: expiryItems.length,
+  final stats = HomeStats(
+    expiredCount: expiredItems.length,
+    expiringCount: expiringItems.length,
     lowStockCount: stockItems.length,
     shoppingCount: pendingShoppingCount,
     monthlyExpense: monthlyExpense,
+    latestExpiredItem: latestExpiredItem,
     latestExpiringItem: latestExpiringItem,
     latestLowStockItem: latestLowStockItem,
     monthlyExpenseChange: expenseChange,
   );
+
+  await ProfileHealthHistoryService.recordFromStats(stats);
+  return stats;
 });
 
 // 空间数据（顶级位置 + 物品数）
@@ -161,8 +192,8 @@ final recentActivitiesProvider = FutureProvider<List<ActivityData>>((ref) async 
 
   await db.ensureInitialized();
 
-  // 从服务端同步使用记录（缓存清理后可恢复）
-  await UsageRecordSyncService(db).syncFromServer();
+  // 从服务端双向同步使用记录（多端家庭协作）
+  await UsageRecordSyncService(db).syncBidirectional();
 
   final records = await db.getRecentUsageRecords(limit: 5);
   

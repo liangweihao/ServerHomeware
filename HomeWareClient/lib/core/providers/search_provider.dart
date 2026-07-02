@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/database/app_database.dart';
+import '../utils/search_utils.dart';
 import 'database_provider.dart';
 
 // Re-export databaseProvider for convenience
@@ -28,71 +29,60 @@ final searchQueryProvider = StateProvider<String>((ref) => '');
 
 final searchResultsProvider = FutureProvider<List<SearchResult>>((ref) async {
   final query = ref.watch(searchQueryProvider);
-  
+
   if (query.trim().isEmpty) {
     return [];
   }
-  
+
   final db = ref.watch(databaseProvider);
   final allItems = await db.getAllItems();
-  
-  final results = <SearchResult>[];
-  final lowerQuery = query.toLowerCase();
-  
+  final locations = await db.getAllLocations();
+  final locationNameById = {
+    for (final loc in locations) loc.id: loc.fullPath,
+  };
+
+  final locationNameByItemId = <int, String?>{};
   for (final item in allItems) {
-    // 检查名称和品牌
-    final nameMatch = item.name.toLowerCase().contains(lowerQuery);
-    final brandMatch = item.brand?.toLowerCase().contains(lowerQuery) ?? false;
-    
-    // 检查位置
-    String? locationName;
     if (item.locationId != null) {
-      final location = await db.getLocationById(item.locationId!);
-      locationName = location?.fullPath;
-    }
-    
-    // 检查位置名称
-    final locationMatch = locationName?.toLowerCase().contains(lowerQuery) ?? false;
-    
-    if (nameMatch || brandMatch || locationMatch) {
-      results.add(SearchResult(
-        item: item,
-        locationName: locationName,
-      ));
+      locationNameByItemId[item.id] = locationNameById[item.locationId];
     }
   }
-  
-  // 按相关度排序（名称匹配优先）
-  results.sort((a, b) {
-    final aNameMatch = a.item.name.toLowerCase().contains(lowerQuery);
-    final bNameMatch = b.item.name.toLowerCase().contains(lowerQuery);
-    
-    if (aNameMatch && !bNameMatch) return -1;
-    if (!aNameMatch && bNameMatch) return 1;
-    return 0;
-  });
-  
-  return results;
+
+  final matches = filterItemsByQuery(
+    items: allItems,
+    locationNameByItemId: locationNameByItemId,
+    query: query,
+  );
+
+  return matches
+      .map((m) => SearchResult(item: m.item, locationName: m.locationName))
+      .toList();
+});
+
+/// 输入联想 Provider — 实时前缀/包含匹配
+final searchSuggestionsProvider = FutureProvider<List<String>>((ref) async {
+  final query = ref.watch(searchQueryProvider);
+  if (query.trim().length < 1) return [];
+
+  final db = ref.watch(databaseProvider);
+  final allItems = await db.getAllItems();
+  return buildSearchSuggestions(items: allItems, query: query);
 });
 
 // 添加搜索历史
 Future<void> addSearchHistory(String query) async {
   if (query.trim().isEmpty) return;
-  
+
   final prefs = await SharedPreferences.getInstance();
   final history = prefs.getStringList(_searchHistoryKey) ?? [];
-  
-  // 移除已有的相同项
+
   history.remove(query);
-  
-  // 添加到开头
   history.insert(0, query);
-  
-  // 限制最大数量
+
   if (history.length > _maxHistoryItems) {
     history.removeLast();
   }
-  
+
   await prefs.setStringList(_searchHistoryKey, history);
 }
 
