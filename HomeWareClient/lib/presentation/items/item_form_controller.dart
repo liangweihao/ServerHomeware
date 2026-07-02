@@ -34,6 +34,12 @@ class ItemFormController {
   /// 存放位置参考照片（独立于物品图片）
   List<String> locationImagePaths = [];
 
+  /// 扫码录入条码
+  String? barcode;
+
+  /// 预计使用天数（可选）— 用于估算日均消耗与预计用完日
+  int? estimatedUseDays;
+
   /// 编辑模式：当前剩余（只读展示，保存时不改）
   double? editCurrentQuantity;
 
@@ -99,6 +105,15 @@ class ItemFormController {
     imagePaths = ItemImageStorage.decodeItemImages(item.images);
     locationImagePaths = ItemImageStorage.decodeLocationImages(item.images);
     editCurrentQuantity = item.currentQuantity;
+    barcode = item.barcode;
+    if (item.avgDailyConsumption != null &&
+        item.avgDailyConsumption! > 0 &&
+        item.currentQuantity > 0) {
+      estimatedUseDays =
+          (item.currentQuantity / item.avgDailyConsumption!).round();
+    } else {
+      estimatedUseDays = null;
+    }
     syncDisplayUnitAfterLoad();
   }
 
@@ -124,7 +139,22 @@ class ItemFormController {
     safetyStock = 1;
     imagePaths = [];
     locationImagePaths = [];
+    barcode = null;
     editCurrentQuantity = null;
+    estimatedUseDays = null;
+  }
+
+  /// 根据预计使用天数计算日均消耗与预计用完日
+  ({double? avgDaily, DateTime? predictedEmpty}) computeConsumptionEstimate() {
+    if (estimatedUseDays == null || estimatedUseDays! <= 0) {
+      return (avgDaily: null, predictedEmpty: null);
+    }
+    final stock = quantity *
+        ((packageUnit != null && packageQuantity > 0) ? packageQuantity : 1);
+    return (
+      avgDaily: stock / estimatedUseDays!,
+      predictedEmpty: DateTime.now().add(Duration(days: estimatedUseDays!)),
+    );
   }
 
   void dispose() {
@@ -201,8 +231,18 @@ class ItemFormController {
     if (notesController.text.isNotEmpty) {
       body['notes'] = notesController.text.trim();
     }
+    if (barcode != null && barcode!.isNotEmpty) {
+      body['barcode'] = barcode;
+    }
     if (allUrls.isNotEmpty) {
       body['image_urls'] = allUrls;
+    }
+    final estimate = computeConsumptionEstimate();
+    if (estimate.avgDaily != null) {
+      body['avg_daily_consumption'] = estimate.avgDaily;
+    }
+    if (estimate.predictedEmpty != null) {
+      body['predicted_empty_date'] = formatApiDate(estimate.predictedEmpty!);
     }
     return body;
   }
@@ -225,8 +265,11 @@ class ItemFormController {
       imagesJson = const Value.absent();
     }
 
+    final estimate = computeConsumptionEstimate();
+
     return ItemsCompanion(
       id: serverId != null ? Value(serverId) : const Value.absent(),
+      serverItemId: serverId != null ? Value(serverId) : const Value.absent(),
       name: Value(nameController.text.trim()),
       brand: brandController.text.isEmpty
           ? const Value.absent()
@@ -261,7 +304,16 @@ class ItemFormController {
       notes: notesController.text.isEmpty
           ? const Value.absent()
           : Value(notesController.text.trim()),
+      barcode: barcode != null && barcode!.isNotEmpty
+          ? Value(barcode!)
+          : const Value.absent(),
       images: imagesJson,
+      avgDailyConsumption: estimate.avgDaily != null
+          ? Value(estimate.avgDaily)
+          : const Value.absent(),
+      predictedEmptyDate: estimate.predictedEmpty != null
+          ? Value(estimate.predictedEmpty)
+          : const Value.absent(),
     );
   }
 
@@ -273,6 +325,8 @@ class ItemFormController {
             itemPaths: imagePaths,
             locationPaths: locationImagePaths,
           );
+
+    final estimate = computeConsumptionEstimate();
 
     return existing.copyWith(
       name: nameController.text.trim(),
@@ -305,6 +359,12 @@ class ItemFormController {
           ? const Value.absent()
           : Value(notesController.text.trim()),
       images: imagesJson != null ? Value(imagesJson) : const Value.absent(),
+      avgDailyConsumption: estimate.avgDaily != null
+          ? Value(estimate.avgDaily)
+          : const Value.absent(),
+      predictedEmptyDate: estimate.predictedEmpty != null
+          ? Value(estimate.predictedEmpty)
+          : const Value.absent(),
       updatedAt: DateTime.now(),
     );
   }
@@ -327,5 +387,91 @@ class ItemFormController {
     if (productionDate != null && shelfLifeDays != null) {
       expiryDate = productionDate!.add(Duration(days: shelfLifeDays!));
     }
+  }
+
+  /// 是否有值得保存的草稿内容
+  bool get hasDraftContent =>
+      nameController.text.trim().isNotEmpty ||
+      brandController.text.trim().isNotEmpty ||
+      selectedCategory != null ||
+      selectedLocation != null ||
+      (barcode != null && barcode!.isNotEmpty) ||
+      expiryDate != null;
+
+  /// 序列化为草稿
+  Map<String, dynamic> toDraftMap({required int wizardStepIndex}) {
+    return {
+      'wizardStep': wizardStepIndex,
+      'name': nameController.text,
+      'brand': brandController.text,
+      'notes': notesController.text,
+      'price': priceController.text,
+      'categoryId': selectedCategory?.id,
+      'locationId': selectedLocation?.id,
+      'containerName': containerName,
+      'purchaseDate': purchaseDate?.toIso8601String(),
+      'productionDate': productionDate?.toIso8601String(),
+      'expiryDate': expiryDate?.toIso8601String(),
+      'shelfLifeDays': shelfLifeDays,
+      'quantity': quantity,
+      'unit': unit,
+      'packageUnit': packageUnit,
+      'packageQuantity': packageQuantity,
+      'purchaseChannel': purchaseChannel,
+      'expiryAlertDays': expiryAlertDays,
+      'safetyStock': safetyStock,
+      'barcode': barcode,
+      'imagePaths': imagePaths,
+      'locationImagePaths': locationImagePaths,
+    };
+  }
+
+  /// 从草稿恢复
+  Future<void> applyDraftMap(
+    Map<String, dynamic> map,
+    AppDatabase db,
+  ) async {
+    nameController.text = map['name']?.toString() ?? '';
+    brandController.text = map['brand']?.toString() ?? '';
+    notesController.text = map['notes']?.toString() ?? '';
+    priceController.text = map['price']?.toString() ?? '';
+
+    final categoryId = map['categoryId'] as int?;
+    if (categoryId != null) {
+      selectedCategory = await db.getCategoryById(categoryId);
+    }
+    final locationId = map['locationId'] as int?;
+    if (locationId != null) {
+      selectedLocation = await db.getLocationById(locationId);
+    }
+
+    containerName = map['containerName'] as String?;
+    purchaseDate = _parseDate(map['purchaseDate']) ?? DateTime.now();
+    productionDate = _parseDate(map['productionDate']);
+    expiryDate = _parseDate(map['expiryDate']);
+    shelfLifeDays = map['shelfLifeDays'] as int?;
+    quantity = (map['quantity'] as num?)?.toDouble() ?? 1;
+    unit = map['unit']?.toString() ?? '件';
+    packageUnit = map['packageUnit'] as String?;
+    packageQuantity = map['packageQuantity'] as int? ?? 1;
+    purchaseChannel = map['purchaseChannel'] as String?;
+    expiryAlertDays = map['expiryAlertDays'] as int? ?? 3;
+    safetyStock = (map['safetyStock'] as num?)?.toDouble() ?? 1;
+    barcode = map['barcode'] as String?;
+
+    final imgs = map['imagePaths'];
+    if (imgs is List) {
+      imagePaths = imgs.map((e) => e.toString()).toList();
+    }
+    final locImgs = map['locationImagePaths'];
+    if (locImgs is List) {
+      locationImagePaths = locImgs.map((e) => e.toString()).toList();
+    }
+    syncDisplayUnitAfterLoad();
+  }
+
+  DateTime? _parseDate(dynamic raw) {
+    if (raw == null) return null;
+    return DateTime.tryParse(raw.toString());
   }
 }

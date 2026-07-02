@@ -1,18 +1,25 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/config/app_env.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/home_constants.dart';
+import '../../../core/models/home_section.dart';
 import '../../../core/services/upload_service.dart';
 import '../../../core/theme/app_decorations.dart';
 import '../../../core/theme/cartoon_decorations.dart';
 import '../../../core/theme/cartoon_palette.dart';
 import '../../../core/utils/item_image_storage.dart';
 import '../../../core/utils/item_list_reason_helper.dart';
+import '../../common/widgets/item_placeholder_cover.dart';
+import '../../common/widgets/app_reason_tag.dart';
+import '../../common/widgets/tag_chip.dart';
 import '../../common/widgets/cartoon_pressable.dart';
 import '../../common/widgets/cartoon_ui.dart';
 import '../../../data/database/app_database.dart';
+import 'item_card_feed_data.dart';
 import 'item_image_tile.dart';
 
 /// 物品卡片展示模式
@@ -23,11 +30,15 @@ enum ItemCardLayout {
   reasonFirst,
   /// 抖音式网格磁贴：大图/文本海报 + 底部基本信息
   grid,
+  /// Feed 竖卡：上图下文 + 状态标签（首页分区 / 搜索推荐）
+  feed,
 }
 
 /// 物品列表卡片 — 支持多种信息优先级布局
 class ItemCard extends StatelessWidget {
-  final Item item;
+  final Item? item;
+  final HomeSectionItem? sectionItem;
+  final double? feedWidth;
   final String? locationName;
   final String? categoryName;
   final String? categoryColorHex;
@@ -38,25 +49,63 @@ class ItemCard extends StatelessWidget {
 
   const ItemCard({
     super.key,
-    required this.item,
+    required Item item,
     this.locationName,
     this.categoryName,
     this.categoryColorHex,
     this.onTap,
     this.layout = ItemCardLayout.classic,
     this.reason,
-  });
+  })  : item = item,
+        sectionItem = null,
+        feedWidth = null;
+
+  /// 首页 / 搜索推荐 Feed 卡 — 统一竖向布局
+  const ItemCard.feed({
+    super.key,
+    required HomeSectionItem sectionItem,
+    this.feedWidth,
+    this.onTap,
+  })  : item = null,
+        sectionItem = sectionItem,
+        locationName = null,
+        categoryName = null,
+        categoryColorHex = null,
+        layout = ItemCardLayout.feed,
+        reason = null;
+
+  /// 非 Feed 布局必须有 [item]
+  Item get _item {
+    assert(item != null, 'ItemCard 非 feed 布局需要 item');
+    return item!;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final colorIndex = item.id.hashCode;
+    if (sectionItem != null || layout == ItemCardLayout.feed) {
+      final data = sectionItem != null
+          ? ItemCardFeedData.fromHomeSection(sectionItem!)
+          : ItemCardFeedData.fromItem(
+              item!,
+              locationName: locationName,
+              reason: reason,
+              categoryColorHex: categoryColorHex,
+            );
+      return _buildFeedCard(context, data);
+    }
+
+    if (AppColors.isUtilityStyle) {
+      return _buildUtilityCard(context);
+    }
+
+    final colorIndex = item!.id.hashCode;
     final (pastelFill, pastelBorder) = CartoonPalette.pairAt(colorIndex);
     final tilt = layout == ItemCardLayout.grid
         ? 0.0
         : CartoonPalette.tiltAt(colorIndex % 4) * 0.35;
 
     final cardBody = Opacity(
-      opacity: item.status == 3 ? 0.55 : 1.0,
+      opacity: _item.status == 3 ? 0.55 : 1.0,
       child: AppSurface(
         // 内缩留出描边宽度，避免白底内容贴边盖住彩色边框
         padding: layout == ItemCardLayout.grid
@@ -91,6 +140,294 @@ class ItemCard extends StatelessWidget {
     );
   }
 
+  /// Feed 竖卡 — 工具风 / 卡通双分支
+  Widget _buildFeedCard(BuildContext context, ItemCardFeedData data) {
+    final width = feedWidth;
+    final card = AppColors.isUtilityStyle
+        ? _buildUtilityFeedBody(context, data)
+        : _buildCartoonFeedBody(context, data);
+
+    final wrapped = Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap ?? () {
+          debugPrint('[ItemCard] INFO: Feed 打开物品 ${data.id}');
+          context.push('/items/${data.id}');
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: card,
+      ),
+    );
+
+    if (width != null) {
+      return SizedBox(width: width, child: wrapped);
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : HomeConstants.cardWidth;
+        return SizedBox(width: cardWidth, child: wrapped);
+      },
+    );
+  }
+
+  /// 工具风 Feed 竖卡主体
+  Widget _buildUtilityFeedBody(BuildContext context, ItemCardFeedData data) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : HomeConstants.cardWidth;
+
+        return Ink(
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: AppColors.cardShadow,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildFeedImage(data, cardWidth),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      data.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                        height: 1.25,
+                      ),
+                    ),
+                    if (data.locationPath != null &&
+                        data.locationPath!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        data.locationPath!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 6),
+                    TagChip(
+                      label: data.tagLabel,
+                      color: data.tagColor,
+                      background: data.tagBackground,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// 卡通风 Feed 竖卡主体
+  Widget _buildCartoonFeedBody(BuildContext context, ItemCardFeedData data) {
+    final colorIndex = data.id.hashCode;
+    final (pastelFill, pastelBorder) = CartoonPalette.pairAt(colorIndex);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : HomeConstants.cardWidth;
+
+        return Transform.rotate(
+          angle: CartoonPalette.tiltAt(colorIndex % 4) * 0.25,
+          child: AppSurface(
+            fillColor: pastelFill,
+            borderColor: pastelBorder,
+            shadowLevel: CartoonShadowLevel.card,
+            padding: EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildFeedImage(data, cardWidth),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        data.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                          height: 1.25,
+                        ),
+                      ),
+                      if (data.locationPath != null &&
+                          data.locationPath!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          data.locationPath!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 6),
+                      CartoonStickerBadge(
+                        label: data.tagLabel,
+                        accentColor: data.tagColor,
+                        fillColor: data.tagBackground,
+                        fontSize: 11,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFeedImage(ItemCardFeedData data, double cardWidth) {
+    final image = data.previewImage;
+    if (image != null && image.isNotEmpty) {
+      return ItemImageTile(
+        source: image,
+        width: cardWidth,
+        height: HomeConstants.cardImageHeight,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+      );
+    }
+
+    return ItemPlaceholderCover(
+      itemName: data.name,
+      itemId: data.id,
+      categoryIcon: data.categoryIcon,
+      categoryColorHex: data.categoryColorHex,
+      width: cardWidth,
+      height: HomeConstants.cardImageHeight,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+    );
+  }
+
+  /// 工具风卡片 — 白底轻阴影，点评式信息层级
+  Widget _buildUtilityCard(BuildContext context) {
+    final currentItem = item!;
+    final listReason = reason ?? computeItemListReason(currentItem);
+    final opacity = currentItem.status == 3 ? 0.55 : 1.0;
+
+    if (layout == ItemCardLayout.grid) {
+      final data = ItemCardFeedData.fromItem(
+        currentItem,
+        locationName: locationName,
+        reason: listReason,
+        categoryColorHex: categoryColorHex,
+      );
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Opacity(
+          opacity: opacity,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(12),
+              child: _buildUtilityFeedBody(context, data),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Opacity(
+        opacity: opacity,
+        child: Material(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          elevation: 1,
+          shadowColor: Colors.black.withValues(alpha: 0.06),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildThumbnail(AppColors.homeDivider, size: 56),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          currentItem.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        AppReasonTag(reason: listReason),
+                        const SizedBox(height: 6),
+                        Text(
+                          _auxiliaryLinePlain(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, color: AppColors.textHint, size: 20),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _auxiliaryLinePlain() {
+    final parts = <String>[];
+    if (locationName != null && locationName!.isNotEmpty) {
+      parts.add(locationName!);
+    }
+    parts.add('剩余 ${_item.currentQuantity.toStringAsFixed(0)} ${_item.unit}');
+    return parts.join(' · ');
+  }
+
   Widget _buildContent(BuildContext context, Color accentBorder) {
     switch (layout) {
       case ItemCardLayout.grid:
@@ -99,12 +436,14 @@ class ItemCard extends StatelessWidget {
         return _buildReasonFirstContent(context, accentBorder);
       case ItemCardLayout.classic:
         return _buildClassicContent(context, accentBorder);
+      case ItemCardLayout.feed:
+        return const SizedBox.shrink();
     }
   }
 
   /// 理由优先：名称 → 出现理由 → 位置·数量
   Widget _buildReasonFirstContent(BuildContext context, Color accentBorder) {
-    final listReason = reason ?? computeItemListReason(item);
+    final listReason = reason ?? computeItemListReason(_item);
     final thumbSize = 56.0;
 
     return Row(
@@ -117,7 +456,7 @@ class ItemCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                item.name,
+                _item.name,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w900,
                       fontSize: 15,
@@ -132,7 +471,7 @@ class ItemCard extends StatelessWidget {
                 emoji: listReason.emoji,
                 label: listReason.label,
                 accentColor: listReason.color,
-                fillColor: listReason.color.withValues(alpha: 0.12),
+                fillColor: AppColors.tagBackgroundFor(listReason.color),
                 fontSize: 12,
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               ),
@@ -157,8 +496,8 @@ class ItemCard extends StatelessWidget {
 
   /// 抖音式网格磁贴 — 图片 contain 居中 + 高度随内容自适应
   Widget _buildGridContent(BuildContext context, Color accentBorder) {
-    final listReason = reason ?? computeItemListReason(item);
-    final sources = ItemImageStorage.resolveDisplaySources(item.images);
+    final listReason = reason ?? computeItemListReason(_item);
+    final sources = ItemImageStorage.resolveDisplaySources(_item.images);
     final hasImage = sources.isNotEmpty;
 
     return Column(
@@ -199,7 +538,7 @@ class ItemCard extends StatelessWidget {
         children: [
           if (hasImage) ...[
             Text(
-              item.name,
+              _item.name,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w900,
                     fontSize: 13,
@@ -217,9 +556,9 @@ class ItemCard extends StatelessWidget {
             children: [
               CartoonStickerBadge(
                 emoji: '📦',
-                label: '${item.currentQuantity.toStringAsFixed(0)}${item.unit}',
+                label: '${_item.currentQuantity.toStringAsFixed(0)}${_item.unit}',
                 accentColor: accentBorder,
-                fillColor: accentBorder.withValues(alpha: 0.12),
+                fillColor: AppColors.tagBackgroundFor(accentBorder),
                 fontSize: 9,
                 compact: true,
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -229,7 +568,7 @@ class ItemCard extends StatelessWidget {
                   emoji: listReason.emoji,
                   label: listReason.label,
                   accentColor: listReason.color,
-                  fillColor: listReason.color.withValues(alpha: 0.12),
+                  fillColor: AppColors.tagBackgroundFor(listReason.color),
                   fontSize: 9,
                   compact: true,
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -319,7 +658,7 @@ class ItemCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            item.name,
+            _item.name,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w900,
                   fontSize: 14,
@@ -330,11 +669,11 @@ class ItemCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
           ),
-          if (item.brand != null && item.brand!.isNotEmpty) ...[
+          if (_item.brand != null && _item.brand!.isNotEmpty) ...[
             const SizedBox(height: 6),
             CartoonStickerBadge(
               emoji: '🏪',
-              label: item.brand!,
+              label: _item.brand!,
               accentColor: AppColors.textSecondary,
               fillColor: AppColors.white.withValues(alpha: 0.9),
               fontSize: 9,
@@ -374,7 +713,7 @@ class ItemCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.name,
+                  _item.name,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w900,
                         fontSize: 15,
@@ -402,7 +741,7 @@ class ItemCard extends StatelessWidget {
       parts.add('📍 $locationName');
     }
     parts.add(
-      '📦 ${item.currentQuantity.toStringAsFixed(0)} ${item.unit}',
+      '📦 ${_item.currentQuantity.toStringAsFixed(0)} ${_item.unit}',
     );
     return parts.join('  ·  ');
   }
@@ -424,11 +763,11 @@ class ItemCard extends StatelessWidget {
       );
     }
 
-    if (item.brand != null && item.brand!.isNotEmpty) {
+    if (_item.brand != null && _item.brand!.isNotEmpty) {
       chips.add(
         CartoonStickerBadge(
           emoji: '🏪',
-          label: item.brand!,
+          label: _item.brand!,
           accentColor: AppColors.textSecondary,
           fillColor: AppColors.gray100,
           fontSize: 10,
@@ -462,18 +801,18 @@ class ItemCard extends StatelessWidget {
       children: [
         CartoonStickerBadge(
           emoji: '📦',
-          label: '${item.currentQuantity.toStringAsFixed(0)} ${item.unit}',
+          label: '${_item.currentQuantity.toStringAsFixed(0)} ${_item.unit}',
           accentColor: AppColors.primaryDark,
           fillColor: AppColors.primaryLighter,
           fontSize: 12,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         ),
         const Spacer(),
-        if (item.status == 3)
+        if (_item.status == 3)
           _buildStatusBadge('🗑️ 已丢弃', AppColors.danger)
-        else if (item.status == 1)
+        else if (_item.status == 1)
           _buildStatusBadge('✓ 已用完', AppColors.textSecondary)
-        else if (item.expiryDate != null)
+        else if (_item.expiryDate != null)
           _buildExpiryBadge(),
       ],
     );
@@ -481,7 +820,7 @@ class ItemCard extends StatelessWidget {
 
   Widget _buildThumbnail(Color accentBorder, {double size = 62}) {
     Widget thumb;
-    final sources = ItemImageStorage.resolveDisplaySources(item.images);
+    final sources = ItemImageStorage.resolveDisplaySources(_item.images);
 
     if (sources.isNotEmpty) {
       thumb = ClipRRect(
@@ -515,7 +854,7 @@ class ItemCard extends StatelessWidget {
   }
 
   String _placeholderEmoji() {
-    final name = item.name;
+    final name = _item.name;
     if (name.contains('食') || name.contains('饮') || name.contains('奶')) {
       return '🍎';
     }
@@ -542,8 +881,8 @@ class ItemCard extends StatelessWidget {
   }
 
   Widget _buildExpiryBadge() {
-    final reason = computeItemListReason(item);
-    if (item.expiryDate == null) return const SizedBox.shrink();
+    final reason = computeItemListReason(_item);
+    if (_item.expiryDate == null) return const SizedBox.shrink();
     return CartoonStickerBadge(
       emoji: reason.emoji,
       label: reason.label,

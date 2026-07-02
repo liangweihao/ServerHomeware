@@ -62,7 +62,15 @@ class _ItemFormCategoryChipsState extends ConsumerState<ItemFormCategoryChips> {
     if (hex.length == 6) {
       return Color(int.parse('FF$hex', radix: 16)).withOpacity(0.15);
     }
-    return AppColors.primaryLighter;
+    return AppColors.chipBackground;
+  }
+
+  Color _chipFill(Category category) {
+    final selected = widget.selectedCategory?.id == category.id;
+    if (AppColors.isUtilityStyle) {
+      return selected ? AppColors.chipSelectedBackground : AppColors.chipBackground;
+    }
+    return _chipColor(category);
   }
 
   Color _chipBorder(Category category) {
@@ -91,7 +99,7 @@ class _ItemFormCategoryChipsState extends ConsumerState<ItemFormCategoryChips> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: _chipColor(category),
+            color: _chipFill(category),
             borderRadius: BorderRadius.circular(AppRadius.full),
             border: Border.all(
               color: _chipBorder(category),

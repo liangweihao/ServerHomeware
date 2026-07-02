@@ -110,6 +110,14 @@ flutter run
 - **原因**：网格图片 `height: null` 依赖 intrinsic 高度，图片未加载前高度为 0，Sliver 无法完成 layout
 - **修复**：恢复宽高比预读 + 固定 `SizedBox` 高度（加载前 1:1 占位），保留 `BoxFit.contain` 与无 `cacheHeight`
 
+### 2026-06-25 补充：列表分页加载
+
+详见 [`20260625_item_list_pagination.md`](20260625_item_list_pagination.md)
+
+- 列表 Tab：首批 20 条 + 滚动加载更多
+- 网格 Tab：每组首批 12 条 + 「加载更多」按钮
+- 集中 `itemListDataProvider`，避免重复同步
+
 ### 2026-06-25 补充：物品页添加按钮恢复
 
 - **问题**：滚动后 FAB 切换为「回到顶部」，添加入口消失；且 FAB 可能被底部导航遮挡

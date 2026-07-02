@@ -3,29 +3,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/constants/item_list_constants.dart';
 import '../../core/models/item_list_view_tab.dart';
 import '../../core/providers/database_provider.dart';
-import '../../core/theme/cartoon_copy.dart';
-import '../../core/theme/cartoon_decorations.dart';
 import '../../core/utils/item_list_reason_helper.dart';
 import '../../data/database/app_database.dart';
-import '../common/widgets/app_empty_state.dart';
-import '../common/widgets/cartoon_app_bar_icon.dart';
-import '../common/widgets/cartoon_chip.dart';
-import '../common/widgets/cartoon_bottom_nav.dart';
-import '../common/widgets/cartoon_fab.dart';
-import '../common/widgets/cartoon_list_entrance.dart';
-import '../common/widgets/cartoon_scaffold.dart';
-import '../common/widgets/cartoon_tab_bar.dart';
+import '../common/widgets/async_list_body.dart';
 import '../common/widgets/category_selector.dart';
 import '../common/widgets/filter_bottom_sheet.dart';
+import '../common/widgets/filter_chip_bar.dart';
+import '../common/widgets/warm_scaffold.dart';
 import 'providers/item_list_providers.dart';
-import 'widgets/item_grid_masonry.dart';
+import 'providers/item_list_pagination.dart';
+import 'widgets/paginated_grid_section.dart';
 import 'widgets/item_card.dart';
 import 'widgets/item_list_section_header.dart';
 
 class ItemListPage extends ConsumerStatefulWidget {
-  const ItemListPage({super.key});
+  const ItemListPage({
+    super.key,
+    this.initialLocationFilter,
+    this.initialTab,
+  });
+
+  /// 路由 query `location` — 预填位置筛选
+  final String? initialLocationFilter;
+
+  /// 路由 query `tab` — 如 space / all / action
+  final String? initialTab;
 
   @override
   ConsumerState<ItemListPage> createState() => _ItemListPageState();
@@ -37,6 +42,9 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _showScrollToTop = false;
+  bool _appliedRouteIntent = false;
+
+  static const _statusChipLabels = ['全部', '使用中', '已用完', '已过期', '已丢弃'];
 
   @override
   void initState() {
@@ -64,6 +72,27 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
     if (showTop != _showScrollToTop) {
       setState(() => _showScrollToTop = showTop);
     }
+    _maybeLoadMoreOnScroll();
+  }
+
+  /// 接近底部时自动加载下一页（列表 Tab）
+  void _maybeLoadMoreOnScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    if (pos.maxScrollExtent - pos.pixels > ItemListConstants.loadMoreThreshold) {
+      return;
+    }
+
+    final tab = ItemListViewTab.values[_tabController.index];
+    switch (tab) {
+      case ItemListViewTab.action:
+        ref.read(actionItemsPaginatedProvider.notifier).loadMore();
+      case ItemListViewTab.all:
+        ref.read(allItemsPaginatedProvider.notifier).loadMore();
+      case ItemListViewTab.space:
+      case ItemListViewTab.category:
+        break;
+    }
   }
 
   @override
@@ -77,12 +106,15 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
   }
 
   void _invalidateAll() {
+    ref.invalidate(itemListDataProvider);
     ref.invalidate(filteredItemsProvider);
     ref.invalidate(itemListSearchBaseProvider);
     ref.invalidate(actionItemsProvider);
     ref.invalidate(spaceGroupedItemsProvider);
     ref.invalidate(categoryGroupedItemsProvider);
     ref.invalidate(itemListMetaProvider);
+    ref.invalidate(actionItemsPaginatedProvider);
+    ref.invalidate(allItemsPaginatedProvider);
   }
 
   /// 列表底部留白，避免最后一项被 FAB 遮挡
@@ -171,6 +203,8 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
 
   @override
   Widget build(BuildContext context) {
+    _applyRouteIntentOnce();
+
     final isAllTab = _tabController.index == ItemListViewTab.all.index;
     final categoryLabelAsync = ref.watch(categoryFilterLabelProvider);
     final categoryFilter = ref.watch(categoryFilterProvider);
@@ -178,21 +212,15 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
         ref.watch(itemSortProvider) != AppConstants.sortOptions.first;
 
     final viewTabs = ItemListViewTab.values
-        .map(
-          (t) => CartoonTabItem(
-            label: itemListViewTabLabels[t]!,
-            emoji: itemListViewTabEmojis[t],
-          ),
-        )
+        .map((t) => Tab(text: itemListViewTabLabels[t]))
         .toList();
 
-    return CartoonScaffold(
+    return WarmScaffold(
       title: '物品',
-      titleEmoji: '📦',
       actions: [
         if (_showScrollToTop)
-          CartoonAppBarIcon(
-            icon: Icons.vertical_align_top,
+          IconButton(
+            icon: const Icon(Icons.vertical_align_top),
             tooltip: '回到顶部',
             onPressed: () => _scrollController.animateTo(
               0,
@@ -200,8 +228,8 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
               curve: Curves.easeOut,
             ),
           ),
-        CartoonAppBarIcon(
-          icon: Icons.qr_code_scanner_outlined,
+        IconButton(
+          icon: const Icon(Icons.qr_code_scanner_outlined),
           tooltip: '扫码录入',
           onPressed: () {
             debugPrint('[ItemListPage] INFO: 跳转扫码录入');
@@ -209,9 +237,18 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
           },
         ),
       ],
-      bottom: CartoonTabBar(controller: _tabController, tabs: viewTabs),
       body: Column(
         children: [
+          Material(
+            color: AppColors.white,
+            child: TabBar(
+              controller: _tabController,
+              labelColor: AppColors.primaryDark,
+              unselectedLabelColor: AppColors.textSecondary,
+              indicatorColor: AppColors.primary,
+              tabs: viewTabs,
+            ),
+          ),
           _buildSearchHeader(hasExtraFilter && isAllTab),
           if (isAllTab)
             _buildFilterBar(categoryLabelAsync, categoryFilter),
@@ -228,65 +265,109 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
           ),
         ],
       ),
-      floatingActionButton: CartoonFloatingActionButton(
+      floatingActionButton: FloatingActionButton(
         tooltip: '添加物品',
         onPressed: () {
           debugPrint('[ItemListPage] INFO: 跳转手动添加物品');
-          context.push('/items/add');
+          context.push('/items/add/method');
         },
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add),
       ),
-      floatingActionButtonLocation: CartoonMainTabFabLocation.of(context),
     );
   }
 
+  /// 应用路由 query 中的 tab / location 筛选（仅一次）
+  void _applyRouteIntentOnce() {
+    if (_appliedRouteIntent) return;
+    final hasLocation = widget.initialLocationFilter?.isNotEmpty == true;
+    final hasTab = widget.initialTab?.isNotEmpty == true;
+    if (!hasLocation && !hasTab) return;
+
+    _appliedRouteIntent = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (hasLocation) {
+        ref.read(locationFilterProvider.notifier).state =
+            widget.initialLocationFilter;
+        debugPrint(
+          '[ItemListPage] INFO: 应用位置筛选 ${widget.initialLocationFilter}',
+        );
+      }
+      if (hasTab) {
+        final tabIndex = _resolveTabIndex(widget.initialTab!);
+        if (tabIndex != null && _tabController.index != tabIndex) {
+          _tabController.index = tabIndex;
+          debugPrint('[ItemListPage] INFO: 切换 Tab index=$tabIndex');
+        }
+      }
+      if (mounted) setState(() {});
+    });
+  }
+
+  int? _resolveTabIndex(String tab) {
+    switch (tab) {
+      case 'action':
+        return ItemListViewTab.action.index;
+      case 'space':
+        return ItemListViewTab.space.index;
+      case 'category':
+        return ItemListViewTab.category.index;
+      case 'all':
+        return ItemListViewTab.all.index;
+      default:
+        return null;
+    }
+  }
+
   Widget _buildSearchHeader(bool hasExtraFilter) {
-    Widget searchField = TextField(
-      controller: _searchController,
-      decoration: InputDecoration(
-        hintText: '🔍 搜搜看有什么~',
-        prefixIcon: Icon(Icons.search, color: AppColors.primary),
-        suffixIcon: _searchController.text.isNotEmpty
-            ? IconButton(
-                icon: const Icon(Icons.clear, size: 20),
-                onPressed: () {
-                  _searchController.clear();
-                  ref.read(itemSearchQueryProvider.notifier).state = '';
-                  setState(() {});
-                },
-              )
-            : null,
-        filled: true,
-        fillColor: Colors.transparent,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      ),
-      onChanged: (value) {
-        ref.read(itemSearchQueryProvider.notifier).state = value;
-        setState(() {});
-      },
-    );
-
-    searchField = Container(
-      decoration: CartoonDecorations.stickerCard(
-        fillColor: AppColors.white,
-        borderColor: AppColors.primaryLight,
-        borderRadius: BorderRadius.circular(18),
-        shadowLevel: CartoonShadowLevel.none,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: searchField,
-    );
-
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
       child: Row(
         children: [
-          Expanded(child: searchField),
+          Expanded(
+            child: Container(
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: AppColors.homeDivider),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  Icon(Icons.search, size: 20, color: AppColors.textHint),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: '搜索物品名称、位置',
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(
+                          color: AppColors.textHint,
+                          fontSize: 14,
+                        ),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 18),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  ref.read(itemSearchQueryProvider.notifier).state =
+                                      '';
+                                  setState(() {});
+                                },
+                              )
+                            : null,
+                      ),
+                      onChanged: (value) {
+                        ref.read(itemSearchQueryProvider.notifier).state = value;
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           if (_tabController.index == ItemListViewTab.all.index)
             IconButton(
               icon: Badge(
@@ -302,6 +383,39 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
     );
   }
 
+  int _statusChipSelectedIndex(int? statusFilter, bool expiringSoon) {
+    if (expiringSoon) return 0;
+    switch (statusFilter) {
+      case 0:
+        return 1;
+      case 1:
+        return 2;
+      case 2:
+        return 3;
+      case 3:
+        return 4;
+      default:
+        return 0;
+    }
+  }
+
+  void _onStatusChipSelected(int index) {
+    ref.read(expiringSoonFilterProvider.notifier).state = false;
+    switch (index) {
+      case 0:
+        ref.read(statusFilterProvider.notifier).state = null;
+      case 1:
+        ref.read(statusFilterProvider.notifier).state = 0;
+      case 2:
+        ref.read(statusFilterProvider.notifier).state = 1;
+      case 3:
+        ref.read(statusFilterProvider.notifier).state = 2;
+      case 4:
+        ref.read(statusFilterProvider.notifier).state = 3;
+    }
+    debugPrint('[ItemListPage] INFO: 状态 Chip -> ${_statusChipLabels[index]}');
+  }
+
   Widget _buildFilterBar(
     AsyncValue<String> categoryLabelAsync,
     int? categoryFilter,
@@ -310,128 +424,73 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
     final expiringSoon = ref.watch(expiringSoonFilterProvider);
     final categoryLabel = categoryLabelAsync.valueOrNull ?? '分类';
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            _filterChip('全部', '🌈', statusFilter == null && !expiringSoon, () {
-              ref.read(statusFilterProvider.notifier).state = null;
-              ref.read(expiringSoonFilterProvider.notifier).state = false;
-            }),
-            const SizedBox(width: 8),
-            _filterChip('使用中', '✅', statusFilter == 0 && !expiringSoon, () {
-              ref.read(statusFilterProvider.notifier).state = 0;
-              ref.read(expiringSoonFilterProvider.notifier).state = false;
-            }),
-            const SizedBox(width: 8),
-            _filterChip('已用完', '📭', statusFilter == 1, () {
-              ref.read(statusFilterProvider.notifier).state = 1;
-              ref.read(expiringSoonFilterProvider.notifier).state = false;
-            }),
-            const SizedBox(width: 8),
-            _filterChip('已过期', '⏰', statusFilter == 2, () {
-              ref.read(statusFilterProvider.notifier).state = 2;
-              ref.read(expiringSoonFilterProvider.notifier).state = false;
-            }),
-            const SizedBox(width: 8),
-            _filterChip('已丢弃', '🗑️', statusFilter == 3, () {
-              ref.read(statusFilterProvider.notifier).state = 3;
-              ref.read(expiringSoonFilterProvider.notifier).state = false;
-            }),
-            const SizedBox(width: 8),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CartoonChip(
-                  label: categoryFilter != null ? categoryLabel : '分类',
-                  emoji: '🏷️',
-                  selected: categoryFilter != null,
-                  onTap: _openCategoryPicker,
-                ),
-                if (categoryFilter != null) ...[
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: () {
-                      ref.read(categoryFilterProvider.notifier).state = null;
-                    },
-                    child: Icon(Icons.close, size: 16, color: AppColors.primaryDark),
-                  ),
-                ],
-              ],
-            ),
-          ],
+    return Column(
+      children: [
+        FilterChipBar(
+          labels: _statusChipLabels,
+          selectedIndex: _statusChipSelectedIndex(statusFilter, expiringSoon),
+          onSelected: _onStatusChipSelected,
         ),
-      ),
-    );
-  }
-
-  Widget _filterChip(
-    String label,
-    String emoji,
-    bool selected,
-    VoidCallback onTap,
-  ) {
-    return CartoonChip(
-      label: label,
-      emoji: emoji,
-      selected: selected,
-      onTap: onTap,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          child: Row(
+            children: [
+              FilterChip(
+                label: Text(categoryFilter != null ? categoryLabel : '分类'),
+                selected: categoryFilter != null,
+                onSelected: (_) => _openCategoryPicker(),
+              ),
+              if (categoryFilter != null)
+                IconButton(
+                  icon: const Icon(Icons.close, size: 18),
+                  onPressed: () {
+                    ref.read(categoryFilterProvider.notifier).state = null;
+                  },
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildActionTab() {
-    final itemsAsync = ref.watch(actionItemsProvider);
+    final pageAsync = ref.watch(actionItemsPaginatedProvider);
     final metaAsync = ref.watch(itemListMetaProvider);
 
-    return _asyncTabBody(
-      itemsAsync: itemsAsync,
+    return _paginatedTabBody(
+      pageAsync: pageAsync,
       metaAsync: metaAsync,
       onRefresh: _invalidateAll,
-      empty: const AppEmptyState(
-        icon: '😊',
-        title: '一切安好',
-        subtitle: '没有需要立即处理的物品',
-        cartoonKind: CartoonEmptyKind.items,
+      empty: AsyncListBody(
+        isLoading: false,
+        isEmpty: true,
+        emptyIcon: Icons.check_circle_outline,
+        emptyTitle: '一切安好',
+        emptySubtitle: '没有需要立即处理的物品',
+        child: const SizedBox.shrink(),
       ),
-      builder: (items, meta) => ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16 + _fabClearance),
-        itemCount: items.length,
-        itemBuilder: (context, index) => CartoonListEntrance(
-          index: index,
-          child: _buildItemCard(
-            items[index],
-            meta,
-            layout: ItemCardLayout.reasonFirst,
-          ),
-        ),
+      itemBuilder: (item, index, meta) => _buildItemCard(
+        item,
+        meta,
+        layout: ItemCardLayout.reasonFirst,
       ),
     );
   }
 
   Widget _buildAllTab() {
-    final itemsAsync = ref.watch(filteredItemsProvider);
+    final pageAsync = ref.watch(allItemsPaginatedProvider);
     final metaAsync = ref.watch(itemListMetaProvider);
 
-    return _asyncTabBody(
-      itemsAsync: itemsAsync,
+    return _paginatedTabBody(
+      pageAsync: pageAsync,
       metaAsync: metaAsync,
       onRefresh: _invalidateAll,
       empty: _buildGenericEmpty(),
-      builder: (items, meta) => ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16 + _fabClearance),
-        itemCount: items.length,
-        itemBuilder: (context, index) => CartoonListEntrance(
-          index: index,
-          child: _buildItemCard(
-            items[index],
-            meta,
-            layout: ItemCardLayout.reasonFirst,
-          ),
-        ),
+      itemBuilder: (item, index, meta) => _buildItemCard(
+        item,
+        meta,
+        layout: ItemCardLayout.reasonFirst,
       ),
     );
   }
@@ -443,11 +502,28 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
     return RefreshIndicator(
       onRefresh: () async => _invalidateAll(),
       child: groupsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _errorState(e.toString()),
+        loading: () => const AsyncListBody(
+          isLoading: true,
+          isEmpty: false,
+          emptyIcon: Icons.inventory_2_outlined,
+          emptyTitle: '',
+          child: SizedBox.shrink(),
+        ),
+        error: (e, _) => AsyncListBody(
+          isLoading: false,
+          isEmpty: false,
+          errorMessage: e.toString(),
+          onRetry: _invalidateAll,
+          emptyIcon: Icons.error_outline,
+          emptyTitle: '',
+          child: const SizedBox.shrink(),
+        ),
         data: (groups) {
           if (groups.isEmpty) {
-            return _buildGenericEmpty();
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [_buildGenericEmpty()],
+            );
           }
           return metaAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -466,15 +542,13 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
                       emoji: group.emoji,
                       count: group.items.length,
                     ),
-                    ItemGridMasonry(
-                      items: group.items,
-                      itemBuilder: (item, index) => CartoonListEntrance(
-                        index: index,
-                        child: _buildItemCard(
-                          item,
-                          meta,
-                          layout: ItemCardLayout.grid,
-                        ),
+                    PaginatedGridSection(
+                      groupKey: group.title,
+                      allItems: group.items,
+                      itemBuilder: (item, index) => _buildItemCard(
+                        item,
+                        meta,
+                        layout: ItemCardLayout.grid,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -495,11 +569,28 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
     return RefreshIndicator(
       onRefresh: () async => _invalidateAll(),
       child: groupsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _errorState(e.toString()),
+        loading: () => const AsyncListBody(
+          isLoading: true,
+          isEmpty: false,
+          emptyIcon: Icons.category_outlined,
+          emptyTitle: '',
+          child: SizedBox.shrink(),
+        ),
+        error: (e, _) => AsyncListBody(
+          isLoading: false,
+          isEmpty: false,
+          errorMessage: e.toString(),
+          onRetry: _invalidateAll,
+          emptyIcon: Icons.error_outline,
+          emptyTitle: '',
+          child: const SizedBox.shrink(),
+        ),
         data: (groups) {
           if (groups.isEmpty) {
-            return _buildGenericEmpty();
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [_buildGenericEmpty()],
+            );
           }
           return metaAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -518,15 +609,13 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
                       emoji: group.icon,
                       count: group.items.length,
                     ),
-                    ItemGridMasonry(
-                      items: group.items,
-                      itemBuilder: (item, index) => CartoonListEntrance(
-                        index: index,
-                        child: _buildItemCard(
-                          item,
-                          meta,
-                          layout: ItemCardLayout.grid,
-                        ),
+                    PaginatedGridSection(
+                      groupKey: 'cat-${group.categoryId}',
+                      allItems: group.items,
+                      itemBuilder: (item, index) => _buildItemCard(
+                        item,
+                        meta,
+                        layout: ItemCardLayout.grid,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -540,24 +629,76 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
     );
   }
 
-  Widget _asyncTabBody({
-    required AsyncValue<List<Item>> itemsAsync,
+  Widget _paginatedTabBody({
+    required AsyncValue<PaginatedItemsState> pageAsync,
     required AsyncValue<ItemListMeta> metaAsync,
     required VoidCallback onRefresh,
     required Widget empty,
-    required Widget Function(List<Item> items, ItemListMeta meta) builder,
+    required Widget Function(Item item, int index, ItemListMeta meta)
+        itemBuilder,
   }) {
     return RefreshIndicator(
       onRefresh: () async => onRefresh(),
-      child: itemsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _errorState(e.toString()),
-        data: (items) {
-          if (items.isEmpty) return empty;
+      child: pageAsync.when(
+        loading: () => const AsyncListBody(
+          isLoading: true,
+          isEmpty: false,
+          emptyIcon: Icons.inventory_2_outlined,
+          emptyTitle: '',
+          child: SizedBox.shrink(),
+        ),
+        error: (e, _) => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            AsyncListBody(
+              isLoading: false,
+              isEmpty: false,
+              errorMessage: e.toString(),
+              onRetry: onRefresh,
+              emptyIcon: Icons.error_outline,
+              emptyTitle: '',
+              child: const SizedBox.shrink(),
+            ),
+          ],
+        ),
+        data: (page) {
+          if (page.totalCount == 0) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [empty],
+            );
+          }
           return metaAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => _errorState(e.toString()),
-            data: (meta) => builder(items, meta),
+            data: (meta) => ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16 + _fabClearance),
+              itemCount: page.items.length + (page.hasMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index >= page.items.length) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: page.isLoadingMore
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(
+                              '已显示 ${page.items.length}/${page.totalCount}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: AppColors.textHint),
+                            ),
+                    ),
+                  );
+                }
+                return itemBuilder(page.items[index], index, meta);
+              },
+            ),
           );
         },
       ),
@@ -587,34 +728,38 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
   Widget _buildGenericEmpty() {
     final searchQuery = ref.watch(itemSearchQueryProvider);
     if (searchQuery.isNotEmpty) {
-      return AppEmptyState(
-        icon: '🔍',
-        title: '没有找到 "$searchQuery"',
-        subtitle: '试试其他关键词？',
-        actionLabel: '手动添加 "$searchQuery"',
-        onAction: () => context.push('/items/add'),
-        cartoonKind: CartoonEmptyKind.search,
-        searchQuery: searchQuery,
+      return AsyncListBody(
+        isLoading: false,
+        isEmpty: true,
+        emptyIcon: Icons.search_off,
+        emptyTitle: '没有找到 "$searchQuery"',
+        emptySubtitle: '试试其他关键词？',
+        emptyActionLabel: '手动添加 "$searchQuery"',
+        onEmptyAction: () => context.push('/items/add/method'),
+        child: const SizedBox.shrink(),
       );
     }
-    return AppEmptyState(
-      icon: '📦',
-      title: '还没有添加物品',
-      subtitle: '扫一扫或手动添加第一件物品吧',
-      actionLabel: '+ 添加第一件物品',
-      onAction: () => context.push('/items/add'),
-      cartoonKind: CartoonEmptyKind.items,
+    return AsyncListBody(
+      isLoading: false,
+      isEmpty: true,
+      emptyIcon: Icons.inventory_2_outlined,
+      emptyTitle: '还没有添加物品',
+      emptySubtitle: '扫一扫或手动添加第一件物品吧',
+      emptyActionLabel: '添加入库',
+      onEmptyAction: () => context.push('/items/add/method'),
+      child: const SizedBox.shrink(),
     );
   }
 
   Widget _errorState(String message) {
-    return AppEmptyState(
-      icon: '❌',
-      title: '加载失败',
-      subtitle: message,
-      actionLabel: '重试',
-      onAction: _invalidateAll,
-      cartoonKind: CartoonEmptyKind.error,
+    return AsyncListBody(
+      isLoading: false,
+      isEmpty: false,
+      errorMessage: message,
+      onRetry: _invalidateAll,
+      emptyIcon: Icons.error_outline,
+      emptyTitle: '',
+      child: const SizedBox.shrink(),
     );
   }
 }

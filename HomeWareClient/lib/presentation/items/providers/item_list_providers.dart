@@ -76,9 +76,18 @@ final itemListMetaProvider = FutureProvider<ItemListMeta>((ref) async {
   );
 });
 
+/// 本地物品数据源 — 同步仅在首次/刷新时执行，供各 Tab 复用
+final itemListDataProvider = FutureProvider<List<Item>>((ref) async {
+  ref.watch(itemEventBusProvider);
+  final db = ref.watch(databaseProvider);
+  await ItemSyncService(db).syncFromServer();
+  final items = await db.getAllItems();
+  debugPrint('[ItemListProviders] INFO: 本地物品 ${items.length} 件');
+  return items;
+});
+
 /// 搜索 + 高级筛选后的基础列表（供「全部」Tab）
 final filteredItemsProvider = FutureProvider<List<Item>>((ref) async {
-  ref.watch(itemEventBusProvider);
   final db = ref.watch(databaseProvider);
   final searchQuery = ref.watch(itemSearchQueryProvider);
   final categoryFilter = ref.watch(categoryFilterProvider);
@@ -87,9 +96,7 @@ final filteredItemsProvider = FutureProvider<List<Item>>((ref) async {
   final locationFilter = ref.watch(locationFilterProvider);
   final sort = ref.watch(itemSortProvider);
 
-  await ItemSyncService(db).syncFromServer();
-
-  List<Item> items = await db.getAllItems();
+  List<Item> items = await ref.watch(itemListDataProvider.future);
   items = await _applyCommonFilters(
     items,
     searchQuery: searchQuery,
@@ -106,12 +113,8 @@ final filteredItemsProvider = FutureProvider<List<Item>>((ref) async {
 
 /// 仅应用搜索的基础列表（供要处理 / 空间 / 分类 Tab）
 final itemListSearchBaseProvider = FutureProvider<List<Item>>((ref) async {
-  ref.watch(itemEventBusProvider);
-  final db = ref.watch(databaseProvider);
   final searchQuery = ref.watch(itemSearchQueryProvider);
-
-  await ItemSyncService(db).syncFromServer();
-  var items = await db.getAllItems();
+  var items = await ref.watch(itemListDataProvider.future);
   if (searchQuery.isNotEmpty) {
     final query = searchQuery.toLowerCase();
     items = items.where((item) {

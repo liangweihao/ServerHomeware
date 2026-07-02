@@ -9,8 +9,11 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/events/item_event_bus.dart';
+import '../../core/models/alert_type.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/providers/item_detail_provider.dart';
+import '../../core/utils/alert_display_helper.dart';
+import '../../core/utils/item_api_id.dart';
 import '../../core/services/consumption_prediction_service.dart';
 import '../../core/services/item_service.dart';
 import '../../core/utils/item_image_storage.dart';
@@ -18,27 +21,62 @@ import '../../data/database/app_database.dart';
 import '../common/widgets/app_button.dart';
 import '../common/widgets/app_empty_state.dart';
 import '../common/widgets/app_progress_bar.dart';
+import '../common/widgets/app_section_header.dart';
 import '../common/widgets/app_tag.dart';
-import '../common/widgets/cartoon_scaffold.dart';
-import '../common/widgets/cartoon_ui.dart';
+import '../common/widgets/quantity_stepper.dart';
+import '../common/widgets/warm_scaffold.dart';
 import '../common/widgets/location_picker.dart';
 import 'widgets/usage_dialog.dart';
+import 'widgets/item_alert_context_banner.dart';
 import 'widgets/item_image_tile.dart';
 
 /// 物品详情页（对齐 doc/design/information-architecture.md §四）
 class ItemDetailPage extends ConsumerStatefulWidget {
   final int id;
+  /// 进入后自动执行：`consume` 打开记消耗弹窗
+  final String? initialAction;
+  /// 来自提醒/通知的提醒类型键
+  final String? alertTypeKey;
 
-  const ItemDetailPage({super.key, required this.id});
+  const ItemDetailPage({
+    super.key,
+    required this.id,
+    this.initialAction,
+    this.alertTypeKey,
+  });
 
   @override
   ConsumerState<ItemDetailPage> createState() => _ItemDetailPageState();
 }
 
 class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
+  bool _handledInitialAction = false;
+
   void _refresh() {
     ref.invalidate(itemDetailProvider(widget.id));
     ref.invalidate(allItemsProvider);
+  }
+
+  AlertType? get _alertType {
+    final key = widget.alertTypeKey;
+    if (key == null || key.isEmpty) return null;
+    return alertTypeFromKey(key);
+  }
+
+  /// 从提醒带 action=consume 进入时，自动弹出记消耗
+  void _scheduleInitialAction(Item item) {
+    if (_handledInitialAction || widget.initialAction != 'consume') return;
+    if (item.status != 0 || item.currentQuantity <= 0) {
+      debugPrint('[ItemDetailPage] WARN: 无法记消耗 status=${item.status} qty=${item.currentQuantity}');
+      return;
+    }
+    _handledInitialAction = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        debugPrint('[ItemDetailPage] INFO: 自动打开记消耗 itemId=${item.id}');
+        _onUseOne(item);
+      }
+    });
   }
 
   @override
@@ -46,16 +84,14 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     final detailAsync = ref.watch(itemDetailProvider(widget.id));
 
     return detailAsync.when(
-      loading: () => CartoonScaffold(
+      loading: () => WarmScaffold(
         title: '物品详情',
-        titleEmoji: '📦',
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) {
         debugPrint('[ItemDetailPage] ERROR: 加载失败 $e');
-        return CartoonScaffold(
+        return WarmScaffold(
           title: '物品详情',
-          titleEmoji: '📦',
           body: AppEmptyState(
             icon: '⚠️',
             title: '加载失败',
@@ -67,9 +103,8 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
       },
       data: (data) {
         if (data == null) {
-          return CartoonScaffold(
+          return WarmScaffold(
             title: '物品详情',
-            titleEmoji: '📦',
             body: AppEmptyState(
               icon: '📦',
               title: '物品不存在',
@@ -80,14 +115,9 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
           );
         }
 
-        return CartoonScaffold(
+        return WarmScaffold(
           title: data.item.name,
-          titleEmoji: '📦',
           actions: [
-            IconButton(
-              icon: const Icon(Icons.edit_outlined),
-              onPressed: () => context.push('/items/${widget.id}/edit'),
-            ),
             PopupMenuButton<String>(
               onSelected: (value) => _onMenuAction(value, data),
               itemBuilder: (context) => [
@@ -102,19 +132,35 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
               ],
             ),
           ],
-          body: _buildBody(context, data),
+          body: Builder(
+            builder: (context) {
+              _scheduleInitialAction(data.item);
+              return _buildBody(context, data);
+            },
+          ),
         );
       },
     );
   }
 
-  /// 主内容区块贴纸卡片包裹
+  /// 主内容区块 — 工具风白卡片分组
   Widget _wrapDetailSection({required Widget child, int colorIndex = 0}) {
-    return CartoonSectionCard(colorIndex: colorIndex, child: child);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.homeDivider),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: child,
+    );
   }
 
   Widget _buildBody(BuildContext context, ItemDetailData data) {
     final item = data.item;
+    final alertType = _alertType;
     final purchaseQty = item.purchaseQuantity.toDouble().clamp(1, double.infinity);
     final remainingRatio = (item.currentQuantity / purchaseQty).clamp(0.0, 1.0);
     final usedPercent = ((1 - remainingRatio) * 100).round();
@@ -127,11 +173,19 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
               children: [
+                if (alertType != null) ...[
+                  ItemAlertContextBanner(
+                    item: item,
+                    alertType: alertType,
+                    onHandled: _refresh,
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 _buildImageSection(data),
                 const SizedBox(height: 16),
                 _buildTitleSection(context, data),
                 const SizedBox(height: 20),
-                _buildSectionLabel('状态总览'),
+                const AppSectionHeader(title: '状态总览'),
                 const SizedBox(height: 12),
                 _wrapDetailSection(
                   colorIndex: 0,
@@ -159,11 +213,11 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                _buildSectionLabel('详细信息'),
+                const AppSectionHeader(title: '详细信息'),
                 const SizedBox(height: 8),
                 _buildDetailList(context, data),
                 const SizedBox(height: 24),
-                _buildSectionLabel('使用记录'),
+                const AppSectionHeader(title: '使用记录'),
                 const SizedBox(height: 12),
                 _wrapDetailSection(
                   colorIndex: 2,
@@ -401,6 +455,23 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
                     ? TagVariant.warning
                     : TagVariant.danger,
             size: TagSize.small,
+          ),
+        ],
+        if (data.recentRecords.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Builder(
+            builder: (context) {
+              final operator = data.recentRecords.first.operatorName;
+              if (operator == null || operator.isEmpty) {
+                return const SizedBox.shrink();
+              }
+              return Text(
+                '最后操作：$operator',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+              );
+            },
           ),
         ],
       ],
@@ -671,7 +742,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
         children: [
           Expanded(
             child: AppButton(
-              label: '使用1件',
+              label: '记消耗',
               variant: ButtonVariant.secondary,
               size: ButtonSize.medium40,
               onPressed: item.status == 0 && item.currentQuantity > 0
@@ -682,18 +753,18 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
           const SizedBox(width: 8),
           Expanded(
             child: AppButton(
-              label: '已用完',
+              label: '编辑',
               variant: ButtonVariant.outline,
               size: ButtonSize.medium40,
-              onPressed: item.status == 0 ? () => _onMarkFinished(item) : null,
+              onPressed: () => context.push('/items/${widget.id}/edit'),
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: AppButton(
-              label: '再次购买',
+              label: '提醒',
               size: ButtonSize.medium40,
-              onPressed: () => _onRepurchase(item),
+              onPressed: () => _showReminderSettings(item),
             ),
           ),
         ],
@@ -701,23 +772,91 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     );
   }
 
-  Widget _buildSectionLabel(String text) {
-    return Row(
-      children: [
-        const Expanded(child: Divider()),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        const Expanded(child: Divider()),
-      ],
+  /// 快捷调整过期提醒与安全库存
+  Future<void> _showReminderSettings(Item item) async {
+    var alertDays = item.expiryAlertDays;
+    var safetyStock = item.safetyStock;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '提醒设置',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        const Expanded(child: Text('过期前提醒')),
+                        QuantityStepper(
+                          value: alertDays.toDouble(),
+                          min: 1,
+                          max: 30,
+                          step: 1,
+                          unit: '天',
+                          onChanged: (v) {
+                            setSheetState(() => alertDays = v.round());
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Expanded(child: Text('安全库存')),
+                        QuantityStepper(
+                          value: safetyStock,
+                          min: 0,
+                          max: 999,
+                          step: 1,
+                          unit: item.unit,
+                          onChanged: (v) {
+                            setSheetState(() => safetyStock = v);
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    AppButton(
+                      label: '保存',
+                      isFullWidth: true,
+                      onPressed: () async {
+                        debugPrint(
+                          '[ItemDetailPage] INFO: 更新提醒 alertDays=$alertDays safety=$safetyStock',
+                        );
+                        final db = ref.read(databaseProvider);
+                        await db.updateItem(item.copyWith(
+                          expiryAlertDays: alertDays,
+                          safetyStock: safetyStock,
+                          updatedAt: DateTime.now(),
+                        ));
+                        if (ctx.mounted) Navigator.pop(ctx);
+                        _refresh();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -774,7 +913,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
 
     // 同步到服务端
     ItemService().updateItem(
-      itemId: item.id,
+      itemId: item.serverApiId,
       body: {'status': 1, 'current_quantity': 0},
     );
 
@@ -858,7 +997,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
 
         // 同步到服务端
         ItemService().updateItem(
-          itemId: item.id,
+          itemId: item.serverApiId,
           body: {'location_id': location.id},
         );
 
@@ -890,7 +1029,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     );
 
     // 同步到服务端
-    ItemService().updateItem(itemId: item.id, body: {'status': 2});
+    ItemService().updateItem(itemId: item.serverApiId, body: {'status': 2});
 
     // 通知事件总线：物品状态已变更
     ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
@@ -932,7 +1071,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     );
 
     // 同步到服务端
-    ItemService().updateItem(itemId: item.id, body: {'status': 3});
+    ItemService().updateItem(itemId: item.serverApiId, body: {'status': 3});
 
     // 通知事件总线：物品已丢弃
     ref.read(itemEventBusProvider.notifier).notifyUpdated(itemId: item.id);
@@ -965,7 +1104,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     await ref.read(databaseProvider).deleteItem(item.id);
 
     // 同步到服务端
-    ItemService().deleteItem(itemId: item.id);
+    ItemService().deleteItem(itemId: item.serverApiId);
 
     // 通知事件总线：物品已删除
     ref.read(itemEventBusProvider.notifier).notifyDeleted(itemId: item.id);

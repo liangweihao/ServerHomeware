@@ -11,6 +11,7 @@ import '../../core/providers/database_provider.dart';
 import '../../core/utils/item_image_storage.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/location_picker.dart';
+import '../common/widgets/app_date_picker.dart';
 import '../common/widgets/quantity_stepper.dart';
 import 'category_form_policy.dart';
 import 'item_form_controller.dart';
@@ -107,14 +108,14 @@ class _ItemFormViewState extends ConsumerState<ItemFormView> {
 
   Future<void> _selectDate(
     BuildContext context,
+    String title,
     DateTime? initialDate,
     ValueChanged<DateTime?> onSelected,
   ) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+    final picked = await AppDatePicker.show(
+      context,
+      title: title,
+      initialDate: initialDate,
     );
     if (picked != null) {
       onSelected(picked);
@@ -263,8 +264,9 @@ class _ItemFormViewState extends ConsumerState<ItemFormView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.primaryLighter.withOpacity(0.35),
+        color: AppColors.infoBannerBackground,
         borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.homeDivider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,6 +448,7 @@ class _ItemFormViewState extends ConsumerState<ItemFormView> {
         GestureDetector(
           onTap: () => _selectDate(
             context,
+            '选择生产日期',
             c.productionDate,
             (date) => c.onProductionDateChanged(date),
           ),
@@ -483,6 +486,7 @@ class _ItemFormViewState extends ConsumerState<ItemFormView> {
         GestureDetector(
           onTap: () => _selectDate(
             context,
+            '选择过期日期',
             c.expiryDate,
             (date) => c.expiryDate = date,
           ),
@@ -590,6 +594,7 @@ class _ItemFormViewState extends ConsumerState<ItemFormView> {
         GestureDetector(
           onTap: () => _selectDate(
             context,
+            '选择购买日期',
             c.purchaseDate,
             (date) => c.purchaseDate = date,
           ),
