@@ -10,7 +10,7 @@
 | 读者 | 推荐路径 |
 |------|----------|
 | 新成员了解产品 | [product/vision.md](product/vision.md) → [product/roadmap.md](product/roadmap.md) |
-| 前端 / UI | [design/visual-refresh.md](design/visual-refresh.md) → [add-item-redesign.md](design/add-item-redesign.md) → [design-system.md](design/design-system.md) |
+| 前端 / UI | [design/ui_system.md](design/ui_system.md) → [design-system.md](design/design-system.md) → [add-item-redesign.md](design/add-item-redesign.md) |
 | 客户端开发 | [client/architecture.md](client/architecture.md) + `HomeWareClient/lib/core/router/app_router.dart` |
 | 后端开发 | [server/architecture.md](server/architecture.md) → [server/api-reference.md](server/api-reference.md) |
 | 部署运维 | [server/deployment.md](server/deployment.md) |
@@ -30,7 +30,8 @@ doc/
 │       └── PRD-home-notification-center.md  Epic E1 首页通知中心
 ├── design/                            UI / 交互（与当前实现对齐）
 │   ├── information-architecture.md    信息架构 + 文字版效果图
-│   ├── design-system.md               设计 Token 与组件约定
+│   ├── ui_system.md                   **UI 规范（首选）**：组件、模板、约束
+│   ├── design-system.md               设计 Token 与组件索引
 │   ├── visual-refresh.md              全局视觉刷新（主色等）
 │   ├── add-item-redesign.md           添加物品页改版规格
 │   ├── home-and-list-redesign.md      首页与物品列表改版规格

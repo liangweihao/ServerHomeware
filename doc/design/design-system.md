@@ -1,43 +1,38 @@
 # 设计系统（Design Tokens）
 
-> 代码真源：`HomeWareClient/lib/core/constants/`（`app_colors.dart`、`app_radius.dart` 等）。  
-> **视觉刷新**：见 [visual-refresh.md](visual-refresh.md)（主色拟换为柔和 Teal，代码待落地）。  
-> 完整 Figma 组件规格已归档至 [`archive/figma-design-system-full.md`](../archive/figma-design-system-full.md)。
+> **UI 开发规范（首选）**：[ui_system.md](ui_system.md) — 组件体系、页面模板、Code Review 检查项。  
+> 代码真源：`HomeWareClient/lib/core/constants/`（`app_colors.dart`、`app_radius.dart` 等）。
 
 ---
 
 ## 一、颜色
 
-### 现行（代码中，青松 Teal）
+### 现行默认（`utilityClean` — 点评橙 + 闲鱼灰白）
 
 | Token | 色值 | 用途 |
 |-------|------|------|
-| primary | **`#3A9B8A`** | 主按钮、选中态、链接 |
-| primaryDark | **`#2D7F71`** | 按下态 |
-| primaryLight | **`#A8D5CC`** | 浅底 |
-| primaryLighter | **`#E8F5F2`** | 弱强调背景 |
-| info / infoLight | 同 primary 系 | 与主色统一 |
+| primary | **`#FF6633`** | 链接、筛选、Chip 强调 |
+| accentHighlight | **`#FFDA44`** | **仅** FAB、首页「+」 |
+| scaffoldBackground | **`#F5F5F5`** | 页面灰底 |
+| appBarBackground | **`#FFFFFF`** | 白顶栏 |
+| textPrimary/Secondary/Hint | **`#333 / #666 / #999`** | 三级文字 |
 
-### 历史（Material 蓝，已废弃）
+### 可选主题
 
-| Token | 旧值 |
-|-------|------|
-| primary | `#2196F3` |
+| 变体 | 说明 |
+|------|------|
+| `communityWarm` | 书旗向居家暖色 |
+| `cartoon` | 卡通贴纸皮肤（组件走 `AppColors.isUtilityStyle` 回退） |
 
-### 语义色（不变）
+### 语义色
 
 | Token | 色值 | 用途 |
 |-------|------|------|
 | success | `#4CAF50` | 正常 / 充足 |
 | warning | `#FF9800` | 偏低 / 即将过期 |
 | danger | `#F44336` | 过期 / 删除 |
-| background | `#FAFAFA` | 页面背景 |
-| card | `#FFFFFF` | 卡片 |
-| textPrimary | `#212121` | 标题 |
-| textSecondary | `#616161` | 次要文字 |
-| textHint | `#9E9E9E` | 占位 / 禁用 |
 
-**分类色**（数据库 `categories.color`）独立于主色，用于 Chip / 标签，不随主色替换。
+**分类色**（数据库 `categories.color`）独立于主色，用于 Chip / 标签。
 
 ---
 
@@ -45,12 +40,11 @@
 
 | Token | 值 | 用途 |
 |-------|-----|------|
-| AppRadius.sm | 8 | 缩略图 |
-| AppRadius.md | 12 | 输入框、小卡片 |
-| AppRadius.lg | 16 | 列表卡片 |
-| AppRadius.xl | 24 | 弹窗顶部 |
+| AppRadius.sm | 8 | Chip、图标底 |
+| AppRadius.md | 12 | **标准卡片** |
+| AppRadius.lg | 16 | Sheet |
 
-页面水平边距通常为 **16**；卡片间距 **12**。
+页面水平边距 **16**；卡片间距 **12**。
 
 ---
 
@@ -60,54 +54,41 @@
 
 | 组件 | 用途 |
 |------|------|
-| `AppButton` | primary / secondary / outline / ghost / danger |
-| `AppTag` | 状态标签（default / success / warning / danger / info） |
-| `AppProgressBar` | 剩余量进度（auto 红橙绿） |
-| `AppEmptyState` | 空列表（emoji + 标题 + 操作） |
-| `QuantityStepper` | 数量步进器 |
-| `CategorySelector` | 分类选择底部 sheet |
-| `LocationPicker` | 位置级联选择 |
-| `FilterBottomSheet` | 筛选与排序 |
-| `MainScaffold` | 底部 4 Tab 壳 |
-| `ShimmerLoading` | 骨架屏 |
+| **`AppCard`** | 主题感知白卡片 / 卡通 AppSurface |
+| **`AppListRow`** | 设置、功能入口列表行 |
+| **`AppSectionHeader`** | 区块标题 |
+| **`AppReasonTag`** | 物品出现理由标签 |
+| **`AppSegmentChip`** | 分段筛选（统计时间等） |
+| `WarmScaffold` | 二级页标准壳 |
+| `AppButton` / `AppFab` / `AppTabBar` | 按钮与导航 |
+| `AppTag` / `TagChip` | 状态与低饱和标签 |
+| `AppEmptyState` | 空列表 |
+| `ItemCard` | 物品卡片 |
 
-物品相关：`items/widgets/item_card.dart`、`item_image_tile.dart`。
-
-录入改版规格：[add-item-redesign.md](add-item-redesign.md)。
+完整约定见 [ui_system.md](ui_system.md)。
 
 ---
 
 ## 四、字体
 
-使用 Material 3 默认字体 + `Theme.of(context).textTheme`：
-
-- 页面标题：`titleLarge` / `headlineSmall`，w600–w700
-- 列表主文字：`bodyLarge`
-- 辅助信息：`bodySmall` + `textSecondary`
+- 列表标题：15px，`w600–w700`
+- 辅助信息：12px，`textSecondary`
+- 使用 `Theme.of(context).textTheme`
 
 ---
 
-## 五、截图参考
-
-`doc/image/` 目录含主要界面 PNG，可与 [information-architecture.md](information-architecture.md) 对照。
-
----
-
-## 六、动效约定
+## 五、动效
 
 | 场景 | 实现 |
 |------|------|
 | Tab 切换 | `FadeTransitionPage`（200ms） |
-| 二级页 | `SlideTransitionPage` 右侧滑入（300ms） |
-| 列表卡片 | `AnimatedScale` 0.98 按下反馈 |
+| 二级页 | `SlideTransitionPage`（300ms） |
+| 列表入场 | `AppListEntrance` |
 | 下拉刷新 | `RefreshIndicator` |
 
 ---
 
-## 七、维护
+## 六、维护
 
-修改 Token 时同步更新：
-
-1. `lib/core/constants/app_colors.dart`（及 `app_theme.dart`）
-2. 本文件 + [visual-refresh.md](visual-refresh.md)
-3. `lwh/code_changed/` 变更记录
+1. 改 Token → `app_colors.dart` + 本文件 + [ui_system.md](ui_system.md)
+2. 功能 UI 改动 → `lwh/code_changed/`
