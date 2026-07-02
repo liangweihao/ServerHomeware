@@ -125,6 +125,13 @@ class CreateItemRequest(BaseModel):
     notes: Optional[str] = Field(None, description="备注")
     image_urls: Optional[List[str]] = Field(None, description="图片URL列表（先调用上传接口）")
 
+    # 消耗预测（用户手填）
+    avg_daily_consumption: Optional[float] = Field(None, description="日均消耗量")
+    predicted_empty_date: Optional[date] = Field(None, description="预计用完日期")
+    estimated_use_days: Optional[int] = Field(
+        None, description="预计使用天数（与 current_quantity 推算 avg/date）"
+    )
+
 
 class UpdateItemRequest(BaseModel):
     """更新物品请求"""
@@ -162,6 +169,13 @@ class UpdateItemRequest(BaseModel):
     # 其他
     notes: Optional[str] = Field(None, description="备注")
     status: Optional[int] = Field(None, description="状态")
+
+    # 消耗预测（用户手填）
+    avg_daily_consumption: Optional[float] = Field(None, description="日均消耗量")
+    predicted_empty_date: Optional[date] = Field(None, description="预计用完日期")
+    estimated_use_days: Optional[int] = Field(
+        None, description="预计使用天数（与 current_quantity 推算 avg/date）"
+    )
 
 
 class UseItemRequest(BaseModel):

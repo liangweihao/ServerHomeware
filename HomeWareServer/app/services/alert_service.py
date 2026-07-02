@@ -9,6 +9,7 @@ from typing import Dict, List, Literal, Tuple, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories.alert_repo import AlertRepository
+from app.repositories.item_repo import ItemRepository
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,17 @@ class AlertService:
 
     def __init__(self, db: AsyncSession):
         self.repo = AlertRepository(db)
+        self.item_repo = ItemRepository(db)
+
+    async def _attach_preview_images(self, items: List[Dict]) -> List[Dict]:
+        """批量附加物品首张缩略图 URL"""
+        if not items:
+            return items
+        item_ids = [item["id"] for item in items]
+        previews = await self.item_repo.get_preview_images(item_ids)
+        for item in items:
+            item["preview_image"] = previews.get(item["id"])
+        return items
 
     async def get_alerts(self, family_id: int, alert_type: AlertType = "all") -> List[Dict]:
         """
@@ -155,7 +167,34 @@ class AlertService:
                 "unit": row[7]
             })
 
-        return result
+        return await self._attach_preview_images(result)
+
+    async def get_expired_items_list(self, family_id: int) -> List[Dict]:
+        """
+        获取已过期物品列表
+        :param family_id: 家庭ID
+        :return: 物品列表
+        """
+        today = date.today()
+        raw_items = await self.repo.get_expired_items(family_id)
+
+        result = []
+        for row in raw_items:
+            expiry_date = row[2]
+            days_overdue = (today - expiry_date).days if expiry_date else 0
+
+            result.append({
+                "id": row[0],
+                "name": row[1],
+                "days_overdue": days_overdue,
+                "expiry_date": expiry_date.isoformat() if expiry_date else None,
+                "location_path": row[10],
+                "category_name": row[9],
+                "current_quantity": float(row[6]) if row[6] else 0,
+                "unit": row[7]
+            })
+
+        return await self._attach_preview_images(result)
 
     async def get_low_stock_items_list(self, family_id: int) -> List[Dict]:
         """
@@ -177,7 +216,7 @@ class AlertService:
                 "category_name": row[8]
             })
 
-        return result
+        return await self._attach_preview_images(result)
 
     async def _format_expiry_alerts(self, raw_alerts: List[Tuple]) -> List[Dict]:
         """格式化过期提醒数据"""

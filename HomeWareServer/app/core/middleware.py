@@ -9,7 +9,6 @@ from typing import Callable
 from fastapi import Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.exceptions import AppException
 
@@ -21,70 +20,116 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class RequestLogMiddleware(BaseHTTPMiddleware):
-    """请求日志中间件"""
-    
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+class RequestLogMiddleware:
+    """请求日志中间件（纯 ASGI，兼容 WebSocket）"""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        # WebSocket / lifespan 等非 HTTP 请求直接透传
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
         start_time = time.time()
-        response = await call_next(request)
-        process_time = time.time() - start_time
-        
-        logger.info(
-            f"请求日志 - 方法: {request.method}, "
-            f"路径: {request.url.path}, "
-            f"状态码: {response.status_code}, "
-            f"耗时: {process_time:.4f}s"
-        )
-        
-        return response
+        method = scope.get("method", "")
+        path = scope.get("path", "")
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                process_time = time.time() - start_time
+                status = message.get("status", 0)
+                logger.info(
+                    "请求日志 - 方法: %s, 路径: %s, 状态码: %s, 耗时: %.4fs",
+                    method,
+                    path,
+                    status,
+                    process_time,
+                )
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
 
 
-class ResponseCleanupMiddleware(BaseHTTPMiddleware):
-    """响应清理中间件
+class ResponseCleanupMiddleware:
+    """响应清理中间件（纯 ASGI，兼容 WebSocket）
+
     移除响应内容开头可能存在的多余换行符
     """
-    
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        response = await call_next(request)
-        
-        # 读取响应内容
-        body = b""
-        async for chunk in response.body_iterator:
-            body += chunk
-        
-        # 如果开头有换行符，移除它们
-        cleaned_body = body.lstrip(b'\n\r')
-        
-        # 创建新的响应，移除 Content-Length 让服务器重新计算
-        headers = dict(response.headers)
-        headers.pop('content-length', None)  # 移除旧的长度，让服务器重新计算
-        
-        return Response(
-            content=cleaned_body,
-            status_code=response.status_code,
-            headers=headers,
-            media_type=response.media_type
-        )
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        status_code = 200
+        headers: list = []
+        body_chunks: list[bytes] = []
+        started = False
+
+        async def send_wrapper(message):
+            nonlocal status_code, headers, started
+
+            if message["type"] == "http.response.start":
+                started = True
+                status_code = message.get("status", 200)
+                headers = list(message.get("headers", []))
+                return
+
+            if message["type"] == "http.response.body":
+                body_chunks.append(message.get("body", b""))
+                if message.get("more_body", False):
+                    return
+
+                cleaned_body = b"".join(body_chunks).lstrip(b"\n\r")
+                new_headers = [
+                    (key, value)
+                    for key, value in headers
+                    if key.lower() != b"content-length"
+                ]
+                await send(
+                    {
+                        "type": "http.response.start",
+                        "status": status_code,
+                        "headers": new_headers,
+                    }
+                )
+                await send(
+                    {
+                        "type": "http.response.body",
+                        "body": cleaned_body,
+                        "more_body": False,
+                    }
+                )
+                return
+
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
 
 
 async def global_exception_handler(request: Request, exc: Exception):
     """全局异常处理器"""
     logger.error(f"全局异常 - 路径: {request.url.path}, 异常: {exc}")
-    
+
     if isinstance(exc, AppException):
         return Response(
             content=f'{{"code": {exc.code}, "message": "{exc.message}", "data": null}}',
             status_code=exc.code,
             media_type="application/json"
         )
-    
+
     if isinstance(exc, RequestValidationError):
         return Response(
             content=f'{{"code": 400, "message": "请求参数验证失败", "data": null}}',
             status_code=400,
             media_type="application/json"
         )
-    
+
     return Response(
         content='{"code": 500, "message": "服务器内部错误", "data": null}',
         status_code=500,
@@ -106,3 +151,8 @@ def setup_cors(app):
 def setup_cleanup(app):
     """配置响应清理中间件"""
     app.add_middleware(ResponseCleanupMiddleware)
+
+
+def setup_request_log(app):
+    """配置请求日志中间件"""
+    app.add_middleware(RequestLogMiddleware)

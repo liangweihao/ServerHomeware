@@ -55,6 +55,20 @@ class ExpiringItemResponse(BaseModel):
     category_name: str
     current_quantity: float
     unit: Optional[str]
+    preview_image: Optional[str] = None
+
+
+class ExpiredItemResponse(BaseModel):
+    """已过期物品响应模型"""
+    id: int
+    name: str
+    days_overdue: int
+    expiry_date: str
+    location_path: Optional[str]
+    category_name: str
+    current_quantity: float
+    unit: Optional[str]
+    preview_image: Optional[str] = None
 
 
 class LowStockItemResponse(BaseModel):
@@ -66,3 +80,4 @@ class LowStockItemResponse(BaseModel):
     unit: Optional[str]
     location_path: Optional[str]
     category_name: str
+    preview_image: Optional[str] = None

@@ -15,7 +15,7 @@ from app.config import settings
 from app.core.database import init_db
 from app.core.exceptions import AppException
 from app.core.limiter import limiter, rate_limit_exceeded_handler, RateLimitExceeded, SLOWAPI_AVAILABLE
-from app.core.middleware import RequestLogMiddleware, setup_cors, setup_cleanup
+from app.core.middleware import setup_cors, setup_cleanup, setup_request_log
 from app.core.logger import setup_logging
 from app.services.upload_service import check_pil_availability
 
@@ -48,8 +48,8 @@ if SLOWAPI_AVAILABLE and limiter and rate_limit_exceeded_handler and RateLimitEx
 else:
     logger.warning("slowapi 不可用，限流功能已禁用")
 
-# 注册请求日志中间件
-app.add_middleware(RequestLogMiddleware)
+# 注册请求日志中间件（纯 ASGI，避免 BaseHTTPMiddleware 破坏 WebSocket 握手）
+setup_request_log(app)
 
 # 注册路由
 app.include_router(api_router, prefix=settings.API_PREFIX)

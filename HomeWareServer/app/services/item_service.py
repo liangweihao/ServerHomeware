@@ -14,6 +14,8 @@ from app.models.usage_record import UsageRecord
 from app.repositories.family_repo import FamilyMemberRepository
 from app.repositories.item_repo import ItemRepository
 from app.repositories.usage_record_repo import UsageRecordRepository
+from app.services.consumption_estimate import apply_user_consumption_estimate
+from app.services.realtime_broadcast import broadcast_family_event
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +68,9 @@ class ItemService:
         
         # 处理数据
         item_data = data.copy()
+
+        # 用户手填消耗预测
+        apply_user_consumption_estimate(item_data)
         
         # 关联图片 URL（Phase 6 上传接口返回的路径）
         image_urls = item_data.pop("image_urls", None)
@@ -113,6 +118,12 @@ class ItemService:
         })
         
         logger.info(f"物品创建成功 - 物品ID: {item.id}")
+        broadcast_family_event(
+            family_id,
+            "items_changed",
+            {"action": "create", "item_id": item.id},
+        )
+        broadcast_family_event(family_id, "alerts_changed", {})
         return item
     
     async def get_item(self, user_id: int, item_id: int) -> Dict:
@@ -267,6 +278,12 @@ class ItemService:
                 "status": item.status,
                 "expiry_date": item.expiry_date,
                 "urgency": urgency,
+                "avg_daily_consumption": (
+                    float(item.avg_daily_consumption)
+                    if item.avg_daily_consumption
+                    else None
+                ),
+                "predicted_empty_date": item.predicted_empty_date,
                 "preview_image": preview_images.get(item.id),
                 "created_at": item.created_at
             })
@@ -316,7 +333,13 @@ class ItemService:
             raise NotFoundException("物品不存在")
         
         await self._check_family_access(user_id, item.family_id)
-        
+
+        # 用户手填消耗预测（含 estimated_use_days 推算）
+        merged = data.copy()
+        if "current_quantity" not in merged or merged.get("current_quantity") is None:
+            merged["current_quantity"] = float(item.current_quantity)
+        apply_user_consumption_estimate(merged)
+
         # 过滤无效字段，只更新传入的字段
         update_data = {}
         allowed_fields = [
@@ -326,10 +349,11 @@ class ItemService:
             "unit", "safety_stock", "purchase_date", "purchase_channel",
             "production_date", "expiry_date", "shelf_life_days", "opened_date",
             "after_open_days", "warranty_date", "expiry_alert_days", "stock_alert",
-            "notes", "status"
+            "notes", "status",
+            "avg_daily_consumption", "predicted_empty_date",
         ]
-        
-        for key, value in data.items():
+
+        for key, value in merged.items():
             if key in allowed_fields and value is not None:
                 update_data[key] = value
         
@@ -340,6 +364,12 @@ class ItemService:
         item = await self.item_repo.update(item_id, update_data)
         
         logger.info(f"物品更新成功 - 物品ID: {item_id}")
+        broadcast_family_event(
+            item.family_id,
+            "items_changed",
+            {"action": "update", "item_id": item_id},
+        )
+        broadcast_family_event(item.family_id, "alerts_changed", {})
         return item
     
     async def delete_item(self, user_id: int, item_id: int):
@@ -374,6 +404,12 @@ class ItemService:
                     logger.warning(f"删除物品图片文件失败（磁盘文件） - URL: {url}, 错误: {e}")
 
         logger.info(f"物品删除成功（含 {len(image_urls)} 张图片） - 物品ID: {item_id}")
+        broadcast_family_event(
+            item.family_id,
+            "items_changed",
+            {"action": "delete", "item_id": item_id},
+        )
+        broadcast_family_event(item.family_id, "alerts_changed", {})
     
     async def use_item(self, user_id: int, item_id: int, quantity: float, operator_name: Optional[str] = None) -> Dict:
         """
@@ -420,6 +456,14 @@ class ItemService:
         # 更新日均消耗量和预计用完日期
         await self._update_consumption_stats(item_id)
         
+        broadcast_family_event(
+            item.family_id,
+            "items_changed",
+            {"action": "use", "item_id": item_id},
+        )
+        broadcast_family_event(item.family_id, "usage_changed", {"item_id": item_id})
+        broadcast_family_event(item.family_id, "alerts_changed", {})
+
         # 返回更新后的物品信息
         return await self.get_item(user_id, item_id)
     
@@ -453,6 +497,14 @@ class ItemService:
             "operator_name": "系统"
         })
         
+        broadcast_family_event(
+            item.family_id,
+            "items_changed",
+            {"action": "finish", "item_id": item_id},
+        )
+        broadcast_family_event(item.family_id, "usage_changed", {"item_id": item_id})
+        broadcast_family_event(item.family_id, "alerts_changed", {})
+
         return await self.get_item(user_id, item_id)
     
     async def discard_item(self, user_id: int, item_id: int) -> Dict:
@@ -484,6 +536,14 @@ class ItemService:
             "operator_name": "系统"
         })
         
+        broadcast_family_event(
+            item.family_id,
+            "items_changed",
+            {"action": "discard", "item_id": item_id},
+        )
+        broadcast_family_event(item.family_id, "usage_changed", {"item_id": item_id})
+        broadcast_family_event(item.family_id, "alerts_changed", {})
+
         return await self.get_item(user_id, item_id)
     
     async def move_item(self, user_id: int, item_id: int, to_location_id: int) -> Dict:
@@ -520,6 +580,13 @@ class ItemService:
             "to_location_id": to_location_id
         })
         
+        broadcast_family_event(
+            item.family_id,
+            "items_changed",
+            {"action": "move", "item_id": item_id},
+        )
+        broadcast_family_event(item.family_id, "alerts_changed", {})
+
         return await self.get_item(user_id, item_id)
     
     async def get_item_by_barcode(self, user_id: int, family_id: int, barcode: str) -> Optional[Dict]:

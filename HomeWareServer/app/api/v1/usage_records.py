@@ -2,6 +2,7 @@
 使用记录路由模块
 定义使用记录CRUD接口
 """
+import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
@@ -11,11 +12,22 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user, get_current_family
 from app.models.user import User
 from app.schemas.common import ResponseSchema
-from app.schemas.usage_record import CreateUsageRecordRequest, UsageRecordResponse
+from app.schemas.usage_record import CreateUsageRecordRequest
 from app.repositories.item_repo import ItemRepository
 from app.repositories.usage_record_repo import UsageRecordRepository
+from app.services.realtime_broadcast import broadcast_family_event
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/usage_records", tags=["usage_records"])
+
+
+def _default_operator_name(user: User) -> str:
+    """操作人昵称为空时回退手机号"""
+    nickname = (user.nickname or "").strip()
+    if nickname:
+        return nickname
+    return (user.phone or "").strip() or "未署名"
 
 
 @router.get("", summary="获取使用记录（按物品 or 全家庭）")
@@ -54,6 +66,7 @@ async def get_usage_records(
             "type": r.type,
             "quantity": float(r.quantity),
             "remaining_quantity": float(r.remaining_quantity),
+            "operator_id": r.operator_id,
             "operator_name": r.operator_name,
             "notes": r.notes,
             "created_at": r.created_at.isoformat() if r.created_at else None,
@@ -79,6 +92,9 @@ async def create_usage_record(
     db: AsyncSession = Depends(get_db)
 ):
     usage_record_repo = UsageRecordRepository(db)
+    operator_name = (request.operator_name or "").strip() or _default_operator_name(
+        current_user
+    )
     record = await usage_record_repo.create({
         "item_id": request.item_id,
         "family_id": current_family_id,
@@ -86,9 +102,17 @@ async def create_usage_record(
         "quantity": request.quantity,
         "remaining_quantity": request.remaining_quantity,
         "operator_id": current_user.id,
-        "operator_name": request.operator_name,
+        "operator_name": operator_name,
         "notes": request.notes,
     })
+
+    logger.info(
+        "INFO: 创建使用记录 item_id=%s type=%s operator_id=%s operator_name=%s",
+        request.item_id,
+        request.type,
+        current_user.id,
+        operator_name,
+    )
 
     # 同步更新物品的 current_quantity 和 status
     from app.repositories.item_repo import ItemRepository
@@ -103,6 +127,18 @@ async def create_usage_record(
             "status": new_status,
         })
 
+    broadcast_family_event(
+        current_family_id,
+        "usage_changed",
+        {"item_id": request.item_id},
+    )
+    broadcast_family_event(
+        current_family_id,
+        "items_changed",
+        {"action": "usage_record", "item_id": request.item_id},
+    )
+    broadcast_family_event(current_family_id, "alerts_changed", {})
+
     return ResponseSchema(
         code=200,
         message="使用记录创建成功",
@@ -112,6 +148,7 @@ async def create_usage_record(
             "type": record.type,
             "quantity": float(record.quantity),
             "remaining_quantity": float(record.remaining_quantity),
+            "operator_id": record.operator_id,
             "operator_name": record.operator_name,
             "created_at": record.created_at.isoformat() if record.created_at else None,
         }

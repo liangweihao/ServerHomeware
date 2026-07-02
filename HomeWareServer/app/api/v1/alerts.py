@@ -119,3 +119,22 @@ async def get_low_stock_items(
         message="success",
         data=items
     )
+
+
+@router.get("/expired", summary="获取已过期物品列表", response_model=ResponseSchema)
+async def get_expired_items(
+    current_user: User = Depends(get_current_user),
+    current_family_id: int = Depends(get_current_family),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    获取已过期物品列表（使用中且 expiry_date 早于今日）
+    """
+    service = AlertService(db)
+    items = await service.get_expired_items_list(current_family_id)
+
+    return ResponseSchema(
+        code=200,
+        message="success",
+        data=items
+    )

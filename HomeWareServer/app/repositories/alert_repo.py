@@ -383,3 +383,38 @@ class AlertRepository:
         )
 
         return count or 0
+
+    async def get_expired_items(self, family_id: int) -> List[Tuple]:
+        """
+        获取已过期物品列表（使用中且 expiry_date 早于今日）
+        :param family_id: 家庭ID
+        :return: 已过期物品列表，按过期日升序（过期最久在前）
+        """
+        today = date.today()
+
+        result = await self.db.execute(
+            select(
+                Item.id,
+                Item.name,
+                Item.expiry_date,
+                Item.expiry_alert_days,
+                Item.category_id,
+                Item.location_id,
+                Item.current_quantity,
+                Item.unit,
+                Item.created_at,
+                Category.name.label('category_name'),
+                Location.full_path.label('location_path')
+            )
+            .join(Category, Item.category_id == Category.id)
+            .outerjoin(Location, Item.location_id == Location.id)
+            .filter(
+                Item.family_id == family_id,
+                Item.status == 0,
+                Item.expiry_date.isnot(None),
+                Item.expiry_date < today
+            )
+            .order_by(Item.expiry_date.asc())
+        )
+
+        return result.all()
