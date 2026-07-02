@@ -27,6 +27,7 @@ import '../../presentation/shopping/shopping_list_page.dart';
 import '../../presentation/statistics/statistics_page.dart';
 import '../../presentation/notifications/notification_center_page.dart';
 import '../../presentation/search/search_page.dart';
+import '../../presentation/assistant/assistant_chat_page.dart';
 import '../../presentation/home/home_section_list_page.dart';
 import '../../presentation/auth/splash_page.dart';
 import '../../presentation/auth/welcome_page.dart';
@@ -155,6 +156,13 @@ final appRouter = GoRouter(
       name: 'home',
       pageBuilder: (context, state) => FadeTransitionPage(
         child: const HomePage(),
+      ),
+    ),
+    GoRoute(
+      path: '/assistant',
+      name: 'assistant',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const AssistantChatPage(),
       ),
     ),
     GoRoute(

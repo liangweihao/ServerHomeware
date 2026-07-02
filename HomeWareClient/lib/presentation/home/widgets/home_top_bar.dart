@@ -7,7 +7,7 @@ import '../../../core/constants/home_constants.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/services/auth_service.dart';
 
-/// 首页固定顶栏：头像 | 搜索框 | 添加入口
+/// 首页固定顶栏：头像 | 搜索框 | 问管家 | 添加入口
 class HomeTopBar extends ConsumerWidget {
   const HomeTopBar({super.key});
 
@@ -27,7 +27,9 @@ class HomeTopBar extends ConsumerWidget {
           _UserAvatarButton(ref: ref),
           const SizedBox(width: 12),
           const Expanded(child: _HomeSearchField()),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
+          const _AssistantEntryButton(),
+          const SizedBox(width: 8),
           _AddItemButton(ref: ref),
         ],
       ),
@@ -127,6 +129,39 @@ class _HomeSearchField extends StatelessWidget {
               ),
               const SizedBox(width: 12),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 问管家入口 — Phase 1 端侧规则助手
+class _AssistantEntryButton extends StatelessWidget {
+  const _AssistantEntryButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          debugPrint('[HomeTopBar] INFO: 打开问管家');
+          context.push('/assistant');
+        },
+        customBorder: const CircleBorder(),
+        child: Ink(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.white,
+            border: Border.all(color: AppColors.homeDivider),
+          ),
+          child: Icon(
+            Icons.smart_toy_outlined,
+            size: 22,
+            color: AppColors.primary,
           ),
         ),
       ),
