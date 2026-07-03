@@ -71,8 +71,8 @@ class HomeSpaceSection extends ConsumerWidget {
                   ),
                   TextButton(
                     onPressed: () {
-                      debugPrint('[HomeSpaceSection] INFO: 查看全部 → 空间 Tab');
-                      context.push('/items?tab=space');
+                      debugPrint('[HomeSpaceSection] INFO: 查看全部 → 空间总览');
+                      context.push('/locations');
                     },
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
@@ -100,11 +100,9 @@ class HomeSpaceSection extends ConsumerWidget {
                     itemCount: space.itemCount,
                     onTap: () {
                       debugPrint(
-                        '[HomeSpaceSection] INFO: 筛选空间 ${space.location.name}',
+                        '[HomeSpaceSection] INFO: 进入场景 ${space.location.name}',
                       );
-                      context.push(
-                        '/items?location=${Uri.encodeComponent(space.location.name)}',
-                      );
+                      context.push('/locations/${space.location.id}');
                     },
                   );
                 },

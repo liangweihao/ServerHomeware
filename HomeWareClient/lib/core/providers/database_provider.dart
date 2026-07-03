@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/database/app_database.dart';
+import '../events/item_event_bus.dart';
 
 // 数据库单例 Provider
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -48,8 +49,16 @@ final childLocationsProvider = FutureProvider.family<List<Location>, int>((ref, 
   return db.getChildLocations(parentId);
 });
 
-// 位置下物品列表 Provider
+// 位置下物品列表 Provider（仅当前层）
 final itemsInLocationProvider = FutureProvider.family<List<Item>, int>((ref, locationId) async {
   final db = ref.watch(databaseProvider);
   return db.getItemsInLocation(locationId);
+});
+
+/// 位置及子位置下使用中物品 — 场景入口 / 管管查询对齐
+final itemsInLocationTreeProvider =
+    FutureProvider.family<List<Item>, int>((ref, locationId) async {
+  ref.watch(itemEventBusProvider);
+  final db = ref.watch(databaseProvider);
+  return db.getItemsInLocationTree(locationId);
 });

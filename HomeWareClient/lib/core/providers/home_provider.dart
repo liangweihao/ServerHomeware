@@ -168,7 +168,10 @@ final spacesProvider = FutureProvider<List<SpaceData>>((ref) async {
     final count = await db.getItemCountForLocation(location.id);
     spaces.add(SpaceData(location: location, itemCount: count));
   }
-  
+
+  // 物品数量从大到小，方便首页「按空间」优先展示主场景
+  spaces.sort((a, b) => b.itemCount.compareTo(a.itemCount));
+
   return spaces;
 });
 

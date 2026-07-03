@@ -13,7 +13,7 @@ import 'widgets/home_space_section.dart';
 import 'widgets/home_top_bar.dart';
 import 'widgets/today_summary_banner.dart';
 
-/// 单页首页 — 四分区横向浏览（物品），无底部 Tab
+/// 单页首页 — 顶栏固定，其余（今日待办 + 分区 Feed + 按空间）同一列表滚动
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
@@ -31,28 +31,25 @@ class HomePage extends ConsumerWidget {
           child: Column(
             children: [
               const HomeTopBar(),
-              statsAsync.when(
-                data: (stats) => TodaySummaryBanner(
-                  stats: stats,
-                  onOpenAlerts: () {
-                    debugPrint('[HomePage] INFO: 跳转提醒中心');
-                    context.push('/alerts');
-                  },
-                ),
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
               Expanded(
                 child: RefreshIndicator(
                   color: AppColors.primary,
                   onRefresh: () async {
                     debugPrint('[HomePage] INFO: 下拉刷新首页');
                     ref.invalidate(homeSectionsProvider);
+                    ref.invalidate(homeStatsProvider);
                     ref.read(itemEventBusProvider.notifier).notifyUpdated();
-                    await ref.read(homeSectionsProvider.future);
+                    await Future.wait([
+                      ref.read(homeSectionsProvider.future),
+                      ref.read(homeStatsProvider.future),
+                    ]);
                   },
                   child: sectionsAsync.when(
-                    data: (sections) => _buildScrollBody(sections),
+                    data: (sections) => _buildScrollBody(
+                      context,
+                      sections: sections,
+                      statsAsync: statsAsync,
+                    ),
                     loading: () => ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       children: const [
@@ -104,11 +101,32 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildScrollBody(List<HomeSectionData> sections) {
+  Widget _buildScrollBody(
+    BuildContext context, {
+    required List<HomeSectionData> sections,
+    required AsyncValue<HomeStats> statsAsync,
+  }) {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.only(bottom: 24),
       children: [
+        statsAsync.when(
+          data: (stats) {
+            final total = stats.expiredCount +
+                stats.expiringCount +
+                stats.lowStockCount;
+            if (total <= 0) return const SizedBox.shrink();
+            return TodaySummaryBanner(
+              stats: stats,
+              onOpenAlerts: () {
+                debugPrint('[HomePage] INFO: 跳转提醒中心');
+                context.push('/alerts');
+              },
+            );
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
         ...sections.map(
           (section) => Padding(
             padding: const EdgeInsets.only(bottom: 8),

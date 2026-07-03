@@ -68,7 +68,7 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
   }
 
   Widget _buildContent(BuildContext context, WidgetRef ref, Location location) {
-    final itemsAsync = ref.watch(itemsInLocationProvider(widget.locationId));
+    final itemsAsync = ref.watch(itemsInLocationTreeProvider(widget.locationId));
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -151,7 +151,7 @@ class _LocationDetailPageState extends ConsumerState<LocationDetailPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '物品列表',
+          '本空间及子位置 · ${items.length} 件',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),

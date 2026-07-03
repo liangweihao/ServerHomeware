@@ -27,6 +27,7 @@ import '../common/widgets/quantity_stepper.dart';
 import '../common/widgets/warm_scaffold.dart';
 import '../common/widgets/location_picker.dart';
 import 'widgets/usage_dialog.dart';
+import 'widgets/quick_consume_button.dart';
 import 'widgets/item_alert_context_banner.dart';
 import 'widgets/item_image_tile.dart';
 
@@ -63,7 +64,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     return alertTypeFromKey(key);
   }
 
-  /// 从提醒带 action=consume 进入时，自动弹出记消耗
+  /// 从提醒带 action=consume 进入时，默认一键消耗
   void _scheduleInitialAction(Item item) {
     if (_handledInitialAction || widget.initialAction != 'consume') return;
     if (item.status != 0 || item.currentQuantity <= 0) {
@@ -73,8 +74,8 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     _handledInitialAction = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        debugPrint('[ItemDetailPage] INFO: 自动打开记消耗 itemId=${item.id}');
-        _onUseOne(item);
+        debugPrint('[ItemDetailPage] INFO: 提醒入口一键消耗 itemId=${item.id}');
+        _onQuickUseOne(item);
       }
     });
   }
@@ -209,6 +210,13 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
                               color: AppColors.textSecondary,
                             ),
                       ),
+                      if (item.status == 0 && item.currentQuantity > 0) ...[
+                        const SizedBox(height: 16),
+                        QuickConsumeButton(
+                          item: item,
+                          onCompleted: _refresh,
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -721,6 +729,8 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
   }
 
   Widget _buildBottomBar(BuildContext context, Item item) {
+    final canConsume = item.status == 0 && item.currentQuantity > 0;
+
     return Container(
       padding: EdgeInsets.fromLTRB(
         16,
@@ -740,17 +750,16 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
       ),
       child: Row(
         children: [
-          Expanded(
-            child: AppButton(
-              label: '记消耗',
-              variant: ButtonVariant.secondary,
-              size: ButtonSize.medium40,
-              onPressed: item.status == 0 && item.currentQuantity > 0
-                  ? () => _onUseOne(item)
-                  : null,
+          if (canConsume)
+            Expanded(
+              child: AppButton(
+                label: '改数量',
+                variant: ButtonVariant.outline,
+                size: ButtonSize.medium40,
+                onPressed: () => _onUseCustom(item),
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
+          if (canConsume) const SizedBox(width: 8),
           Expanded(
             child: AppButton(
               label: '编辑',
@@ -862,7 +871,24 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
 
   // —— 操作 ——
 
-  Future<void> _onUseOne(Item item) async {
+  Future<void> _onQuickUseOne(Item item) async {
+    if (item.status != 0 || item.currentQuantity <= 0) return;
+    debugPrint('[ItemDetailPage] INFO: 一键消耗 itemId=${item.id}');
+    final ok = await recordQuickUsage(ref: ref, item: item);
+    if (!mounted || !ok) return;
+    _refresh();
+    final remaining = (item.currentQuantity - 1).clamp(0.0, double.infinity);
+    final unit = item.unit;
+    final msg = remaining > 0
+        ? '已用 1 $unit，还剩 ${remaining == remaining.roundToDouble() ? remaining.toInt() : remaining.toStringAsFixed(1)} $unit'
+        : '「${item.name}」已用完';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg)),
+    );
+  }
+
+  /// 打开完整记消耗弹窗（改数量 / 操作人 / 全部用完）
+  Future<void> _onUseCustom(Item item) async {
     await showUsageDialog(
       context: context,
       ref: ref,
