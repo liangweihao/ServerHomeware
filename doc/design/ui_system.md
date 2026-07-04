@@ -90,7 +90,7 @@ HomeStock 是**家庭库存工具**，不是内容社区。用户打开 App 的�
 | 组件 | 用途 | 禁止替代 |
 |------|------|----------|
 | `WarmScaffold` | 二级页标准壳（白顶栏 + 灰底） | 裸 `Scaffold` 自定义 AppBar |
-| `MainScaffold` | 4 Tab 主壳 | — |
+| `HomePage` | 单页首页（顶栏 + 滚动 Feed） | 旧 `MainScaffold` 4 Tab（已废弃） |
 
 ### 4.2 容器与列表
 

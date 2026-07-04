@@ -159,7 +159,7 @@
 
 数码、宠物、运动、汽车、工具、其他 → 仅从「全部分类」进入。
 
-- Chip：分类 `color` 浅底 + 图标；选中描边 2px `primary`（见 [visual-refresh.md](visual-refresh.md)）
+- Chip：分类 `color` 浅底 + 图标；选中描边 2px `primary`（见 [ui_system.md](ui_system.md)）
 - 最近使用：本地 `categoryId`，最多 3 个
 
 ### 4.2 默认提醒（不展示也需写入）
@@ -204,7 +204,7 @@
 | 主按钮 | 全宽 `primary` **保存入库** |
 | 次按钮 | `secondary` **保存并继续**（底部双按钮保留，同现版 `add_item_page.dart`） |
 
-全局主色见 [visual-refresh.md](visual-refresh.md)（推荐 `#3A9B8A` 青松 Teal）。
+全局主色见 [ui_system.md](ui_system.md)（默认 `utilityClean`：`primary #FF6633`，FAB `#FFDA44`）。
 
 ---
 
@@ -234,7 +234,7 @@
 
 - [x] 分类 Chip：**常用 7 个一级 +「全部分类」** + 最近 3 个
 - [x] **「保存并继续」**：底部双按钮保留
-- [x] **主色**：全局 **青松 `#3A9B8A`**（Phase A 已落地，见 visual-refresh.md）
+- [x] **主色**：全局 **utilityClean**（`primary #FF6633`，见 ui_system.md）
 
 ### 待确认
 

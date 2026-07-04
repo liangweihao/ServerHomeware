@@ -1,25 +1,31 @@
 # 信息架构与文字版效果图
 
-> **现行版本**（2026-06-22），对齐 `HomeWareClient/lib/core/router/app_router.dart`。  
-> 旧版 5 Tab 线框见 [`archive/prototype-wireframes-v1.md`](../archive/prototype-wireframes-v1.md)。  
+> **现行版本**（2026-07-04），对齐 `HomeWareClient/lib/core/router/app_router.dart`。  
+> 旧版 4 Tab / 5 Tab 线框见 [`archive/prototype-wireframes-v1.md`](../archive/prototype-wireframes-v1.md)。  
 > UX 评审依据：ui-ux-pro-max（Flutter / Material 3 规范）。
 
 ---
 
 ## 一、全局导航
 
-### 底部 Tab（4 个）
+### 单页首页（无底部 Tab）
+
+2026-06-30 起，主入口 `/` 为**单页滚动首页**，各功能页通过 `context.push` 进入，**无底部 Tab 栏**。
 
 ```
-┌──────────┬──────────┬──────────┬──────────┐
-│   首页    │   物品   │  提醒 ●  │   我的   │
-│   🏠     │   📋     │   🔔     │   👤     │
-└──────────┴──────────┴──────────┴──────────┘
+首页 / ──push──→ /items 物品列表
+         ├──→ /alerts 提醒中心
+         ├──→ /profile 个人中心
+         ├──→ /assistant 问管家
+         ├──→ /search 搜索
+         ├──→ /locations 空间
+         ├──→ /shopping 购物清单
+         └──→ /statistics 统计
 ```
 
-- 提醒 Tab 显示未读 Badge（`alertCountProvider`）
-- **添加物品**：物品页右下角 FAB → `/items/add`（非 Tab 中间「＋」）
-- Tab 数量 ≤ 5，符合移动端主导航最佳实践（ui-ux-pro-max P9）
+- **添加物品**：首页顶栏「+」→ `/items/add/method`（方式选择）→ 扫码/手动向导
+- **问管家**：首页顶栏 🤖 图标 → `/assistant`
+- 提醒未读 Badge 在首页 Banner / 通知中心显示
 
 ### 启动与认证流
 
@@ -53,11 +59,12 @@ flowchart TB
     login --> joinFamily["/join-family"]
   end
 
-  subgraph shell [MainScaffold 四 Tab]
+  subgraph main [单页首页 push 导航]
     home["/ 首页"]
     items["/items 物品"]
     alerts["/alerts 提醒"]
     profile["/profile 我的"]
+    assistant["/assistant 问管家"]
   end
 
   createFamily --> home
@@ -68,6 +75,9 @@ flowchart TB
   home --> shopping["/shopping"]
   home --> statistics["/statistics"]
   home --> alerts
+  home --> assistant
+  home --> items
+  home --> profile
 
   items --> add["/items/add"]
   items --> scan["/items/scan"]
@@ -89,25 +99,21 @@ flowchart TB
 
 ```
 ┌─────────────────────────────────────────┐
-│ 🏠 {家庭名}              🔍  🔔●  [头像] │
+│ {家庭名}          🔍  🤖  +  🔔●  [头像] │  ← 顶栏固定
 │─────────────────────────────────────────│
-│  ⚠️ 需要关注                             │
-│  ┌─────────────┐ ┌─────────────┐        │
-│  │🔴 即将过期   │ │📦 库存不足   │ → 提醒 │
-│  └─────────────┘ └─────────────┘        │
-│  ┌─────────────┐ ┌─────────────┐        │
-│  │🛒 待购清单   │ │📊 本月消费   │ → 清单/统计│
-│  └─────────────┘ └─────────────┘        │
-│  📍 快捷查看（横向空间卡片）              │
-│  📅 最近动态                             │
-├─────────────────────────────────────────┤
-│ [首页] │  物品  │  提醒  │  我的          │
+│  今日待办 Banner（临期/低库存摘要）       │  → /alerts
+│─────────────────────────────────────────│
+│  分区 Feed（临期/低库存/待购等）          │  → /home/section/:section
+│  ...                                    │
+│  按空间（横向 Chip：厨房/卫生间…）        │  → /items?location=
+│  ...                                    │
 └─────────────────────────────────────────┘
+         （整页可滚动，无底部 Tab）
 ```
 
-**入口**：🔍→搜索 · 头像→用户面板 · 空间卡片→位置详情 · 统计卡片→`/statistics` · 待购→`/shopping`
+**入口**：🔍→搜索 · 🤖→问管家 · +→添加入口 · 头像→`/profile` · 空间 Chip→物品列表筛选 · Banner→提醒中心
 
-**UX 备注**：AppBar 🔔 已接入 `/notifications` 通知中心，Badge 与提醒 Tab 共用 `unreadAlertCountProvider`。
+**UX 备注**：🔔 已接入 `/notifications` 通知中心，Badge 与提醒共用 `unreadAlertCountProvider`。
 
 ---
 
@@ -115,19 +121,19 @@ flowchart TB
 
 ```
 ┌─────────────────────────────────────────┐
+│ ←  物品列表                              │
 │  🔍 搜索物品名称、品牌...                │
 │  (全部)(使用中)(已用完)(已过期)(已丢弃)   │
 │  ┌─────────────────────────────────┐    │
-│  │ 🖼️ 物品名 · 位置 · 数量 · 过期   │    │
+│  │ 物品名 · 理由标签 · 位置 · 数量   │    │
 │  └─────────────────────────────────┘    │
 │                              [FAB +]    │
-├─────────────────────────────────────────┤
-│  首页  │ [物品] │  提醒  │  我的          │
 └─────────────────────────────────────────┘
 ```
 
-- FAB 触控目标 ≥ 48dp（Material），与底部 Tab 保持安全间距
-- 筛选 Chip 横向滚动，避免单行溢出导致横向整页滚动
+- 从首页 push 进入，带返回按钮
+- FAB 触控目标 ≥ 48dp（Material）
+- 筛选 Chip 横向滚动，避免单行溢出
 
 ---
 
@@ -207,9 +213,10 @@ Tab：**全部 | 过期 | 库存 | 补购 | 其他**。
 
 | 场景 | 路径 | 目标时长 |
 |------|------|----------|
-| 扫码入库 | 物品 Tab → FAB / 扫码 → 确认 → 保存 | ≤ 15s |
-| 找物品 | 首页/物品页 🔍 → 结果 → 详情 → 看位置 | ≤ 10s |
-| 处理过期 | 提醒 Tab → 卡片 → 使用/丢弃/加入清单 | ≤ 5s/条 |
+| 扫码入库 | 首页 + → 方式选择 / 扫码 → 确认 → 保存 | ≤ 15s |
+| 找物品 | 首页 🔍 / 问管家 → 结果 → 详情 → 看位置 | ≤ 10s |
+| 处理过期 | 首页 Banner / 提醒 → 卡片 → 使用/丢弃/加清单 | ≤ 5s/条 |
+| 一键消耗 | 物品详情「用了 1」 | ≤ 3s |
 | 补货规划 | 首页待购卡片 → 购物清单 → 勾选/分享 | ≤ 30s |
 | 切换家庭 | 头像 → 用户面板 → 切换 | ≤ 8s |
 
@@ -226,20 +233,14 @@ Tab：**全部 | 过期 | 库存 | 补购 | 其他**。
 | P2 | 性能 | 列表较长 | 物品列表考虑虚拟滚动（50+ 条） |
 | P2 | 表单 | 添加页字段多 | 分区折叠/渐进必填，见 vision「渐进式信息收集」 |
 | P3 | 动效 | Tab 200ms / 二级页 300ms | 已对齐 design-system，保持 |
-| P3 | 导航 | 4 Tab + 深链路由 | GoRouter 路径完整，支持分享链接（待产品验证） |
+| P3 | 导航 | 单页首页 + push + 深链路由 | GoRouter 路径完整，支持分享链接（待产品验证） |
 
 ---
 
 ## 十二、路由真源
 
-```82:293:HomeWareClient/lib/core/router/app_router.dart
-final appRouter = GoRouter(
-  initialLocation: '/splash',
-  routes: [
-    // 认证、ShellRoute 四 Tab、全屏二级页 …
-  ],
-);
-```
+完整路由定义见 `HomeWareClient/lib/core/router/app_router.dart`（40+ 路由，无 ShellRoute）。  
+流程图见 [core/business-flows.md](../core/business-flows.md)。
 
 ---
 
