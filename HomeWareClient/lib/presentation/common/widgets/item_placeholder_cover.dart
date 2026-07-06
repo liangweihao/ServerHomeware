@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/icons/preset_icon.dart';
 import '../../../core/utils/item_placeholder_helper.dart';
 
-/// 无图物品封面 — 分类 emoji + 暖色渐变 + 名称首字角标
+/// 无图物品封面 — 分类预置圆角图标 + 暖色渐变 + 名称首字角标
 class ItemPlaceholderCover extends StatelessWidget {
   const ItemPlaceholderCover({
     super.key,
@@ -55,9 +56,12 @@ class ItemPlaceholderCover extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Text(
-              emoji,
-              style: TextStyle(fontSize: height * 0.36, height: 1),
+            PresetIcon(
+              storageKey: emoji,
+              name: itemName,
+              accentHex: categoryColorHex,
+              wellSize: height * 0.42,
+              iconSize: height * 0.2,
             ),
             Positioned(
               right: 8,

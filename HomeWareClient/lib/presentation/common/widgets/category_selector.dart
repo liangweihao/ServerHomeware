@@ -1,6 +1,9 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/icons/preset_icon.dart';
+import '../../../core/icons/preset_icon_picker.dart';
+import '../../../core/icons/preset_icon_registry.dart';
 import '../../../core/providers/database_provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/database/app_database.dart';
@@ -128,9 +131,12 @@ class CategorySelector extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              category.icon,
-              style: const TextStyle(fontSize: 32),
+            PresetIcon(
+              storageKey: category.icon,
+              name: category.name,
+              accentHex: category.color,
+              wellSize: 40,
+              iconSize: 20,
             ),
             const SizedBox(height: 8),
             Text(
@@ -177,13 +183,6 @@ class CategorySelector extends StatelessWidget {
     final nameController = TextEditingController();
     String selectedIcon = '📦';
 
-    final icons = [
-      '📦', '🍎', '🥩', '🥦', '🍪', '🥤', '🧂',
-      '🧹', '🧴', '💊', '📺', '👕', '🛋️', '🔌',
-      '📎', '🐾', '🍼', '⚽', '🚗', '🔧', '💡',
-      '🖼️', '🛏️', '🧸', '🦴', '🏋️', '🛟', '📱',
-    ];
-
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -202,25 +201,10 @@ class CategorySelector extends StatelessWidget {
                   autofocus: true,
                 ),
                 const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: icons.map((icon) => GestureDetector(
-                    onTap: () => setDialogState(() => selectedIcon = icon),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: selectedIcon == icon
-                            ? AppColors.primary.withOpacity(0.15)
-                            : null,
-                        borderRadius: BorderRadius.circular(8),
-                        border: selectedIcon == icon
-                            ? Border.all(color: AppColors.primary)
-                            : null,
-                      ),
-                      child: Text(icon, style: const TextStyle(fontSize: 24)),
-                    ),
-                  )).toList(),
+                PresetIconPickerWrap(
+                  options: PresetIconRegistry.categoryPickerOptions,
+                  selectedKey: selectedIcon,
+                  onSelected: (key) => setDialogState(() => selectedIcon = key),
                 ),
               ],
             ),

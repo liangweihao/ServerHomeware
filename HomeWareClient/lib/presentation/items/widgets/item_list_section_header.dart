@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/icons/preset_icon.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/theme/cartoon_decorations.dart';
 
@@ -32,7 +33,12 @@ class ItemListSectionHeader extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(emoji, style: const TextStyle(fontSize: 16)),
+                PresetIcon(
+                  storageKey: emoji,
+                  name: title,
+                  wellSize: 28,
+                  iconSize: 14,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   title,

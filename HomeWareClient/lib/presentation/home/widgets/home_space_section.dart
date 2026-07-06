@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/icons/preset_icon.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/home_constants.dart';
 import '../../../core/providers/home_provider.dart';
@@ -39,7 +41,7 @@ class HomeSpaceSection extends ConsumerWidget {
                       color: const Color(0xFF5A7A52).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
+                    child: const CandyIcon(
                       Icons.home_outlined,
                       size: 20,
                       color: Color(0xFF5A7A52),
@@ -78,7 +80,7 @@ class HomeSpaceSection extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text('查看全部', style: TextStyle(fontSize: 14)),
-                        Icon(Icons.chevron_right, size: 18),
+                        CandyIcon(Icons.chevron_right, size: 18),
                       ],
                     ),
                   ),
@@ -86,7 +88,7 @@ class HomeSpaceSection extends ConsumerWidget {
               ),
             ),
             SizedBox(
-              height: 96,
+              height: 100,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -138,16 +140,22 @@ class _SpaceTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: Container(
           width: 88,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.homeDivider),
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(icon, style: const TextStyle(fontSize: 22)),
-              const SizedBox(height: 4),
+              PresetIcon(
+                storageKey: icon,
+                name: name,
+                wellSize: 32,
+                iconSize: 16,
+              ),
+              const SizedBox(height: 3),
               Text(
                 name,
                 maxLines: 1,
@@ -155,12 +163,16 @@ class _SpaceTile extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
+                  height: 1.1,
                 ),
               ),
-              const SizedBox(height: 2),
               Text(
                 '$itemCount 件',
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                style: TextStyle(
+                  fontSize: 11,
+                  height: 1.1,
+                  color: AppColors.textSecondary,
+                ),
               ),
             ],
           ),

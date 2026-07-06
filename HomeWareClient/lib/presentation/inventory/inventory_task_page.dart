@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/icons/preset_icon.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/inventory_task_provider.dart';
 import '../../core/services/inventory_reminder_prefs.dart';
@@ -131,9 +132,11 @@ class _LocationPickerState extends ConsumerState<_LocationPicker> {
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(color: AppColors.homeDivider),
                       ),
-                      leading: Text(
-                        loc.icon ?? '📍',
-                        style: const TextStyle(fontSize: 22),
+                      leading: PresetIcon(
+                        storageKey: loc.icon,
+                        name: loc.name,
+                        wellSize: 40,
+                        iconSize: 20,
                       ),
                       title: Text(loc.name),
                       subtitle: Text(

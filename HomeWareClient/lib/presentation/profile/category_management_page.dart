@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' as drift;
+import '../../core/icons/preset_icon.dart';
+import '../../core/icons/preset_icon_picker.dart';
+import '../../core/icons/preset_icon_registry.dart';
+import '../../core/icons/candy_icon.dart';
+import '../../core/icons/candy_icons.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/providers/database_provider.dart';
@@ -66,7 +71,7 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
       ),
       floatingActionButton: AppFloatingActionButton(
         onPressed: () => _showAddCategoryDialog(context),
-        child: const Icon(Icons.add),
+        child: const CandyIcon(CandyIcons.add, color: Colors.white),
       ),
     );
   }
@@ -90,19 +95,12 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Color(int.parse(category.color.replaceFirst('#', '0xFF'))).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                    child: Center(
-                      child: Text(
-                        category.icon,
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                    ),
+                  PresetIcon(
+                    storageKey: category.icon,
+                    name: category.name,
+                    accentHex: category.color,
+                    wellSize: 40,
+                    iconSize: 20,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -163,19 +161,12 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
                       child: Row(
                         children: [
                           const SizedBox(width: 52),
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: Color(int.parse(child.color.replaceFirst('#', '0xFF'))).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
-                            ),
-                            child: Center(
-                              child: Text(
-                                child.icon,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
+                          PresetIcon(
+                            storageKey: child.icon,
+                            name: child.name,
+                            accentHex: child.color,
+                            wellSize: 32,
+                            iconSize: 16,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
@@ -241,24 +232,11 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
                 ),
               ),
               const SizedBox(height: 16),
-              // 图标选择
-              Wrap(
-                spacing: 8,
-                children: ['📦', '🍎', '🧴', '💄', '💊', '📺', '👕', '🧹', '🥛', '🥩', '🥦', '🍪'].map((icon) {
-                  return GestureDetector(
-                    onTap: () => setState(() => selectedIcon = icon),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: selectedIcon == icon ? AppColors.primary.withOpacity(0.2) : AppColors.background,
-                        borderRadius: BorderRadius.circular(8),
-                        border: selectedIcon == icon ? Border.all(color: AppColors.primary) : null,
-                      ),
-                      child: Center(child: Text(icon, style: const TextStyle(fontSize: 20))),
-                    ),
-                  );
-                }).toList(),
+              // 图标选择 — 糖果轻点预置圆角图标
+              PresetIconPickerWrap(
+                options: PresetIconRegistry.categoryPickerOptions,
+                selectedKey: selectedIcon,
+                onSelected: (key) => setState(() => selectedIcon = key),
               ),
             ],
           ),
@@ -314,24 +292,11 @@ class _CategoryManagementPageState extends ConsumerState<CategoryManagementPage>
                 ),
               ),
               const SizedBox(height: 16),
-              // 图标选择
-              Wrap(
-                spacing: 8,
-                children: ['📦', '🍎', '🧴', '💄', '💊', '📺', '👕', '🧹', '🥛', '🥩', '🥦', '🍪'].map((icon) {
-                  return GestureDetector(
-                    onTap: () => setState(() => selectedIcon = icon),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: selectedIcon == icon ? AppColors.primary.withOpacity(0.2) : AppColors.background,
-                        borderRadius: BorderRadius.circular(8),
-                        border: selectedIcon == icon ? Border.all(color: AppColors.primary) : null,
-                      ),
-                      child: Center(child: Text(icon, style: const TextStyle(fontSize: 20))),
-                    ),
-                  );
-                }).toList(),
+              // 图标选择 — 糖果轻点预置圆角图标
+              PresetIconPickerWrap(
+                options: PresetIconRegistry.categoryPickerOptions,
+                selectedKey: selectedIcon,
+                onSelected: (key) => setState(() => selectedIcon = key),
               ),
             ],
           ),

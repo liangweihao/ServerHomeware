@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../core/icons/preset_icon_picker.dart';
+import '../../../core/icons/preset_icon_registry.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/item_image_storage.dart';
 import '../../common/widgets/app_button.dart';
@@ -38,12 +40,6 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
   final _nameController = TextEditingController();
   String _selectedIcon = '🏠';
   String? _locationImagePath; // 位置说明照片本地路径
-
-  final List<String> _icons = [
-    '🏠', '🍳', '🛁', '🛋️', '🛏️', '☀️', '📦', '🗄️',
-    '💊', '📺', '👕', '🍎', '🧹', '🧴', '🖥️', '📚',
-    '🪞', '🚿', '🚽', '❄️', '🔥', '🌿', '💡', '🎮',
-  ];
 
   @override
   void dispose() {
@@ -134,33 +130,11 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                   ),
             ),
             const SizedBox(height: 12),
-            GridView.builder(
-              shrinkWrap: true,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 8,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-              ),
-              itemCount: _icons.length,
-              itemBuilder: (context, index) {
-                final icon = _icons[index];
-                final isSelected = _selectedIcon == icon;
-                return InkWell(
-                  onTap: () => setState(() => _selectedIcon = icon),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primary.withOpacity(0.15) : null,
-                      borderRadius: BorderRadius.circular(8),
-                      border: isSelected ? Border.all(color: AppColors.primary) : null,
-                    ),
-                    padding: const EdgeInsets.all(4),
-                    child: Center(
-                      child: Text(icon, style: const TextStyle(fontSize: 24)),
-                    ),
-                  ),
-                );
-              },
+            PresetIconPickerGrid(
+              options: PresetIconRegistry.locationPickerOptions,
+              selectedKey: _selectedIcon,
+              onSelected: (key) => setState(() => _selectedIcon = key),
+              crossAxisCount: 6,
             ),
           ],
         ),

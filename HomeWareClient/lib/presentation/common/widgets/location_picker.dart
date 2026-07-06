@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/icons/preset_icon.dart';
 import '../../../core/providers/database_provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/database/app_database.dart';
@@ -233,8 +234,13 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
       child: ListTile(
         onTap: onTap,
         leading: location.icon != null
-            ? Text(location.icon!, style: const TextStyle(fontSize: 24))
-            : const Icon(Icons.location_on),
+            ? PresetIcon(
+                storageKey: location.icon,
+                name: location.name,
+                wellSize: 40,
+                iconSize: 20,
+              )
+            : const Icon(Icons.location_on_rounded),
         title: Text(
           location.name,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../../core/icons/preset_icon.dart';
 import '../../core/config/space_skin_config.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
@@ -231,7 +232,12 @@ class StatisticsPage extends ConsumerWidget {
                       children: [
                         Row(
                           children: [
-                            Text(cat.icon, style: const TextStyle(fontSize: 18)),
+                            PresetIcon(
+                              storageKey: cat.icon,
+                              name: cat.name,
+                              wellSize: 32,
+                              iconSize: 16,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(

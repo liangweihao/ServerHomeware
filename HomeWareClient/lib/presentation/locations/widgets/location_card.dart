@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/icons/preset_icon.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/theme/app_decorations.dart';
@@ -77,18 +78,11 @@ class LocationCard extends StatelessWidget {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppColors.gray100,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      icon ?? '🏠',
-                      style: const TextStyle(fontSize: 24, height: 1),
-                    ),
+                  PresetIcon(
+                    storageKey: icon,
+                    name: name,
+                    wellSize: 48,
+                    iconSize: 24,
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -133,16 +127,11 @@ class LocationCard extends StatelessWidget {
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.85),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.primary, width: 2.5),
-              ),
-              child: Text(icon ?? '🏠', style: const TextStyle(fontSize: 26, height: 1)),
+            PresetIcon(
+              storageKey: icon,
+              name: name,
+              wellSize: 48,
+              iconSize: 24,
             ),
             const SizedBox(height: 12),
             Text(

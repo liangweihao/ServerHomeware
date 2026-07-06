@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/icons/preset_icon.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/theme/app_decorations.dart';
@@ -49,18 +50,11 @@ class SpaceCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppColors.gray100,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    location.icon ?? '📦',
-                    style: const TextStyle(fontSize: 18, height: 1),
-                  ),
+                PresetIcon(
+                  storageKey: location.icon,
+                  name: location.name,
+                  wellSize: 36,
+                  iconSize: 18,
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -97,19 +91,11 @@ class SpaceCard extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 38,
-          height: 38,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.primaryLighter,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.primary, width: 2),
-          ),
-          child: Text(
-            location.icon ?? '📦',
-            style: const TextStyle(fontSize: 20, height: 1),
-          ),
+        PresetIcon(
+          storageKey: location.icon,
+          name: location.name,
+          wellSize: 38,
+          iconSize: 19,
         ),
         const SizedBox(height: 4),
         Text(

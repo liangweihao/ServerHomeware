@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/icons/preset_icon.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/providers/database_provider.dart';
@@ -112,7 +113,13 @@ class _ItemFormCategoryChipsState extends ConsumerState<ItemFormCategoryChips> {
               if (category.icon != null && category.icon!.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(right: 4),
-                  child: Text(category.icon!, style: const TextStyle(fontSize: 16)),
+                  child: PresetIcon(
+                    storageKey: category.icon,
+                    name: category.name,
+                    accentHex: category.color,
+                    wellSize: 22,
+                    iconSize: 12,
+                  ),
                 ),
               Text(
                 category.name,
