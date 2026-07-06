@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/item_list_constants.dart';
 import '../../../data/database/app_database.dart';
@@ -76,7 +77,7 @@ class _PaginatedGridSectionState extends State<PaginatedGridSection> {
             child: Center(
               child: TextButton.icon(
                 onPressed: _loadMore,
-                icon: const Icon(Icons.expand_more, size: 18),
+                icon: const CandyIcon(Icons.expand_more, size: 18),
                 label: Text(
                   '加载更多 ($_visibleCount/${widget.allItems.length})',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(

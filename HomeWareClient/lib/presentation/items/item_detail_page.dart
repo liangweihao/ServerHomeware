@@ -2,10 +2,12 @@ import 'dart:io';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../core/icons/preset_icon.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/events/item_event_bus.dart';
@@ -316,7 +318,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: Icon(icon, color: Colors.white, size: 18),
+          child: CandyIcon(icon, color: Colors.white, size: 18),
         ),
       ),
     );
@@ -337,7 +339,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
                 title: Text('${currentIndex + 1} / ${urls.length}'),
                 actions: [
                   IconButton(
-                    icon: const Icon(Icons.download),
+                    icon: const CandyIcon(Icons.download),
                     tooltip: '保存到本地',
                     onPressed: () => _downloadImage(ctx, urls[currentIndex]),
                   ),
@@ -360,7 +362,7 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
                         if (progress == null) return child;
                         return const Center(child: CircularProgressIndicator(color: Colors.white));
                       },
-                      errorBuilder: (_, __, ___) => const Icon(
+                      errorBuilder: (_, __, ___) => const CandyIcon(
                         Icons.broken_image_outlined, color: Colors.white54, size: 64,
                       ),
                     ),
@@ -425,7 +427,11 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 56)),
+          PresetIcon(
+            storageKey: emoji,
+            wellSize: 72,
+            iconSize: 36,
+          ),
           const SizedBox(height: 8),
           Text(
             '暂无图片',

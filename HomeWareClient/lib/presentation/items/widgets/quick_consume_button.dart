@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/space_skin_config.dart';
@@ -67,7 +68,7 @@ class _QuickConsumeButtonState extends ConsumerState<QuickConsumeButton> {
       size: widget.size,
       isFullWidth: widget.fullWidth,
       isLoading: _busy,
-      leadingIcon: const Icon(Icons.remove_circle_outline, size: 20),
+      leadingIcon: const CandyIcon(Icons.remove_circle_outline, size: 20),
       onPressed: _canConsume && !_busy ? () => _onTap(skin) : null,
     );
   }

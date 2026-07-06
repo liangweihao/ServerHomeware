@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/theme/app_decorations.dart';
@@ -69,7 +70,7 @@ class StatCard extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(icon, size: 18, color: accentColor),
+                          CandyIcon(icon, size: 18, color: accentColor),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(

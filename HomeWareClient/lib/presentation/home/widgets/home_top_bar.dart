@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -118,7 +119,7 @@ class _HomeSearchField extends ConsumerWidget {
           child: Row(
             children: [
               const SizedBox(width: 12),
-              Icon(Icons.inventory_2_outlined, size: 18, color: AppColors.textHint),
+              CandyIcon(Icons.inventory_2_outlined, size: 18, color: AppColors.textHint),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -197,7 +198,7 @@ class _AddItemButton extends StatelessWidget {
             color: AppColors.accentHighlight,
             boxShadow: AppColors.cardShadow,
           ),
-          child: Icon(
+          child: CandyIcon(
             Icons.add,
             color: AppColors.onAccentHighlight,
             size: 24,

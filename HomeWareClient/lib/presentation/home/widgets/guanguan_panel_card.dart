@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
+import 'package:home_stock/core/icons/candy_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -41,7 +43,7 @@ class GuanguanPanelCard extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
                   child: Row(
                     children: [
-                      Icon(
+                      CandyIcon(
                         Icons.emoji_emotions_outlined,
                         size: 22,
                         color: AppColors.primary,
@@ -70,7 +72,7 @@ class GuanguanPanelCard extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      Icon(
+                      CandyIcon(
                         collapsed
                             ? Icons.expand_more
                             : Icons.expand_less,
@@ -239,9 +241,9 @@ class _TaskTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = switch (task.kind) {
-      GuanguanTaskKind.expiry => Icons.schedule_outlined,
-      GuanguanTaskKind.lowStock => Icons.inventory_2_outlined,
-      GuanguanTaskKind.other => Icons.task_alt_outlined,
+      GuanguanTaskKind.expiry => CandyIcons.schedule,
+      GuanguanTaskKind.lowStock => CandyIcons.inventory,
+      GuanguanTaskKind.other => CandyIcons.taskAlt,
     };
 
     return Material(
@@ -257,7 +259,7 @@ class _TaskTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: AppColors.primary),
+              CandyIcon(icon, size: 18, color: AppColors.primary),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -280,7 +282,7 @@ class _TaskTile extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, size: 18, color: AppColors.textHint),
+              CandyIcon(Icons.chevron_right, size: 18, color: AppColors.textHint),
             ],
           ),
         ),
@@ -299,7 +301,7 @@ class _QuipLine extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(Icons.people_outline, size: 16, color: AppColors.accentSky),
+        CandyIcon(Icons.people_outline, size: 16, color: AppColors.accentSky),
         const SizedBox(width: 6),
         Expanded(
           child: Text(
@@ -322,7 +324,7 @@ class _InsightLine extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(Icons.lightbulb_outline, size: 16, color: AppColors.warning),
+        CandyIcon(Icons.lightbulb_outline, size: 16, color: AppColors.warning),
         const SizedBox(width: 6),
         Expanded(
           child: Text(

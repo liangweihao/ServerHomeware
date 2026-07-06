@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -77,7 +78,7 @@ class _ShopDailySalesBody extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  Icon(Icons.chevron_right, color: AppColors.textHint, size: 20),
+                  CandyIcon(Icons.chevron_right, color: AppColors.textHint, size: 20),
                 ],
               ),
               const SizedBox(height: 8),

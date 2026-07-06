@@ -2,8 +2,13 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_radius.dart';
+import '../../../core/icons/app_icon.dart';
+import '../../../core/icons/candy_icon_assets.dart';
+import '../../../core/icons/candy_icons.dart';
 import '../../../core/models/space_type.dart';
 import '../../../core/providers/space_skin_provider.dart';
 import '../../items/item_add_draft_storage.dart';
@@ -13,7 +18,6 @@ import '../../items/widgets/quick_consume_sheet.dart';
 class PublishActionSheet {
   PublishActionSheet._();
 
-  /// 仅打开记消耗（方式选择页复用）
   static Future<void> showQuickConsume(BuildContext context, WidgetRef ref) {
     return QuickConsumeSheet.show(context, ref);
   }
@@ -25,7 +29,7 @@ class PublishActionSheet {
       context: context,
       backgroundColor: AppColors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
       ),
       builder: (ctx) {
         return SafeArea(
@@ -53,7 +57,8 @@ class PublishActionSheet {
                 ),
                 const SizedBox(height: 16),
                 _ActionTile(
-                  icon: Icons.remove_circle_outline,
+                  svgAsset: CandyIconAssets.consume,
+                  accent: AppColors.accentRose,
                   title: skin.consumeActionLabel,
                   subtitle: skin.spaceType == SpaceType.shop
                       ? '选商品，一键卖出 1 件'
@@ -64,7 +69,8 @@ class PublishActionSheet {
                   },
                 ),
                 _ActionTile(
-                  icon: Icons.inventory_2_outlined,
+                  svgAsset: CandyIconAssets.add,
+                  accent: AppColors.accentCoral,
                   title: skin.addItemLabel,
                   subtitle: skin.spaceType == SpaceType.shop
                       ? '记录新商品到店库存'
@@ -81,7 +87,8 @@ class PublishActionSheet {
                   },
                 ),
                 _ActionTile(
-                  icon: Icons.qr_code_scanner_outlined,
+                  svgAsset: CandyIconAssets.scan,
+                  accent: AppColors.accentSky,
                   title: '扫码录入',
                   subtitle: '扫描条码快速添加',
                   onTap: () {
@@ -98,7 +105,6 @@ class PublishActionSheet {
   }
 }
 
-/// 有草稿时显示「继续录入」
 class _DraftResumeTile extends StatelessWidget {
   const _DraftResumeTile({required this.onTap});
 
@@ -111,7 +117,8 @@ class _DraftResumeTile extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.data != true) return const SizedBox.shrink();
         return _ActionTile(
-          icon: Icons.edit_note_outlined,
+          svgAsset: CandyIconAssets.edit,
+          accent: AppColors.accentAmber,
           title: '继续录入',
           subtitle: '恢复上次未完成的添加入库',
           onTap: onTap,
@@ -123,13 +130,17 @@ class _DraftResumeTile extends StatelessWidget {
 
 class _ActionTile extends StatelessWidget {
   const _ActionTile({
-    required this.icon,
+    this.icon,
+    this.svgAsset,
+    required this.accent,
     required this.title,
     required this.subtitle,
     required this.onTap,
-  });
+  }) : assert(icon != null || svgAsset != null);
 
-  final IconData icon;
+  final IconData? icon;
+  final String? svgAsset;
+  final Color accent;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
@@ -138,15 +149,7 @@ class _ActionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      leading: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: AppColors.primaryLighter,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, color: AppColors.primaryDark),
-      ),
+      leading: _buildLeading(),
       title: Text(
         title,
         style: const TextStyle(fontWeight: FontWeight.w600),
@@ -155,8 +158,35 @@ class _ActionTile extends StatelessWidget {
         subtitle,
         style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
       ),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+      trailing: const CandyIcon(Icons.chevron_right, color: AppColors.textHint),
       onTap: onTap,
+    );
+  }
+
+  Widget _buildLeading() {
+    if (svgAsset != null) {
+      final (wellBg, wellFg) = AppColors.iconWellFor(accent);
+      return Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: wellBg,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        alignment: Alignment.center,
+        child: AppIcon.svg(
+          asset: svgAsset!,
+          color: wellFg,
+          size: 22,
+          showWell: false,
+        ),
+      );
+    }
+    return AppIcon.feature(
+      icon: icon ?? CandyIcons.inventory,
+      accent: accent,
+      wellSize: 44,
+      iconSize: 22,
     );
   }
 }

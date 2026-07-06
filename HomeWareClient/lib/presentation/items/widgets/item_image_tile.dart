@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import '../../../core/config/app_env.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
@@ -74,7 +75,7 @@ class ItemImageTile extends StatelessWidget {
       width: width,
       height: height ?? 80,
       color: AppColors.gray100,
-      child: const Icon(Icons.broken_image_outlined, color: AppColors.textHint),
+      child: const CandyIcon(Icons.broken_image_outlined, color: AppColors.textHint),
     );
   }
 }

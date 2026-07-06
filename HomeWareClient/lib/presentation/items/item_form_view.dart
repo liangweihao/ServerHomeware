@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -344,7 +345,7 @@ class _ItemFormViewState extends ConsumerState<ItemFormView> {
       child: InputDecorator(
         decoration: const InputDecoration(
           labelText: '放在哪？',
-          suffixIcon: Icon(Icons.chevron_right),
+          suffixIcon: CandyIcon(Icons.chevron_right),
         ),
         child: Text(
           c.selectedLocation?.fullPath ?? '未选择',
@@ -383,7 +384,7 @@ class _ItemFormViewState extends ConsumerState<ItemFormView> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
-                  Icon(
+                  CandyIcon(
                     expanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
                     color: AppColors.textSecondary,
                     size: 22,
@@ -459,7 +460,7 @@ class _ItemFormViewState extends ConsumerState<ItemFormView> {
             child: TextFormField(
               decoration: const InputDecoration(
                 labelText: '生产日期（可选）',
-                suffixIcon: Icon(Icons.calendar_today),
+                suffixIcon: CandyIcon(Icons.calendar_today),
               ),
               controller: TextEditingController(
                 text: c.productionDate != null
@@ -497,7 +498,7 @@ class _ItemFormViewState extends ConsumerState<ItemFormView> {
             child: TextFormField(
               decoration: const InputDecoration(
                 labelText: '过期日期（可选）',
-                suffixIcon: Icon(Icons.calendar_today),
+                suffixIcon: CandyIcon(Icons.calendar_today),
               ),
               controller: TextEditingController(
                 text: c.expiryDate != null
@@ -638,7 +639,7 @@ class _ItemFormViewState extends ConsumerState<ItemFormView> {
             child: TextFormField(
               decoration: const InputDecoration(
                 labelText: '购买日期（可选）',
-                suffixIcon: Icon(Icons.calendar_today),
+                suffixIcon: CandyIcon(Icons.calendar_today),
               ),
               controller: TextEditingController(
                 text: c.purchaseDate != null
@@ -731,7 +732,7 @@ class _ItemFormViewState extends ConsumerState<ItemFormView> {
                             color: AppColors.danger,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.close, size: 14, color: Colors.white),
+                          child: const CandyIcon(Icons.close, size: 14, color: Colors.white),
                         ),
                       ),
                     ),
@@ -822,12 +823,12 @@ class _LocationPhotoButton extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
+              leading: const CandyIcon(Icons.photo_library_outlined),
               title: const Text('从相册选择'),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
+              leading: const CandyIcon(Icons.camera_alt_outlined),
               title: const Text('拍照'),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
@@ -868,7 +869,7 @@ class _LocationPhotoButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton.icon(
       onPressed: () => _pickImage(context),
-      icon: const Icon(Icons.add_a_photo_outlined, size: 18),
+      icon: const CandyIcon(Icons.add_a_photo_outlined, size: 18),
       label: const Text('添加'),
     );
   }

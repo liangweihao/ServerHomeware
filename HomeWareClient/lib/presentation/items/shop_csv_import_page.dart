@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
@@ -115,7 +116,7 @@ class _ShopCsvImportPageState extends ConsumerState<ShopCsvImportPage> {
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: _importing ? null : _pickCsv,
-                icon: const Icon(Icons.upload_file_outlined),
+                icon: const CandyIcon(Icons.upload_file_outlined),
                 label: const Text('选择 CSV'),
               ),
             ),
@@ -123,7 +124,7 @@ class _ShopCsvImportPageState extends ConsumerState<ShopCsvImportPage> {
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: _importing ? null : _shareTemplate,
-                icon: const Icon(Icons.description_outlined),
+                icon: const CandyIcon(Icons.description_outlined),
                 label: Text(skin.csvTemplateButtonLabel),
               ),
             ),
@@ -134,7 +135,7 @@ class _ShopCsvImportPageState extends ConsumerState<ShopCsvImportPage> {
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: _importing ? null : _exportInventory,
-            icon: const Icon(Icons.download_outlined),
+            icon: const CandyIcon(Icons.download_outlined),
             label: Text(skin.csvExportButtonLabel),
           ),
         ),
@@ -166,7 +167,7 @@ class _ShopCsvImportPageState extends ConsumerState<ShopCsvImportPage> {
                     ? '${row.quantity}${row.unit} · ${row.categoryName ?? '默认分类'} · ${row.locationName ?? '默认位置'}'
                     : row.parseError ?? '无效',
               ),
-              trailing: Icon(
+              trailing: CandyIcon(
                 row.isValid ? Icons.check_circle_outline : Icons.error_outline,
                 color: row.isValid ? AppColors.success : AppColors.danger,
                 size: 20,

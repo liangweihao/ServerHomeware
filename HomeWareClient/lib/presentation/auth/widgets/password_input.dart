@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter/services.dart';
 import '../../../core/constants/app_colors.dart';
 
@@ -159,7 +160,7 @@ class _PasswordInputState extends State<PasswordInput> {
                     : null,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 12),
-                  child: Icon(
+                  child: CandyIcon(
                     _obscureText
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,

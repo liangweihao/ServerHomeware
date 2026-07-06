@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -149,7 +150,7 @@ class _ScanPageState extends ConsumerState<ScanPage> {
             icon: ValueListenableBuilder(
               valueListenable: _controller,
               builder: (context, state, child) {
-                return Icon(
+                return CandyIcon(
                   state.torchState == TorchState.on
                       ? Icons.flash_on
                       : Icons.flash_off,

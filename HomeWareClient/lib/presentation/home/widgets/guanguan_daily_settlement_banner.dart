@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -73,7 +74,7 @@ class _GuanguanDailySettlementBannerState
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
             children: [
-              Icon(Icons.celebration_outlined, color: AppColors.success, size: 22),
+              CandyIcon(Icons.celebration_outlined, color: AppColors.success, size: 22),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -101,7 +102,7 @@ class _GuanguanDailySettlementBannerState
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.close, size: 18, color: AppColors.textHint),
+                icon: CandyIcon(Icons.close, size: 18, color: AppColors.textHint),
                 onPressed: () => setState(() => _visible = false),
               ),
             ],

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -34,12 +35,12 @@ class ItemLocationPhotoSection extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
+              leading: const CandyIcon(Icons.photo_library_outlined),
               title: const Text('从相册选择'),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
+              leading: const CandyIcon(Icons.camera_alt_outlined),
               title: const Text('拍照'),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
@@ -99,7 +100,7 @@ class ItemLocationPhotoSection extends StatelessWidget {
             ),
             OutlinedButton.icon(
               onPressed: () => _pickImage(context),
-              icon: const Icon(Icons.add_a_photo_outlined, size: 18),
+              icon: const CandyIcon(Icons.add_a_photo_outlined, size: 18),
               label: const Text('添加'),
             ),
           ],
@@ -135,7 +136,7 @@ class ItemLocationPhotoSection extends StatelessWidget {
                             color: AppColors.danger,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child: const CandyIcon(
                             Icons.close,
                             size: 14,
                             color: Colors.white,

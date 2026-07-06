@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -28,7 +29,7 @@ class HomeSectionListPage extends ConsumerWidget {
       appBar: AppBar(
         title: Text(title),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const CandyIcon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
       ),

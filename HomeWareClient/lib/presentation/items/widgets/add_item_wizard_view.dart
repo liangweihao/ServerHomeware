@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -223,7 +224,7 @@ class _AddItemWizardViewState extends ConsumerState<AddItemWizardView> {
               debugPrint('[AddItemWizard] INFO: 跳转扫码录入');
               context.go('/items/scan');
             },
-            icon: const Icon(Icons.qr_code_scanner_outlined),
+            icon: const CandyIcon(Icons.qr_code_scanner_outlined),
             label: const Text('扫码录入'),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 48),
@@ -276,7 +277,7 @@ class _AddItemWizardViewState extends ConsumerState<AddItemWizardView> {
           Align(
             alignment: Alignment.centerLeft,
             child: Chip(
-              avatar: Icon(Icons.qr_code, size: 16, color: AppColors.textSecondary),
+              avatar: CandyIcon(Icons.qr_code, size: 16, color: AppColors.textSecondary),
               label: Text('条码 ${c.barcode}', style: const TextStyle(fontSize: 12)),
               backgroundColor: AppColors.infoBannerBackground,
               side: const BorderSide(color: AppColors.divider),
@@ -301,7 +302,7 @@ class _AddItemWizardViewState extends ConsumerState<AddItemWizardView> {
                 '分类：${c.selectedCategory!.name}',
                 style: const TextStyle(fontSize: 12),
               ),
-              deleteIcon: const Icon(Icons.edit_outlined, size: 16),
+              deleteIcon: const CandyIcon(Icons.edit_outlined, size: 16),
               onDeleted: () {
                 c.selectedCategory = null;
                 widget.onChanged();
@@ -423,13 +424,13 @@ class _AddItemWizardViewState extends ConsumerState<AddItemWizardView> {
         const SizedBox(height: 16),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: Icon(Icons.shopping_bag_outlined, color: AppColors.textSecondary),
+          leading: CandyIcon(Icons.shopping_bag_outlined, color: AppColors.textSecondary),
           title: Text(
             c.purchaseDate != null
                 ? '购买日期：${AppDatePicker.formatDisplay(c.purchaseDate!)}'
                 : '选择购买日期（可选）',
           ),
-          trailing: const Icon(Icons.chevron_right),
+          trailing: const CandyIcon(Icons.chevron_right),
           onTap: () => _pickDate(context, '选择购买日期', c.purchaseDate, (d) {
             c.purchaseDate = d;
           }),
@@ -440,7 +441,7 @@ class _AddItemWizardViewState extends ConsumerState<AddItemWizardView> {
               c.purchaseDate = null;
               widget.onChanged();
             },
-            icon: const Icon(Icons.clear, size: 18),
+            icon: const CandyIcon(Icons.clear, size: 18),
             label: const Text('清除购买日期'),
           ),
         const SizedBox(height: 16),
@@ -484,7 +485,7 @@ class _AddItemWizardViewState extends ConsumerState<AddItemWizardView> {
         const SizedBox(height: 16),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: Icon(Icons.place_outlined, color: AppColors.textSecondary),
+          leading: CandyIcon(Icons.place_outlined, color: AppColors.textSecondary),
           title: Text(
             c.selectedLocation?.fullPath.replaceAll('/', ' › ') ?? '点击选择位置',
             style: TextStyle(
@@ -493,7 +494,7 @@ class _AddItemWizardViewState extends ConsumerState<AddItemWizardView> {
                   : AppColors.textHint,
             ),
           ),
-          trailing: const Icon(Icons.chevron_right),
+          trailing: const CandyIcon(Icons.chevron_right),
           onTap: () {
             LocationPicker.show(
               context,
@@ -512,7 +513,7 @@ class _AddItemWizardViewState extends ConsumerState<AddItemWizardView> {
               c.selectedLocation = null;
               widget.onChanged();
             },
-            icon: const Icon(Icons.clear, size: 18),
+            icon: const CandyIcon(Icons.clear, size: 18),
             label: const Text('清除位置'),
           ),
         ],
@@ -557,13 +558,13 @@ class _AddItemWizardViewState extends ConsumerState<AddItemWizardView> {
         const SizedBox(height: 16),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: Icon(Icons.event_outlined, color: AppColors.textSecondary),
+          leading: CandyIcon(Icons.event_outlined, color: AppColors.textSecondary),
           title: Text(
             c.expiryDate != null
                 ? '过期日：${AppDatePicker.formatDisplay(c.expiryDate!)}'
                 : '选择过期日期',
           ),
-          trailing: const Icon(Icons.chevron_right),
+          trailing: const CandyIcon(Icons.chevron_right),
           onTap: () => _pickDate(context, '选择过期日期', c.expiryDate, (d) {
             c.expiryDate = d;
           }),
@@ -574,7 +575,7 @@ class _AddItemWizardViewState extends ConsumerState<AddItemWizardView> {
               c.expiryDate = null;
               widget.onChanged();
             },
-            icon: const Icon(Icons.clear, size: 18),
+            icon: const CandyIcon(Icons.clear, size: 18),
             label: const Text('清除过期日'),
           ),
         const SizedBox(height: 16),

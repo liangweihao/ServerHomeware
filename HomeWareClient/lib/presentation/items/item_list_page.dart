@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
@@ -220,7 +221,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
       actions: [
         if (_showScrollToTop)
           IconButton(
-            icon: const Icon(Icons.vertical_align_top),
+            icon: const CandyIcon(Icons.vertical_align_top),
             tooltip: '回到顶部',
             onPressed: () => _scrollController.animateTo(
               0,
@@ -229,7 +230,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
             ),
           ),
         IconButton(
-          icon: const Icon(Icons.qr_code_scanner_outlined),
+          icon: const CandyIcon(Icons.qr_code_scanner_outlined),
           tooltip: '扫码录入',
           onPressed: () {
             debugPrint('[ItemListPage] INFO: 跳转扫码录入');
@@ -271,7 +272,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
           debugPrint('[ItemListPage] INFO: 跳转手动添加物品');
           context.push('/items/add/method');
         },
-        child: const Icon(Icons.add),
+        child: const CandyIcon(Icons.add),
       ),
     );
   }
@@ -334,7 +335,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
-                  Icon(Icons.search, size: 20, color: AppColors.textHint),
+                  CandyIcon(Icons.search, size: 20, color: AppColors.textHint),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
@@ -348,7 +349,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
                         ),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.clear, size: 18),
+                                icon: const CandyIcon(Icons.clear, size: 18),
                                 onPressed: () {
                                   _searchController.clear();
                                   ref.read(itemSearchQueryProvider.notifier).state =
@@ -373,7 +374,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
               icon: Badge(
                 isLabelVisible: hasExtraFilter,
                 smallSize: 8,
-                child: const Icon(Icons.tune),
+                child: const CandyIcon(Icons.tune),
               ),
               tooltip: '筛选与排序',
               onPressed: _openAdvancedFilter,
@@ -442,7 +443,7 @@ class _ItemListPageState extends ConsumerState<ItemListPage>
               ),
               if (categoryFilter != null)
                 IconButton(
-                  icon: const Icon(Icons.close, size: 18),
+                  icon: const CandyIcon(Icons.close, size: 18),
                   onPressed: () {
                     ref.read(categoryFilterProvider.notifier).state = null;
                   },

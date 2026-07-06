@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/space_skin_provider.dart';
@@ -84,7 +85,7 @@ class _QuickConsumeBodyState extends ConsumerState<_QuickConsumeBody> {
                     TextField(
                       decoration: InputDecoration(
                         hintText: '搜索物品名称',
-                        prefixIcon: Icon(Icons.search, color: AppColors.textHint),
+                        prefixIcon: CandyIcon(Icons.search, color: AppColors.textHint),
                         filled: true,
                         fillColor: AppColors.gray100,
                         border: OutlineInputBorder(

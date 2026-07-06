@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -749,7 +750,7 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
       ),
       child: Row(
         children: [
-          Icon(
+          CandyIcon(
             widget.nlPrefill ? Icons.mic_none_outlined : Icons.qr_code_2,
             size: 18,
             color: AppColors.textSecondary,

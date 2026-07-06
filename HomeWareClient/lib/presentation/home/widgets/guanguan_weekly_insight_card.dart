@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/space_skin_config.dart';
@@ -102,7 +103,7 @@ class _WeeklyInsightBody extends StatelessWidget {
                 ),
                 IconButton(
                   visualDensity: VisualDensity.compact,
-                  icon: Icon(Icons.close, size: 18, color: AppColors.textHint),
+                  icon: CandyIcon(Icons.close, size: 18, color: AppColors.textHint),
                   onPressed: onDismiss,
                   tooltip: '本周不再显示',
                 ),
@@ -114,7 +115,7 @@ class _WeeklyInsightBody extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Row(
                   children: [
-                    Icon(
+                    CandyIcon(
                       Icons.circle,
                       size: 6,
                       color: AppColors.accentTeal,
@@ -176,7 +177,7 @@ class _AchievementBadge extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.eco_outlined, color: AppColors.success, size: 22),
+          const CandyIcon(Icons.eco_outlined, color: AppColors.success, size: 22),
           const SizedBox(width: 10),
           Expanded(
             child: Column(

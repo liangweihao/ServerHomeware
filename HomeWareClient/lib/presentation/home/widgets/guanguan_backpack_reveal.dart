@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 
 import '../../../core/constants/app_colors.dart';
 
@@ -80,7 +81,7 @@ class _GuanguanBackpackRevealState extends State<GuanguanBackpackReveal>
           color: bg,
           borderRadius: BorderRadius.circular(widget.size * 0.28),
         ),
-        child: Icon(
+        child: CandyIcon(
           Icons.backpack_outlined,
           size: widget.size * 0.52,
           color: fg,

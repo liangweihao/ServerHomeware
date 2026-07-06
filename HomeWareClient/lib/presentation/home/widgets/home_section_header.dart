@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/home_constants.dart';
@@ -71,7 +72,7 @@ class HomeSectionHeader extends StatelessWidget {
               children: [
                 Text('查看全部', style: TextStyle(fontSize: 14)),
                 SizedBox(width: 2),
-                Icon(Icons.chevron_right, size: 18),
+                CandyIcon(Icons.chevron_right, size: 18),
               ],
             ),
           ),
@@ -100,7 +101,7 @@ class _SectionIcon extends StatelessWidget {
         color: accentColor.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Icon(icon, size: 20, color: accentColor),
+      child: CandyIcon(icon, size: 20, color: accentColor),
     );
   }
 }

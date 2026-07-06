@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -42,7 +43,7 @@ class ItemAlertContextBanner extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(info.iconData, size: 20, color: info.color),
+              CandyIcon(info.iconData, size: 20, color: info.color),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(

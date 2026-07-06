@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -97,7 +98,7 @@ class _CreateFamilyPageState extends ConsumerState<CreateFamilyPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
+          icon: const CandyIcon(Icons.arrow_back_ios),
           onPressed: () => context.pop(),
           color: AppColors.gray700,
         ),
@@ -196,7 +197,7 @@ class _CreateFamilyPageState extends ConsumerState<CreateFamilyPage> {
                                 borderRadius: BorderRadius.circular(8),
                                 borderSide: BorderSide(color: AppColors.primary),
                               ),
-                              prefixIcon: Icon(
+                              prefixIcon: CandyIcon(
                                 _selectedType == SpaceType.shop
                                     ? Icons.storefront_outlined
                                     : Icons.home_outlined,

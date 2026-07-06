@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
@@ -128,7 +129,7 @@ class AlertCard extends ConsumerWidget {
           color: info.color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(info.iconData, color: info.color, size: 22),
+        child: CandyIcon(info.iconData, color: info.color, size: 22),
       );
     }
 

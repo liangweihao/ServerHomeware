@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/icons/app_icon.dart';
+import '../../core/constants/app_radius.dart';
+import '../../core/icons/candy_icon_assets.dart';
 import '../../core/models/space_type.dart';
 import '../../core/auth/shop_role_guard.dart';
 import '../../core/providers/family_role_provider.dart';
@@ -53,7 +57,8 @@ class _AddItemMethodPageState extends ConsumerState<AddItemMethodPage> {
           const SizedBox(height: 16),
           if (skin.spaceType == SpaceType.shop && canCsv)
             _MethodCard(
-              icon: Icons.table_chart_outlined,
+              svgAsset: CandyIconAssets.upload,
+              accent: AppColors.accentTeal,
               title: skin.csvImportTitle,
               subtitle: skin.csvImportSubtitle,
               eta: '批量',
@@ -64,7 +69,8 @@ class _AddItemMethodPageState extends ConsumerState<AddItemMethodPage> {
               },
             ),
           _MethodCard(
-            icon: Icons.mic_none_outlined,
+            svgAsset: CandyIconAssets.mic,
+            accent: AppColors.accentViolet,
             title: '说话添物品',
             subtitle: '一句话描述，自动预填分类、位置与数量',
             eta: '约 15 秒',
@@ -75,7 +81,8 @@ class _AddItemMethodPageState extends ConsumerState<AddItemMethodPage> {
             },
           ),
           _MethodCard(
-            icon: Icons.qr_code_scanner_outlined,
+            svgAsset: CandyIconAssets.scan,
+            accent: AppColors.accentSky,
             title: '扫码录入',
             subtitle: '对准条码，自动识别商品信息',
             eta: '约 10 秒',
@@ -85,7 +92,8 @@ class _AddItemMethodPageState extends ConsumerState<AddItemMethodPage> {
             },
           ),
           _MethodCard(
-            icon: Icons.edit_note_outlined,
+            svgAsset: CandyIconAssets.edit,
+            accent: AppColors.accentCoral,
             title: '手动向导',
             subtitle: '分步填写分类、数量、位置与过期',
             eta: '约 30 秒',
@@ -96,7 +104,8 @@ class _AddItemMethodPageState extends ConsumerState<AddItemMethodPage> {
           ),
           _DraftCard(key: ValueKey(_draftRefreshKey)),
           _MethodCard(
-            icon: Icons.photo_camera_outlined,
+            svgAsset: CandyIconAssets.camera,
+            accent: AppColors.textHint,
             title: '拍照识别',
             subtitle: '拍摄包装或小票，自动填表（即将上线）',
             eta: '敬请期待',
@@ -169,7 +178,8 @@ class _DraftCard extends StatelessWidget {
         ].join(' · ');
 
         return _MethodCard(
-          icon: Icons.restore_outlined,
+          svgAsset: CandyIconAssets.edit,
+          accent: AppColors.accentAmber,
           title: '继续录入',
           subtitle: subtitle,
           eta: '继续上次',
@@ -185,16 +195,20 @@ class _DraftCard extends StatelessWidget {
 
 class _MethodCard extends StatelessWidget {
   const _MethodCard({
-    required this.icon,
+    this.icon,
+    this.svgAsset,
+    this.accent,
     required this.title,
     required this.subtitle,
     required this.eta,
     required this.onTap,
     this.highlight = false,
     this.enabled = true,
-  });
+  }) : assert(icon != null || svgAsset != null);
 
-  final IconData icon;
+  final IconData? icon;
+  final String? svgAsset;
+  final Color? accent;
   final String title;
   final String subtitle;
   final String eta;
@@ -208,10 +222,10 @@ class _MethodCard extends StatelessWidget {
         ? AppColors.primary.withValues(alpha: 0.45)
         : AppColors.homeDivider;
 
-    final iconAccent = enabled
-        ? (highlight ? AppColors.primary : AppColors.textSecondary)
-        : AppColors.textHint;
-    final (wellBg, wellFg) = AppColors.iconWellFor(iconAccent);
+    final iconAccent = accent ??
+        (enabled
+            ? (highlight ? AppColors.primary : AppColors.textSecondary)
+            : AppColors.textHint);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -232,18 +246,7 @@ class _MethodCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: wellBg,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: wellFg,
-                  ),
-                ),
+                _buildLeading(iconAccent),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -288,7 +291,7 @@ class _MethodCard extends StatelessWidget {
                       ),
                     ),
                     if (enabled)
-                      const Icon(
+                      const CandyIcon(
                         Icons.chevron_right,
                         color: AppColors.textHint,
                         size: 20,
@@ -300,6 +303,33 @@ class _MethodCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLeading(Color iconAccent) {
+    if (svgAsset != null) {
+      final (wellBg, wellFg) = AppColors.iconWellFor(iconAccent);
+      return Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: wellBg,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        alignment: Alignment.center,
+        child: AppIcon.svg(
+          asset: svgAsset!,
+          color: wellFg,
+          size: 24,
+          showWell: false,
+        ),
+      );
+    }
+    return AppIcon.feature(
+      icon: icon!,
+      accent: iconAccent,
+      wellSize: 48,
+      iconSize: 24,
     );
   }
 }
@@ -319,9 +349,9 @@ class _SecondaryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: AppColors.textSecondary),
+      leading: CandyIcon(icon, color: AppColors.textSecondary),
       title: Text(title),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+      trailing: const CandyIcon(Icons.chevron_right, color: AppColors.textHint),
       onTap: onTap,
     );
   }

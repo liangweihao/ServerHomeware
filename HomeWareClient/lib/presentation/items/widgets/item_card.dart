@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/config/app_env.dart';
 import '../../../core/constants/app_radius.dart';
@@ -409,7 +410,7 @@ class ItemCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Icon(Icons.chevron_right, color: AppColors.textHint, size: 20),
+                  CandyIcon(Icons.chevron_right, color: AppColors.textHint, size: 20),
                 ],
               ),
             ),

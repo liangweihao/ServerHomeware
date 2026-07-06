@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
@@ -37,12 +38,12 @@ class ItemImagePickerSection extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
+              leading: const CandyIcon(Icons.photo_library_outlined),
               title: const Text('从相册选择'),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
+              leading: const CandyIcon(Icons.camera_alt_outlined),
               title: const Text('拍照'),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
@@ -134,7 +135,7 @@ class ItemImagePickerSection extends StatelessWidget {
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.add_a_photo_outlined,
+                                      CandyIcon(Icons.add_a_photo_outlined,
                                           color: AppColors.primary),
                                       const SizedBox(height: 4),
                                       Text('+ 添加',
@@ -174,7 +175,7 @@ class ItemImagePickerSection extends StatelessWidget {
                                           color: AppColors.danger,
                                           shape: BoxShape.circle,
                                         ),
-                                        child: const Icon(Icons.close,
+                                        child: const CandyIcon(Icons.close,
                                             size: 16, color: Colors.white),
                                       ),
                                     ),
@@ -210,7 +211,7 @@ class ItemImagePickerSection extends StatelessWidget {
             _showManageSheet(context);
           }
         },
-        icon: const Icon(Icons.add_a_photo_outlined, size: 18),
+        icon: const CandyIcon(Icons.add_a_photo_outlined, size: 18),
         label: Text(label),
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
@@ -251,7 +252,7 @@ class ItemImagePickerSection extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.add_a_photo_outlined, color: AppColors.primary),
+                          CandyIcon(Icons.add_a_photo_outlined, color: AppColors.primary),
                           const SizedBox(height: 4),
                           Text('+ 添加',
                               style: TextStyle(fontSize: 12, color: AppColors.primary)),
@@ -285,7 +286,7 @@ class ItemImagePickerSection extends StatelessWidget {
                               color: AppColors.danger,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.close, size: 16, color: Colors.white),
+                            child: const CandyIcon(Icons.close, size: 16, color: Colors.white),
                           ),
                         ),
                       ),

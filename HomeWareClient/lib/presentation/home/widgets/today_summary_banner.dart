@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -95,7 +96,7 @@ class _TodaySummaryBannerState extends ConsumerState<TodaySummaryBanner>
                   children: [
                     ScaleTransition(
                       scale: _pulse,
-                      child: Icon(
+                      child: CandyIcon(
                         Icons.local_fire_department_outlined,
                         size: 20,
                         color: AppColors.primary,
@@ -112,7 +113,7 @@ class _TodaySummaryBannerState extends ConsumerState<TodaySummaryBanner>
                         ),
                       ),
                     ),
-                    Icon(Icons.chevron_right, color: AppColors.textHint),
+                    CandyIcon(Icons.chevron_right, color: AppColors.textHint),
                   ],
                 ),
                 const SizedBox(height: 6),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/providers/home_provider.dart';
@@ -43,7 +44,7 @@ class TodayAlertBanner extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
-                Icon(
+                CandyIcon(
                   Icons.notifications_active_outlined,
                   size: 20,
                   color: AppColors.primaryDark,
@@ -58,7 +59,7 @@ class TodayAlertBanner extends StatelessWidget {
                         ),
                   ),
                 ),
-                Icon(
+                CandyIcon(
                   Icons.chevron_right,
                   size: 20,
                   color: AppColors.primaryDark,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_stock/core/icons/candy_icon.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/home_provider.dart';
@@ -68,7 +69,7 @@ class ActivityItem extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
+            CandyIcon(
               Icons.chevron_right,
               color: AppColors.textHint,
               size: 20,
