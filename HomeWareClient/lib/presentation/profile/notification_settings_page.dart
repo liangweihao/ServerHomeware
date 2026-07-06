@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/icons/candy_icon.dart';
+import '../../core/icons/candy_icons.dart';
 import '../../core/constants/app_colors.dart';
 import '../common/widgets/app_card.dart';
 import '../common/widgets/app_list_row.dart';
@@ -93,14 +95,16 @@ class _NotificationSettingsPageState
             child: Column(
               children: [
                 AppListRow(
-                  icon: Icons.event_outlined,
+                  icon: CandyIcons.event,
+                  accent: AppColors.accentRose,
                   title: '过期提醒默认提前天数',
                   subtitle: '提前 $defaultAlertDays 天提醒',
                   onTap: () => _showAlertDaysDialog(context, defaultAlertDays),
                 ),
                 const AppListDivider(),
                 AppListRow(
-                  icon: Icons.schedule_outlined,
+                  icon: CandyIcons.schedule,
+                  accent: AppColors.accentSky,
                   title: '提醒时间段',
                   subtitle:
                       '${startHour.toString().padLeft(2, '0')}:00 - ${endHour.toString().padLeft(2, '0')}:00',
@@ -115,7 +119,7 @@ class _NotificationSettingsPageState
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.info_outline, color: AppColors.info, size: 20),
+                CandyIcon(CandyIcons.info, color: AppColors.info, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -155,7 +159,7 @@ class _NotificationSettingsPageState
                       onPressed: selectedDays > 1
                           ? () => setState(() => selectedDays--)
                           : null,
-                      icon: const Icon(Icons.remove_circle_outline),
+                      icon: const CandyIcon(CandyIcons.removeCircleOutline),
                     ),
                     SizedBox(
                       width: 60,
@@ -169,7 +173,7 @@ class _NotificationSettingsPageState
                       onPressed: selectedDays < 30
                           ? () => setState(() => selectedDays++)
                           : null,
-                      icon: const Icon(Icons.add_circle_outline),
+                      icon: const CandyIcon(Icons.add_circle_outline),
                     ),
                   ],
                 ),

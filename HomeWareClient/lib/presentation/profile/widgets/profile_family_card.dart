@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/icons/app_icon.dart';
+import '../../../core/icons/candy_icon.dart';
+import '../../../core/icons/candy_icons.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/services/auth_service.dart';
@@ -63,7 +66,12 @@ class ProfileFamilyCard extends StatelessWidget {
       return AppCard(
         child: Column(
           children: [
-            Icon(Icons.cloud_off_outlined, size: 36, color: AppColors.textHint),
+            AppIcon.feature(
+              icon: CandyIcons.cloudOff,
+              accent: AppColors.textHint,
+              wellSize: 48,
+              iconSize: 24,
+            ),
             const SizedBox(height: 12),
             const Text('家庭信息加载失败', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
@@ -190,7 +198,12 @@ class ProfileFamilyCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.key_outlined, size: 18, color: AppColors.textSecondary),
+                AppIcon.feature(
+                  icon: CandyIcons.key,
+                  accent: AppColors.accentAmber,
+                  wellSize: 28,
+                  iconSize: 14,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   '邀请码',
@@ -222,7 +235,7 @@ class ProfileFamilyCard extends StatelessWidget {
                           );
                           onCopyInvite?.call();
                         },
-                  icon: const Icon(Icons.copy_outlined, size: 16),
+                  icon: const CandyIcon(CandyIcons.copy, size: 16),
                   label: const Text('复制'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,
@@ -234,7 +247,7 @@ class ProfileFamilyCard extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: onRefreshInvite,
-                  icon: const Icon(Icons.refresh_outlined, size: 16),
+                  icon: const CandyIcon(CandyIcons.refresh, size: 16),
                   label: const Text('刷新'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.textSecondary,
@@ -250,7 +263,7 @@ class ProfileFamilyCard extends StatelessWidget {
                 debugPrint('[ProfileFamilyCard] INFO: 管理成员');
                 onManageMembers!();
               },
-              icon: const Icon(Icons.people_outline, size: 18),
+              icon: const CandyIcon(CandyIcons.people, size: 18),
               label: const Text('管理家庭成员'),
             ),
           ],

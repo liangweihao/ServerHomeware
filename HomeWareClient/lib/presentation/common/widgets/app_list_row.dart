@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
+import '../../../core/icons/app_icon.dart';
+import '../../../core/icons/candy_icon.dart';
+import '../../../core/icons/candy_icons.dart';
 
-/// 设置/功能列表行 — 工具风 Icon + 标题 / 卡通 emoji 回退
+/// 设置/功能列表行 — 糖果轻点饱和圆角 leading + 标题
 class AppListRow extends StatelessWidget {
   const AppListRow({
     super.key,
@@ -16,9 +19,11 @@ class AppListRow extends StatelessWidget {
     this.onTap,
     this.showChevron = true,
     this.iconColor,
+    this.accent,
   });
 
   final IconData? icon;
+  /// 首字母头像（成员列表等）
   final String? leadingEmoji;
   final String title;
   final String? subtitle;
@@ -27,6 +32,8 @@ class AppListRow extends StatelessWidget {
   final VoidCallback? onTap;
   final bool showChevron;
   final Color? iconColor;
+  /// 饱和 iconWell 点缀色；未传时用 [iconColor] 或默认天蓝
+  final Color? accent;
 
   @override
   Widget build(BuildContext context) {
@@ -85,8 +92,8 @@ class AppListRow extends StatelessWidget {
             if (trailing != null)
               trailing!
             else if (showChevron)
-              const Icon(
-                Icons.chevron_right,
+              const CandyIcon(
+                CandyIcons.chevronRight,
                 size: 20,
                 color: AppColors.textHint,
               ),
@@ -97,31 +104,35 @@ class AppListRow extends StatelessWidget {
   }
 
   Widget _buildLeading() {
-    if (AppColors.isUtilityStyle && icon != null) {
-      final accent = iconColor ?? AppColors.textSecondary;
-      final (wellBg, wellFg) = AppColors.iconWellFor(accent);
+    if (icon != null) {
+      final wellAccent =
+          accent ?? iconColor ?? AppColors.accentSky;
+      return AppIcon.feature(
+        icon: icon!,
+        accent: wellAccent,
+        wellSize: 36,
+        iconSize: 18,
+      );
+    }
+
+    if (leadingEmoji != null) {
       return Container(
         width: 36,
         height: 36,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: wellBg,
+          color: AppColors.gray100,
           borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
-        child: Icon(
-          icon,
-          size: 20,
-          color: wellFg,
+        child: Text(
+          leadingEmoji!,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textSecondary,
+          ),
         ),
       );
-    }
-
-    if (leadingEmoji != null) {
-      return Text(leadingEmoji!, style: const TextStyle(fontSize: 22));
-    }
-
-    if (icon != null) {
-      return Icon(icon, size: 22, color: iconColor ?? AppColors.textSecondary);
     }
 
     return const SizedBox.shrink();

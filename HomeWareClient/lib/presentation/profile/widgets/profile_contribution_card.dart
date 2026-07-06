@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/icons/app_icon.dart';
+import '../../../core/icons/candy_icon.dart';
+import '../../../core/icons/candy_icons.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/models/contribution_stats.dart';
@@ -39,7 +42,12 @@ class ProfileContributionCard extends StatelessWidget {
       return AppCard(
         child: Column(
           children: [
-            Icon(Icons.bar_chart_outlined, size: 36, color: AppColors.textHint),
+            AppIcon.feature(
+              icon: CandyIcons.barChart,
+              accent: AppColors.textHint,
+              wellSize: 48,
+              iconSize: 24,
+            ),
             const SizedBox(height: 12),
             const Text('贡献数据加载失败', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 16),
@@ -90,7 +98,7 @@ class ProfileContributionCard extends StatelessWidget {
                   value: '${s.recordCount}',
                   unit: '件',
                   color: AppColors.success,
-                  icon: Icons.add_box_outlined,
+                  icon: CandyIcons.addBox,
                 ),
               ),
               const SizedBox(width: 10),
@@ -100,7 +108,7 @@ class ProfileContributionCard extends StatelessWidget {
                   value: '${s.consumeCount}',
                   unit: '次',
                   color: AppColors.info,
-                  icon: Icons.trending_down_outlined,
+                  icon: CandyIcons.trendingDown,
                 ),
               ),
             ],
@@ -148,10 +156,10 @@ class _RankMedal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color, icon) = switch (rank) {
-      1 => ('冠军', AppColors.warning, Icons.emoji_events_outlined),
-      2 => ('亚军', AppColors.textSecondary, Icons.military_tech_outlined),
-      3 => ('季军', const Color(0xFFCD7F32), Icons.workspace_premium_outlined),
-      _ => ('第$rank名', AppColors.primary, Icons.leaderboard_outlined),
+      1 => ('冠军', AppColors.warning, CandyIcons.emojiEvents),
+      2 => ('亚军', AppColors.textSecondary, CandyIcons.militaryTech),
+      3 => ('季军', const Color(0xFFCD7F32), CandyIcons.workspacePremium),
+      _ => ('第$rank名', AppColors.primary, CandyIcons.leaderboard),
     };
 
     return Container(
@@ -169,7 +177,7 @@ class _RankMedal extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: color),
+          CandyIcon(icon, size: 16, color: color),
           const SizedBox(width: 4),
           Text(
             label,
@@ -212,7 +220,12 @@ class _MetricTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: color),
+          AppIcon.feature(
+            icon: icon,
+            accent: color,
+            wellSize: 28,
+            iconSize: 14,
+          ),
           const SizedBox(height: 8),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,

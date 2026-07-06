@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/icons/candy_icon.dart';
+import '../../core/icons/candy_icons.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/services/usage_record_sync_service.dart';
@@ -38,7 +40,7 @@ class _FamilyContributionPageState extends ConsumerState<FamilyContributionPage>
           ? null
           : [
               IconButton(
-                icon: const Icon(Icons.ios_share_outlined),
+                icon: const CandyIcon(CandyIcons.share),
                 tooltip: '分享排行榜',
                 onPressed: () => ProfilePodiumShareService.share(
                   context,
@@ -174,7 +176,7 @@ class _ActivityList extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   children: [
-                    Icon(Icons.circle, size: 6, color: AppColors.primary),
+                    CandyIcon(CandyIcons.circle, size: 6, color: AppColors.primary),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -200,7 +202,7 @@ class _ActivityList extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Icon(Icons.chevron_right, size: 18, color: AppColors.textHint),
+                    const CandyIcon(CandyIcons.chevronRight, size: 18, color: AppColors.textHint),
                   ],
                 ),
               ),

@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 
+import '../../../core/icons/candy_icon.dart';
+import '../../../core/icons/candy_icons.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import 'profile_inventory_health.dart';
@@ -232,7 +234,7 @@ class ProfileHealthBanner extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Icon(Icons.chevron_right, color: AppColors.textHint, size: 20),
+                  const CandyIcon(CandyIcons.chevronRight, color: AppColors.textHint, size: 20),
                 ],
               ),
             ),

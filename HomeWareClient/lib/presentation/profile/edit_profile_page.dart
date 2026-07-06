@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/icons/candy_icon.dart';
+import '../../core/icons/candy_icons.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/providers/auth_provider.dart';
@@ -248,8 +250,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2),
                         ),
-                        child: const Icon(
-                          Icons.camera_alt,
+                        child: const CandyIcon(
+                          CandyIcons.cameraAlt,
                           size: 14,
                           color: Colors.white,
                         ),
@@ -417,8 +419,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     children: [
                       const Text('修改密码'),
                       const Spacer(),
-                      Icon(
-                        Icons.chevron_right,
+                      const CandyIcon(
+                        CandyIcons.chevronRight,
                         color: AppColors.gray400,
                       ),
                     ],
@@ -578,7 +580,7 @@ class _AvatarPickerSheet extends StatelessWidget {
                         : null,
                   ),
                   child: isSelected
-                      ? const Icon(Icons.check, color: Colors.white, size: 24)
+                      ? const CandyIcon(CandyIcons.check, color: Colors.white, size: 24)
                       : null,
                 ),
               );

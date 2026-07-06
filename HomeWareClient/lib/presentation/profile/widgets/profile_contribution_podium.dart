@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 
+import '../../../core/icons/candy_icon.dart';
+import '../../../core/icons/candy_icons.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../providers/family_contribution_provider.dart';
@@ -141,7 +143,7 @@ class _PodiumColumn extends StatelessWidget {
             CircleAvatar(
               radius: expanded ? 28 : 22,
               backgroundColor: barColor.withValues(alpha: 0.18),
-              child: Icon(medalIcon, color: barColor, size: expanded ? 26 : 20),
+              child: CandyIcon(medalIcon, color: barColor, size: expanded ? 26 : 20),
             ),
             const SizedBox(height: 6),
             Text(
@@ -279,7 +281,7 @@ class ProfileContributionRankList extends StatelessWidget {
                     ),
                     if (onMemberTap != null) ...[
                       const SizedBox(width: 4),
-                      Icon(Icons.chevron_right, size: 16, color: AppColors.textHint),
+                      const CandyIcon(CandyIcons.chevronRight, size: 16, color: AppColors.textHint),
                     ],
                   ],
                 ),

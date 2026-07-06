@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/icons/candy_icon.dart';
+import '../../../core/icons/candy_icons.dart';
+import '../../../core/icons/preset_icon.dart';
 import '../../../core/services/family_service.dart';
 
 /// 切换家庭底部弹窗组件
@@ -124,11 +127,11 @@ class _SwitchFamilyBottomSheetState extends State<SwitchFamilyBottomSheet> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 8,
       items: [
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'edit',
           child: Row(
             children: [
-              Icon(Icons.edit_outlined, size: 18, color: AppColors.gray700),
+              CandyIcon(CandyIcons.edit, size: 18, color: AppColors.gray700),
               SizedBox(width: 8),
               Text('编辑家庭'),
             ],
@@ -143,8 +146,8 @@ class _SwitchFamilyBottomSheetState extends State<SwitchFamilyBottomSheet> {
             children: [
               Row(
                 children: [
-                  Icon(
-                    Icons.delete_outline,
+                  CandyIcon(
+                    CandyIcons.deleteOutline,
                     size: 18,
                     color: canDelete ? AppColors.danger : AppColors.gray300,
                   ),
@@ -373,7 +376,7 @@ class _SwitchFamilyBottomSheetState extends State<SwitchFamilyBottomSheet> {
         return AlertDialog(
           title: const Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 24),
+              const CandyIcon(Icons.warning_amber_rounded, color: Colors.orange, size: 24),
               SizedBox(width: 8),
               Text('删除家庭'),
             ],
@@ -568,16 +571,18 @@ class _SwitchFamilyBottomSheetState extends State<SwitchFamilyBottomSheet> {
                 Container(
                   width: 40,
                   height: 40,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: isCurrentFamily
                         ? AppColors.primary.withValues(alpha: 0.15)
                         : AppColors.gray100,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    family['icon']?.toString() ?? '🏠',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 20, height: 2.0),
+                  child: PresetIcon(
+                    storageKey: family['icon']?.toString(),
+                    name: familyName,
+                    wellSize: 36,
+                    iconSize: 18,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -621,7 +626,7 @@ class _SwitchFamilyBottomSheetState extends State<SwitchFamilyBottomSheet> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '👥 $memberCount人 · 📦 $itemCount件 · ${_roleLabel(role)}',
+                        '$memberCount 人 · $itemCount 件 · ${_roleLabel(role)}',
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.gray500,
@@ -636,8 +641,8 @@ class _SwitchFamilyBottomSheetState extends State<SwitchFamilyBottomSheet> {
                     behavior: HitTestBehavior.opaque,
                     child: const Padding(
                       padding: EdgeInsets.all(8),
-                      child: Icon(
-                        Icons.more_vert,
+                      child: CandyIcon(
+                        CandyIcons.moreVert,
                         size: 20,
                         color: AppColors.gray400,
                       ),
@@ -709,7 +714,7 @@ class _SwitchFamilyBottomSheetState extends State<SwitchFamilyBottomSheet> {
                       ),
                       IconButton(
                         onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close),
+                        icon: const CandyIcon(CandyIcons.close),
                       ),
                     ],
                   ),

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/icons/candy_icon.dart';
+import '../../../core/icons/candy_icons.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/services/auth_service.dart';
@@ -196,7 +198,7 @@ class MemberContributionDetailBody extends ConsumerWidget {
                         ),
                         child: Row(
                           children: [
-                            Icon(
+                            CandyIcon(
                               _actionIcon(r.type),
                               size: 18,
                               color: AppColors.primary,
@@ -224,8 +226,8 @@ class MemberContributionDetailBody extends ConsumerWidget {
                                 ],
                               ),
                             ),
-                            Icon(
-                              Icons.chevron_right,
+                            const CandyIcon(
+                              CandyIcons.chevronRight,
                               size: 18,
                               color: AppColors.textHint,
                             ),
@@ -245,7 +247,7 @@ class MemberContributionDetailBody extends ConsumerWidget {
             if (isSheet) Navigator.pop(context);
             context.push('/profile/family');
           },
-          icon: const Icon(Icons.people_outline, size: 18),
+          icon: const CandyIcon(CandyIcons.people, size: 18),
           label: const Text('管理家庭成员'),
         ),
       ],
@@ -350,7 +352,7 @@ class MemberRankChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
+          CandyIcon(icon, size: 14, color: color),
           const SizedBox(width: 4),
           Text(
             label,

@@ -4,10 +4,11 @@ import 'package:go_router/go_router.dart';
 import '../../../core/auth/shop_role_guard.dart';
 import '../../../core/config/space_skin_config.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/icons/candy_icons.dart';
 import '../../../core/models/space_type.dart';
 import 'profile_quick_action_grid.dart';
 
-/// 个人中心宫格快捷项配置 — Tab / Panel 共用
+/// 个人中心宫格快捷项配置 — Tab / Panel 共用（糖果轻点圆润图标）
 List<ProfileQuickAction> buildProfileQuickActions(
   BuildContext context, {
   required SpaceSkinConfig skin,
@@ -18,7 +19,7 @@ List<ProfileQuickAction> buildProfileQuickActions(
 }) {
   final items = <ProfileQuickAction>[
     ProfileQuickAction(
-      icon: Icons.inventory_2_outlined,
+      icon: CandyIcons.inventory,
       label: '物品',
       subtitle: '浏览全部库存',
       tint: AppColors.accentCoral,
@@ -27,29 +28,29 @@ List<ProfileQuickAction> buildProfileQuickActions(
       shortcuts: [
         ProfileQuickShortcut(
           label: skin.addItemLabel,
-          icon: Icons.add_circle_outline,
+          icon: CandyIcons.add,
           onTap: () => context.push('/items/add/method'),
         ),
         ProfileQuickShortcut(
           label: '扫码录入',
-          icon: Icons.qr_code_scanner_outlined,
+          icon: CandyIcons.qrScan,
           onTap: () => context.push('/items/scan'),
         ),
         if (skin.showSalePrice && ShopRoleGuard.canBulkImport(skin, familyRole))
           ProfileQuickShortcut(
             label: skin.csvImportTitle,
-            icon: Icons.table_chart_outlined,
+            icon: CandyIcons.table,
             onTap: () => context.push('/items/import/csv'),
           ),
         ProfileQuickShortcut(
           label: '物品列表',
-          icon: Icons.list_alt_outlined,
+          icon: CandyIcons.list,
           onTap: () => context.push('/items'),
         ),
       ],
     ),
     ProfileQuickAction(
-      icon: Icons.notifications_outlined,
+      icon: CandyIcons.notifications,
       label: '提醒',
       subtitle: pendingCount > 0 ? '$pendingCount 项待处理' : '一切正常',
       tint: AppColors.danger,
@@ -59,43 +60,43 @@ List<ProfileQuickAction> buildProfileQuickActions(
       shortcuts: [
         ProfileQuickShortcut(
           label: '临期提醒',
-          icon: Icons.schedule_outlined,
+          icon: CandyIcons.schedule,
           onTap: () => context.push('/alerts?tab=expiry'),
         ),
         ProfileQuickShortcut(
           label: '低库存',
-          icon: Icons.inventory_outlined,
+          icon: CandyIcons.stock,
           onTap: () => context.push('/alerts?tab=stock'),
         ),
         ProfileQuickShortcut(
           label: '全部提醒',
-          icon: Icons.notifications_active_outlined,
+          icon: CandyIcons.notificationsActive,
           onTap: () => context.push('/alerts?tab=all'),
         ),
       ],
     ),
     ProfileQuickAction(
-      icon: Icons.campaign_outlined,
+      icon: CandyIcons.campaign,
       label: '通知',
       tint: AppColors.accentSky,
       onTap: () => context.push('/notifications'),
       shortcuts: [
         ProfileQuickShortcut(
           label: '通知中心',
-          icon: Icons.inbox_outlined,
+          icon: CandyIcons.inbox,
           onTap: () => context.push('/notifications'),
         ),
       ],
     ),
     ProfileQuickAction(
-      icon: Icons.bar_chart_outlined,
+      icon: CandyIcons.barChart,
       label: '统计',
       tint: AppColors.accentSky,
       onTap: () => context.push('/statistics'),
       shortcuts: [
         ProfileQuickShortcut(
           label: '数据统计',
-          icon: Icons.insights_outlined,
+          icon: CandyIcons.insights,
           onTap: () => context.push('/statistics'),
         ),
       ],
@@ -105,64 +106,59 @@ List<ProfileQuickAction> buildProfileQuickActions(
   if (!compact) {
     items.addAll([
       ProfileQuickAction(
-        icon: Icons.shopping_cart_outlined,
+        icon: CandyIcons.shoppingCart,
         label: skin.spaceType == SpaceType.shop ? '采购' : '购物',
         tint: AppColors.accentAmber,
         onTap: () => context.push('/shopping'),
         shortcuts: [
           ProfileQuickShortcut(
             label: skin.shoppingListLabel,
-            icon: Icons.shopping_bag_outlined,
+            icon: CandyIcons.shoppingBag,
             onTap: () => context.push('/shopping'),
           ),
         ],
       ),
       ProfileQuickAction(
-        icon: Icons.checklist_outlined,
+        icon: CandyIcons.checklist,
         label: '盘点',
         tint: AppColors.accentViolet,
         onTap: () => context.push('/profile/inventory'),
         shortcuts: [
           ProfileQuickShortcut(
             label: '盘点任务',
-            icon: Icons.fact_check_outlined,
+            icon: CandyIcons.factCheck,
             onTap: () => context.push('/profile/inventory'),
           ),
         ],
       ),
       ProfileQuickAction(
-        icon: Icons.groups_outlined,
+        icon: CandyIcons.groups,
         label: '协作',
         tint: AppColors.accentTeal,
         onTap: () => context.push('/profile/family/contribution'),
         shortcuts: [
           ProfileQuickShortcut(
             label: '贡献详情',
-            icon: Icons.leaderboard_outlined,
+            icon: CandyIcons.leaderboard,
             onTap: () => context.push('/profile/family/contribution'),
           ),
           ProfileQuickShortcut(
             label: '家庭成员',
-            icon: Icons.people_outline,
+            icon: CandyIcons.people,
             onTap: () => context.push('/profile/family'),
           ),
         ],
       ),
       ProfileQuickAction(
-        icon: Icons.settings_outlined,
+        icon: CandyIcons.settings,
         label: '设置',
         tint: AppColors.textSecondary,
         onTap: () => context.push('/profile/notification-settings'),
         shortcuts: [
           ProfileQuickShortcut(
             label: '提醒设置',
-            icon: Icons.notifications_active_outlined,
+            icon: CandyIcons.notificationsActive,
             onTap: () => context.push('/profile/notification-settings'),
-          ),
-          ProfileQuickShortcut(
-            label: '主题样式',
-            icon: Icons.palette_outlined,
-            onTap: () => context.push('/profile/theme-settings'),
           ),
         ],
       ),

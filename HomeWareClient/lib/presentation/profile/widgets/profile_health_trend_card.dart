@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/icons/candy_icon.dart';
+import '../../../core/icons/candy_icons.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/profile_health_history_provider.dart';
 import '../../../core/services/profile_health_export_service.dart';
@@ -64,7 +66,7 @@ class ProfileHealthTrendCard extends ConsumerWidget {
                   ),
                   IconButton(
                     tooltip: '导出 CSV',
-                    icon: Icon(Icons.ios_share_outlined, color: AppColors.primary),
+                    icon: CandyIcon(CandyIcons.share, color: AppColors.primary),
                     onPressed: () => _exportHealth(context),
                   ),
                 ],

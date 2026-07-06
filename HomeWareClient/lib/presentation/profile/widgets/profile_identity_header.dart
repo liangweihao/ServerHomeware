@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 
+import '../../../core/icons/candy_icon.dart';
+import '../../../core/icons/candy_icons.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/services/auth_service.dart';
@@ -93,7 +95,7 @@ class ProfileIdentityHeader extends StatelessWidget {
                 top: 12,
                 right: health != null ? 88 : 16,
                 child: _DecorIcon(
-                  icon: Icons.kitchen_outlined,
+                  icon: CandyIcons.kitchen,
                   color: (theme?.color ?? AppColors.primary).withValues(alpha: 0.14),
                   size: 28,
                   angle: -0.15,
@@ -103,7 +105,7 @@ class ProfileIdentityHeader extends StatelessWidget {
                 bottom: 18,
                 right: health != null ? 100 : 48,
                 child: _DecorIcon(
-                  icon: Icons.inventory_2_outlined,
+                  icon: CandyIcons.inventory,
                   color: (theme?.color ?? AppColors.warning).withValues(alpha: 0.12),
                   size: 32,
                   angle: 0.12,
@@ -258,7 +260,11 @@ class _EditChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.edit_outlined, size: 14, color: AppColors.textSecondary),
+              const CandyIcon(
+                CandyIcons.edit,
+                size: 14,
+                color: AppColors.textSecondary,
+              ),
               const SizedBox(width: 4),
               Text(
                 '编辑',
@@ -293,7 +299,7 @@ class _DecorIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Transform.rotate(
       angle: angle,
-      child: Icon(icon, size: size, color: color),
+      child: CandyIcon(icon, size: size, color: color),
     );
   }
 }

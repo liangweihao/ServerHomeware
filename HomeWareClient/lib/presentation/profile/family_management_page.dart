@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' as drift;
+import '../../core/icons/candy_icon.dart';
+import '../../core/icons/candy_icons.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/providers/database_provider.dart';
@@ -63,7 +65,7 @@ class FamilyManagementPage extends ConsumerWidget {
       ),
       floatingActionButton: AppFloatingActionButton(
         onPressed: () => _showAddMemberDialog(context, ref),
-        child: const Icon(Icons.add),
+        child: const CandyIcon(CandyIcons.add, color: Colors.white),
       ),
     );
   }

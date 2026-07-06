@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 
+import '../../../core/icons/app_icon.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 
@@ -122,24 +123,11 @@ class _OverviewTile extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Builder(
-                          builder: (context) {
-                            final (wellBg, wellFg) =
-                                AppColors.iconWellFor(data.accentColor);
-                            return Container(
-                              width: 30,
-                              height: 30,
-                              decoration: BoxDecoration(
-                                color: wellBg,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(
-                                data.icon,
-                                size: 17,
-                                color: wellFg,
-                              ),
-                            );
-                          },
+                        AppIcon.feature(
+                          icon: data.icon,
+                          accent: data.accentColor,
+                          wellSize: 30,
+                          iconSize: 17,
                         ),
                         const Spacer(),
                         if (data.urgent) const _PulseDot(),

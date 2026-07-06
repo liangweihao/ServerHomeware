@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 
+import '../../../core/icons/candy_icon.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
+import '../../../core/icons/app_icon.dart';
 import '../../common/widgets/app_card.dart';
 import 'profile_fade_slide_in.dart';
 
@@ -135,9 +137,14 @@ void showProfileQuickShortcutsSheet(
                         height: 36,
                         decoration: BoxDecoration(
                           color: wellBg,
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
-                        child: Icon(action.icon, color: wellFg, size: 20),
+                        child: AppIcon(
+                          icon: action.icon,
+                          color: wellFg,
+                          size: 20,
+                          showWell: false,
+                        ),
                       );
                     },
                   ),
@@ -154,7 +161,12 @@ void showProfileQuickShortcutsSheet(
               const SizedBox(height: 12),
               ...shortcuts.map(
                 (s) => ListTile(
-                  leading: Icon(s.icon, color: action.tint),
+                  leading: AppIcon(
+                    icon: s.icon,
+                    color: action.tint,
+                    size: 22,
+                    showWell: false,
+                  ),
                   title: Text(s.label),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -183,9 +195,6 @@ class _FeaturedCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final utility = AppColors.isUtilityStyle;
-    final (wellBg, wellFg) = AppColors.iconWellFor(action.tint);
-
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -202,36 +211,30 @@ class _FeaturedCell extends StatelessWidget {
           child: Ink(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppRadius.md),
-              color: utility ? AppColors.gray50 : null,
-              gradient: utility
-                  ? null
-                  : LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        action.tint.withValues(alpha: 0.18),
-                        action.tint.withValues(alpha: 0.06),
-                      ],
-                    ),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  action.tint.withValues(alpha: 0.16),
+                  action.tint.withValues(alpha: 0.05),
+                ],
+              ),
               border: Border.all(
-                color: utility
-                    ? AppColors.homeDivider
-                    : action.tint.withValues(alpha: 0.25),
+                color: action.tint.withValues(alpha: 0.2),
               ),
             ),
             child: Stack(
               clipBehavior: Clip.hardEdge,
               children: [
-                if (!utility)
-                  Positioned(
-                    right: -8,
-                    bottom: -8,
-                    child: Icon(
-                      action.icon,
-                      size: 56,
-                      color: action.tint.withValues(alpha: 0.1),
-                    ),
+                Positioned(
+                  right: -8,
+                  bottom: -8,
+                  child: CandyIcon(
+                    action.icon,
+                    size: 56,
+                    color: action.tint.withValues(alpha: 0.08),
                   ),
+                ),
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: Column(
@@ -240,18 +243,11 @@ class _FeaturedCell extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: wellBg,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(
-                              action.icon,
-                              color: wellFg,
-                              size: 20,
-                            ),
+                          AppIcon.feature(
+                            icon: action.icon,
+                            accent: action.tint,
+                            wellSize: 38,
+                            iconSize: 20,
                           ),
                           const Spacer(),
                           if (action.badge != null && action.badge! > 0)
@@ -297,9 +293,6 @@ class _RegularCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final utility = AppColors.isUtilityStyle;
-    final (wellBg, wellFg) = AppColors.iconWellFor(action.tint);
-
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -317,18 +310,11 @@ class _RegularCell extends StatelessWidget {
             Stack(
               clipBehavior: Clip.none,
               children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: wellBg,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Icon(
-                    action.icon,
-                    size: 21,
-                    color: wellFg,
-                  ),
+                AppIcon.feature(
+                  icon: action.icon,
+                  accent: action.tint,
+                  wellSize: 42,
+                  iconSize: 21,
                 ),
                 if (action.badge != null && action.badge! > 0)
                   Positioned(top: -4, right: -6, child: _Badge(count: action.badge!)),

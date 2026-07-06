@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/icons/candy_icon.dart';
+import '../../../core/icons/candy_icons.dart';
 import '../../../core/constants/app_colors.dart';
 import '../providers/family_contribution_provider.dart';
 import '../../common/widgets/app_card.dart';
@@ -181,8 +183,8 @@ class _RecentActivityCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      Icon(
-                        Icons.chevron_right,
+                      const CandyIcon(
+                        CandyIcons.chevronRight,
                         size: 18,
                         color: AppColors.textHint,
                       ),

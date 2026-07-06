@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/icons/app_icon.dart';
+import '../../core/icons/candy_icons.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/models/contribution_stats.dart';
 import '../../core/providers/alert_provider.dart';
@@ -200,7 +202,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                   ProfileOverviewTile(
                     label: '待处理',
                     value: '$pendingCount',
-                    icon: Icons.notifications_active_outlined,
+                    icon: CandyIcons.notificationsActive,
                     accentColor: pendingCount > 0
                         ? AppColors.danger
                         : AppColors.success,
@@ -210,14 +212,14 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                   ProfileOverviewTile(
                     label: '录入本月',
                     value: '${_contributionStats?.recordCount ?? 0}',
-                    icon: Icons.add_box_outlined,
+                    icon: CandyIcons.addBox,
                     accentColor: AppColors.success,
                     onTap: () => context.push('/profile/family/contribution'),
                   ),
                   ProfileOverviewTile(
                     label: '家庭物品',
                     value: '${_familyData?['item_count'] ?? 0}',
-                    icon: Icons.inventory_2_outlined,
+                    icon: CandyIcons.inventory,
                     accentColor: AppColors.primary,
                     onTap: () => context.push('/items'),
                   ),
@@ -303,26 +305,30 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                 child: Column(
                   children: [
                     AppListRow(
-                      icon: Icons.settings_outlined,
+                      icon: CandyIcons.settings,
+                      accent: AppColors.accentRose,
                       title: '提醒设置',
                       onTap: () =>
                           context.push('/profile/notification-settings'),
                     ),
                     const AppListDivider(),
                     AppListRow(
-                      icon: Icons.checklist_outlined,
+                      icon: CandyIcons.checklist,
+                      accent: AppColors.accentViolet,
                       title: '盘点任务',
                       onTap: () => context.push('/profile/inventory'),
                     ),
                     const AppListDivider(),
                     AppListRow(
-                      icon: Icons.upload_outlined,
+                      icon: CandyIcons.upload,
+                      accent: AppColors.accentSky,
                       title: '数据导出',
                       onTap: () => ExportDataDialog.show(context, ref),
                     ),
                     const AppListDivider(),
                     AppListRow(
-                      icon: Icons.palette_outlined,
+                      icon: CandyIcons.palette,
+                      accent: AppColors.accentAmber,
                       title: '主题样式',
                       onTap: () => context.push('/profile/theme-settings'),
                     ),
@@ -356,36 +362,33 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
       RealtimeSyncStatus.connected => (
           '实时同步已连接',
           AppColors.success,
-          Icons.cloud_done_outlined,
+          CandyIcons.cloudDone,
         ),
       RealtimeSyncStatus.connecting => (
           '正在连接实时同步…',
           AppColors.warning,
-          Icons.cloud_sync_outlined,
+          CandyIcons.cloudSync,
         ),
       RealtimeSyncStatus.reconnecting => (
           '实时同步重连中…',
           AppColors.warning,
-          Icons.cloud_sync_outlined,
+          CandyIcons.cloudSync,
         ),
       RealtimeSyncStatus.disconnected => (
           '实时同步未连接',
           AppColors.textHint,
-          Icons.cloud_off_outlined,
+          CandyIcons.cloudOff,
         ),
     };
 
     return AppCard(
       child: Row(
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 20),
+          AppIcon.feature(
+            icon: icon,
+            accent: color,
+            wellSize: 36,
+            iconSize: 18,
           ),
           const SizedBox(width: 12),
           Expanded(

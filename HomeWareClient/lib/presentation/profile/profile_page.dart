@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/icons/candy_icon.dart';
+import '../../core/icons/candy_icons.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/alert_provider.dart';
 import '../../core/providers/auth_provider.dart';
@@ -98,7 +100,7 @@ class ProfilePage extends ConsumerWidget {
                   ProfileOverviewTile(
                     label: '待处理',
                     value: '$pendingCount',
-                    icon: Icons.notifications_active_outlined,
+                    icon: CandyIcons.notificationsActive,
                     accentColor:
                         pendingCount > 0 ? AppColors.danger : AppColors.success,
                     urgent: pendingCount > 0,
@@ -107,7 +109,7 @@ class ProfilePage extends ConsumerWidget {
                   ProfileOverviewTile(
                     label: skin.shoppingListLabel,
                     value: '${stats?.shoppingCount ?? 0}',
-                    icon: Icons.shopping_cart_outlined,
+                    icon: CandyIcons.shoppingCart,
                     accentColor: AppColors.accentAmber,
                     onTap: () => context.push('/shopping'),
                   ),
@@ -116,7 +118,7 @@ class ProfilePage extends ConsumerWidget {
                     value: stats == null
                         ? '—'
                         : '¥${stats.monthlyExpense.toStringAsFixed(0)}',
-                    icon: Icons.account_balance_wallet_outlined,
+                    icon: CandyIcons.wallet,
                     accentColor: AppColors.accentSky,
                     onTap: () => context.push('/statistics'),
                   ),
@@ -153,43 +155,50 @@ class ProfilePage extends ConsumerWidget {
                 child: Column(
                   children: [
                     AppListRow(
-                      icon: Icons.place_outlined,
+                      icon: CandyIcons.place,
+                      accent: AppColors.accentTeal,
                       title: '空间管理',
                       onTap: () => context.push('/locations'),
                     ),
                     const AppListDivider(),
                     AppListRow(
-                      icon: Icons.label_outlined,
+                      icon: CandyIcons.label,
+                      accent: AppColors.accentViolet,
                       title: '分类管理',
                       onTap: () => context.push('/profile/categories'),
                     ),
                     const AppListDivider(),
                     AppListRow(
-                      icon: Icons.people_outline,
+                      icon: CandyIcons.people,
+                      accent: AppColors.accentSky,
                       title: '家庭成员',
                       onTap: () => context.push('/profile/family'),
                     ),
                     const AppListDivider(),
                     AppListRow(
-                      icon: Icons.notifications_active_outlined,
+                      icon: CandyIcons.notificationsActive,
+                      accent: AppColors.accentRose,
                       title: '提醒设置',
                       onTap: () => context.push('/profile/notification-settings'),
                     ),
                     const AppListDivider(),
                     AppListRow(
-                      icon: Icons.palette_outlined,
+                      icon: CandyIcons.palette,
+                      accent: AppColors.accentAmber,
                       title: '主题样式',
                       onTap: () => context.push('/profile/theme-settings'),
                     ),
                     const AppListDivider(),
                     AppListRow(
-                      icon: Icons.upload_outlined,
+                      icon: CandyIcons.upload,
+                      accent: AppColors.accentSky,
                       title: '数据导出',
                       onTap: () => ExportDataDialog.show(context, ref),
                     ),
                     const AppListDivider(),
                     AppListRow(
-                      icon: Icons.info_outline,
+                      icon: CandyIcons.info,
+                      accent: AppColors.gray500,
                       title: '关于 HomeStock',
                       onTap: () => _showAboutDialog(context),
                     ),
@@ -207,7 +216,11 @@ class ProfilePage extends ConsumerWidget {
                     '查看完整个人中心',
                     style: TextStyle(color: AppColors.primary, fontSize: 14),
                   ),
-                  Icon(Icons.chevron_right, size: 18, color: AppColors.primary),
+                  CandyIcon(
+                    CandyIcons.chevronRight,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
                 ],
               ),
             ),
