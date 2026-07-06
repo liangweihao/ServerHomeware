@@ -94,9 +94,16 @@ final itemDetailProvider =
       final serverUnit = data['unit'];
       final serverSafetyStock = data['safety_stock'];
       final serverStatus = data['status'];
+      final serverPurchasePrice = data['purchase_price'];
+      final serverSalePrice = data['sale_price'];
+      final serverSupplier = data['supplier'];
 
       final validPaths = parsed.storagePaths;
-      final needsFieldUpdate = serverPurchaseQty != null || serverCurrentQty != null;
+      final needsFieldUpdate = serverPurchaseQty != null ||
+          serverCurrentQty != null ||
+          serverPurchasePrice != null ||
+          serverSalePrice != null ||
+          serverSupplier != null;
       final needsImageUpdate = validPaths.isNotEmpty;
 
       if (needsFieldUpdate || needsImageUpdate) {
@@ -118,6 +125,15 @@ final itemDetailProvider =
               ? (serverSafetyStock as num).toDouble()
               : null,
           status: serverStatus != null ? (serverStatus as num).toInt() : null,
+          purchasePrice: serverPurchasePrice != null
+              ? Value((serverPurchasePrice as num).toDouble())
+              : const Value.absent(),
+          salePrice: serverSalePrice != null
+              ? Value((serverSalePrice as num).toDouble())
+              : const Value.absent(),
+          supplier: serverSupplier != null
+              ? Value(serverSupplier.toString())
+              : const Value.absent(),
           images: needsImageUpdate
               ? Value(jsonEncode(validPaths))
               : const Value.absent(),

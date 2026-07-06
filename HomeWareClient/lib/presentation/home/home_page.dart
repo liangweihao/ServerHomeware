@@ -7,7 +7,14 @@ import '../../core/events/item_event_bus.dart';
 import '../../core/models/home_section.dart';
 import '../../core/providers/home_provider.dart';
 import 'providers/home_sections_provider.dart';
+import '../../core/providers/shop_daily_sales_provider.dart';
+import 'providers/guanguan_panel_provider.dart';
+import 'providers/guanguan_weekly_insight_provider.dart';
+import 'widgets/guanguan_daily_settlement_banner.dart';
+import 'widgets/guanguan_panel_card.dart';
+import 'widgets/guanguan_weekly_insight_card.dart';
 import 'widgets/home_item_section.dart';
+import 'widgets/shop_daily_sales_card.dart';
 import 'widgets/home_section_shimmer.dart';
 import 'widgets/home_space_section.dart';
 import 'widgets/home_top_bar.dart';
@@ -38,10 +45,16 @@ class HomePage extends ConsumerWidget {
                     debugPrint('[HomePage] INFO: 下拉刷新首页');
                     ref.invalidate(homeSectionsProvider);
                     ref.invalidate(homeStatsProvider);
+                    ref.invalidate(guanguanPanelProvider);
+                    ref.invalidate(guanguanWeeklyInsightProvider);
+                    ref.invalidate(shopDailySalesProvider);
                     ref.read(itemEventBusProvider.notifier).notifyUpdated();
                     await Future.wait([
                       ref.read(homeSectionsProvider.future),
                       ref.read(homeStatsProvider.future),
+                      ref.read(guanguanPanelProvider.future),
+                      ref.read(guanguanWeeklyInsightProvider.future),
+                      ref.read(shopDailySalesProvider.future),
                     ]);
                   },
                   child: sectionsAsync.when(
@@ -115,7 +128,9 @@ class HomePage extends ConsumerWidget {
             final total = stats.expiredCount +
                 stats.expiringCount +
                 stats.lowStockCount;
-            if (total <= 0) return const SizedBox.shrink();
+            if (total <= 0) {
+              return GuanguanDailySettlementBanner(allClear: true);
+            }
             return TodaySummaryBanner(
               stats: stats,
               onOpenAlerts: () {
@@ -127,6 +142,9 @@ class HomePage extends ConsumerWidget {
           loading: () => const SizedBox.shrink(),
           error: (_, __) => const SizedBox.shrink(),
         ),
+        const GuanguanPanelCard(),
+        const ShopDailySalesCard(),
+        const GuanguanWeeklyInsightCard(),
         ...sections.map(
           (section) => Padding(
             padding: const EdgeInsets.only(bottom: 8),

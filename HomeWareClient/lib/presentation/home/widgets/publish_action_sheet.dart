@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/models/space_type.dart';
+import '../../../core/providers/space_skin_provider.dart';
 import '../../items/item_add_draft_storage.dart';
 import '../../items/widgets/quick_consume_sheet.dart';
 
@@ -16,7 +19,8 @@ class PublishActionSheet {
   }
 
   static Future<void> show(BuildContext context, WidgetRef ref) {
-    debugPrint('[PublishActionSheet] INFO: 打开快捷操作');
+    final skin = ref.read(spaceSkinProvider);
+    debugPrint('[PublishActionSheet] INFO: 打开快捷操作 skin=${skin.spaceType.name}');
     return showModalBottomSheet<void>(
       context: context,
       backgroundColor: AppColors.white,
@@ -50,8 +54,10 @@ class PublishActionSheet {
                 const SizedBox(height: 16),
                 _ActionTile(
                   icon: Icons.remove_circle_outline,
-                  title: '记消耗',
-                  subtitle: '选物品，一键用 1 件',
+                  title: skin.consumeActionLabel,
+                  subtitle: skin.spaceType == SpaceType.shop
+                      ? '选商品，一键卖出 1 件'
+                      : '选物品，一键用 1 件',
                   onTap: () {
                     Navigator.pop(ctx);
                     QuickConsumeSheet.show(context, ref);
@@ -59,8 +65,10 @@ class PublishActionSheet {
                 ),
                 _ActionTile(
                   icon: Icons.inventory_2_outlined,
-                  title: '添加入库',
-                  subtitle: '记录新物品到家庭库存',
+                  title: skin.addItemLabel,
+                  subtitle: skin.spaceType == SpaceType.shop
+                      ? '记录新商品到店库存'
+                      : '记录新物品到家庭库存',
                   onTap: () {
                     Navigator.pop(ctx);
                     context.push('/items/add');
@@ -79,15 +87,6 @@ class PublishActionSheet {
                   onTap: () {
                     Navigator.pop(ctx);
                     context.push('/items/scan');
-                  },
-                ),
-                _ActionTile(
-                  icon: Icons.list_alt_outlined,
-                  title: '要处理',
-                  subtitle: '过期、临期、低库存物品',
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    context.push('/items?tab=action');
                   },
                 ),
               ],

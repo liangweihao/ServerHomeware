@@ -1,17 +1,21 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/assistant/assistant_executor.dart';
 import '../../core/assistant/assistant_models.dart';
+import '../../core/config/space_skin_config.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/providers/database_provider.dart';
+import '../../core/providers/space_skin_provider.dart';
 import '../common/widgets/warm_scaffold.dart';
 import 'widgets/assistant_item_result_list.dart';
+import 'widgets/assistant_mascot_header.dart';
 import 'widgets/assistant_message_bubble.dart';
 
-/// 问管家 — Phase 1 端侧规则对话（查本地库存）
+/// 问管管 — Phase 1 端侧规则对话（查本地库存）
 class AssistantChatPage extends ConsumerStatefulWidget {
   const AssistantChatPage({super.key});
 
@@ -24,25 +28,8 @@ class _AssistantChatPageState extends ConsumerState<AssistantChatPage> {
   final _scrollController = ScrollController();
   final _messages = <AssistantChatMessage>[];
   bool _busy = false;
-  List<String> _lastSuggestions = _welcomeSuggestions;
-
-  static const _welcomeSuggestions = [
-    '厨房有什么',
-    '什么快过期',
-    '库存不足',
-    '有什么要处理',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _messages.add(
-      const AssistantChatMessage(
-        isUser: false,
-        text: '你好，我是家庭物品管家。可以问我物品在哪、某个空间有什么、或哪些需要处理。',
-      ),
-    );
-  }
+  List<String> _lastSuggestions = SpaceSkinConfig.home.assistantSuggestions;
+  bool _welcomeSeeded = false;
 
   @override
   void dispose() {
@@ -65,7 +52,8 @@ class _AssistantChatPageState extends ConsumerState<AssistantChatPage> {
 
     try {
       final db = ref.read(databaseProvider);
-      final executor = AssistantExecutor(db);
+      final skin = ref.read(spaceSkinProvider);
+      final executor = AssistantExecutor(db, skin: skin);
       final reply = await executor.handle(trimmed);
 
       if (!mounted) return;
@@ -75,6 +63,8 @@ class _AssistantChatPageState extends ConsumerState<AssistantChatPage> {
             isUser: false,
             text: reply.text,
             items: reply.items,
+            actionLabel: reply.actionLabel,
+            actionRoute: reply.actionRoute,
           ),
         );
         if (reply.suggestions.isNotEmpty) {
@@ -88,9 +78,9 @@ class _AssistantChatPageState extends ConsumerState<AssistantChatPage> {
       if (!mounted) return;
       setState(() {
         _messages.add(
-          const AssistantChatMessage(
+          AssistantChatMessage(
             isUser: false,
-            text: '查询时出了点问题，请稍后再试。',
+            text: ref.read(spaceSkinProvider).queryError,
           ),
         );
         _busy = false;
@@ -111,10 +101,19 @@ class _AssistantChatPageState extends ConsumerState<AssistantChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final skin = ref.watch(spaceSkinProvider);
+    if (!_welcomeSeeded) {
+      _welcomeSeeded = true;
+      _lastSuggestions = skin.assistantSuggestions;
+      _messages.add(
+        AssistantChatMessage(isUser: false, text: skin.welcomeMessage),
+      );
+    }
     return WarmScaffold(
-      title: '问管家',
+      title: '问管管',
       body: Column(
         children: [
+          const AssistantMascotHeader(),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -126,6 +125,23 @@ class _AssistantChatPageState extends ConsumerState<AssistantChatPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     AssistantMessageBubble(message: msg),
+                    if (!msg.isUser && msg.actionRoute != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: FilledButton.tonalIcon(
+                            onPressed: () {
+                              debugPrint(
+                                '[AssistantChatPage] INFO: 跳转 ${msg.actionRoute}',
+                              );
+                              context.push(msg.actionRoute!);
+                            },
+                            icon: const Icon(Icons.edit_note_outlined, size: 18),
+                            label: Text(msg.actionLabel ?? '去确认'),
+                          ),
+                        ),
+                      ),
                     if (!msg.isUser && msg.items.isNotEmpty)
                       AssistantItemResultList(items: msg.items),
                   ],
@@ -216,7 +232,7 @@ class _InputBar extends StatelessWidget {
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => onSend(),
                 decoration: InputDecoration(
-                  hintText: '例如：厨房有什么、牛奶在哪',
+                  hintText: '问管管：厨房有什么、牛奶在哪',
                   filled: true,
                   fillColor: AppColors.gray100,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

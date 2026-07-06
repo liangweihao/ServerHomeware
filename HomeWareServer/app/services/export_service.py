@@ -176,7 +176,7 @@ class ExportService:
 
         # 写入表头
         writer.writerow([
-            "名称", "品牌", "分类", "位置", "单价", "购买数量", 
+            "名称", "品牌", "分类", "位置", "单价", "售价", "供应商", "购买数量",
             "剩余数量", "单位", "购买日期", "过期日期", "状态"
         ])
 
@@ -188,6 +188,8 @@ class ExportService:
                 categories.get(item.category_id, ""),
                 locations.get(item.location_id, ""),
                 str(item.purchase_price) if item.purchase_price else "",
+                str(item.sale_price) if item.sale_price else "",
+                item.supplier or "",
                 item.purchase_quantity,
                 str(item.current_quantity),
                 item.unit,
@@ -219,6 +221,7 @@ class ExportService:
             "category_id": item.category_id,
             "location_id": item.location_id,
             "purchase_price": float(item.purchase_price) if item.purchase_price else None,
+            "sale_price": float(item.sale_price) if item.sale_price else None,
             "total_price": float(item.total_price) if item.total_price else None,
             "purchase_quantity": item.purchase_quantity,
             "current_quantity": float(item.current_quantity),

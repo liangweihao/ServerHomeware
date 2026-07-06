@@ -8,6 +8,7 @@ from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
+from app.core.space_type import SPACE_TYPE_HOME
 from app.models.base import BaseMixin
 
 
@@ -20,6 +21,12 @@ class Family(Base, BaseMixin):
     invite_code = Column(String(8), unique=True, nullable=False, index=True, comment="邀请码")
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False, comment="创建者ID")
     icon = Column(String(10), default="🏠", comment="家庭图标")
+    space_type = Column(
+        String(20),
+        default=SPACE_TYPE_HOME,
+        nullable=False,
+        comment="空间类型：home 家庭 | shop 小店铺",
+    )
     deleted_at = Column(DateTime, nullable=True, comment="软删除时间")
     
     # 关系定义
@@ -35,7 +42,7 @@ class FamilyMember(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, comment="主键ID")
     family_id = Column(Integer, ForeignKey("families.id"), nullable=False, comment="家庭ID")
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, comment="用户ID")
-    role = Column(String(20), default="member", comment="角色：owner/admin/member")
+    role = Column(String(20), default="member", comment="角色：owner/admin/clerk/member")
     nickname_in_family = Column(String(50), nullable=True, comment="家庭内昵称")
     joined_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), comment="加入时间")
     

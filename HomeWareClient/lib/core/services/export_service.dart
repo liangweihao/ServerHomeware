@@ -136,4 +136,17 @@ class ExportService {
       // Ignore share errors
     }
   }
+
+  /// 将 CSV 文本写入临时文件并返回路径
+  static Future<String> writeCsvToTempFile(
+    String csvContent, {
+    required String prefix,
+  }) async {
+    final directory = await getTemporaryDirectory();
+    final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+    final fileName = '${prefix}_$timestamp.csv';
+    final file = File('${directory.path}/$fileName');
+    await file.writeAsString(csvContent);
+    return file.path;
+  }
 }

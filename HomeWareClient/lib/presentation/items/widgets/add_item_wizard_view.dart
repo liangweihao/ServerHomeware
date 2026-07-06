@@ -6,6 +6,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/auth/shop_role_guard.dart';
+import '../../../core/providers/family_role_provider.dart';
+import '../../../core/providers/space_skin_provider.dart';
 import '../../../core/providers/database_provider.dart';
 import '../../../data/database/app_database.dart';
 import '../category_form_policy.dart';
@@ -371,20 +374,52 @@ class _AddItemWizardViewState extends ConsumerState<AddItemWizardView> {
           ),
           onChanged: (_) => widget.onChanged(),
         ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: c.priceController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-          ],
-          decoration: const InputDecoration(
-            labelText: '单价（可选）',
-            hintText: '例如：12.50',
-            prefixText: '¥ ',
+        if (ShopRoleGuard.canEditPrice(
+          ref.watch(spaceSkinProvider),
+          ref.watch(familyRoleProvider),
+        )) ...[
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: c.priceController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            ],
+            decoration: InputDecoration(
+              labelText: ref.watch(spaceSkinProvider).purchasePriceFieldLabel,
+              hintText: '例如：12.50',
+              prefixText: '¥ ',
+            ),
+            onChanged: (_) => widget.onChanged(),
           ),
-          onChanged: (_) => widget.onChanged(),
-        ),
+          if (ref.watch(spaceSkinProvider).showSalePrice) ...[
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: c.salePriceController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+              ],
+              decoration: InputDecoration(
+                labelText: ref.watch(spaceSkinProvider).salePriceFieldLabel,
+                hintText: '例如：3.50',
+                prefixText: '¥ ',
+              ),
+              onChanged: (_) => widget.onChanged(),
+            ),
+          ],
+          if (ref.watch(spaceSkinProvider).showSupplier) ...[
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: c.supplierController,
+              decoration: InputDecoration(
+                labelText: ref.watch(spaceSkinProvider).supplierFieldLabel,
+                hintText: '例如：某某批发',
+              ),
+              onChanged: (_) => widget.onChanged(),
+            ),
+          ],
+        ],
         const SizedBox(height: 16),
         ListTile(
           contentPadding: EdgeInsets.zero,

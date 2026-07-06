@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_sqflite/drift_sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import '../../core/config/space_shop_seed_data.dart';
 import '../../core/utils/alert_display_helper.dart';
 part 'app_database.g.dart';
 
@@ -43,6 +44,10 @@ class Items extends Table {
   IntColumn get locationId => integer().nullable()();
   TextColumn get containerName => text().nullable()();
   RealColumn get purchasePrice => real().nullable()();
+  /// B+ 售价 — 店铺场景零售价
+  RealColumn get salePrice => real().nullable()();
+  /// B+ 供应商 — 店铺场景
+  TextColumn get supplier => text().nullable()();
   IntColumn get purchaseQuantity => integer().withDefault(const Constant(1))();
   TextColumn get packageUnit => text().nullable()();
   IntColumn get packageQuantity => integer().withDefault(const Constant(1))();
@@ -136,7 +141,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(_openConnection());
   
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -153,6 +158,12 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 4) {
           await m.addColumn(items, items.serverItemId);
+        }
+        if (from < 5) {
+          await m.addColumn(items, items.salePrice);
+        }
+        if (from < 6) {
+          await m.addColumn(items, items.supplier);
         }
       },
     );
@@ -210,6 +221,16 @@ class AppDatabase extends _$AppDatabase {
   // 根据 ID 获取分类
   Future<Category?> getCategoryById(int id) {
     return (select(categories)..where((c) => c.id.equals(id))).getSingleOrNull();
+  }
+
+  /// 获取全部顶级 + 子分类（CSV 进货名称匹配）
+  Future<List<Category>> getAllCategoriesFlat() async {
+    final tops = await getTopLevelCategories();
+    final all = <Category>[...tops];
+    for (final t in tops) {
+      all.addAll(await getChildCategories(t.id));
+    }
+    return all;
   }
 
   // ==================== Locations DAO ====================
@@ -350,6 +371,38 @@ class AppDatabase extends _$AppDatabase {
     return (select(usageRecords)
           ..orderBy([(r) => OrderingTerm(expression: r.createdAt, mode: OrderingMode.desc)])
           ..limit(limit))
+        .get();
+  }
+
+  /// B+ 日销：某时刻起的 usage 记录（可选 type 过滤）
+  Future<List<UsageRecord>> getUsageRecordsSince(
+    DateTime since, {
+    int? type,
+  }) {
+    return (select(usageRecords)
+          ..where((r) {
+            var expr = r.createdAt.isBiggerOrEqualValue(since);
+            if (type != null) {
+              expr = expr & r.type.equals(type);
+            }
+            return expr;
+          })
+          ..orderBy([(r) => OrderingTerm(expression: r.createdAt, mode: OrderingMode.desc)]))
+        .get();
+  }
+
+  /// B+ 日销：单物品某时刻起的 usage 记录
+  Future<List<UsageRecord>> getUsageRecordsByItemSince(
+    int itemId,
+    DateTime since,
+  ) {
+    return (select(usageRecords)
+          ..where(
+            (r) =>
+                r.itemId.equals(itemId) &
+                r.createdAt.isBiggerOrEqualValue(since),
+          )
+          ..orderBy([(r) => OrderingTerm(expression: r.createdAt, mode: OrderingMode.desc)]))
         .get();
   }
 
@@ -879,5 +932,48 @@ class AppDatabase extends _$AppDatabase {
         ]);
       });
     }
+  }
+
+  /// 是否已有物品（有则不再替换预设模板）
+  Future<bool> hasAnyItems() async {
+    final rows = await (select(items)..limit(1)).get();
+    return rows.isNotEmpty;
+  }
+
+  /// 是否已存在指定名称的分类
+  Future<bool> hasCategoryNamed(String name) async {
+    final rows = await (select(categories)
+          ..where((c) => c.name.equals(name))
+          ..limit(1))
+        .get();
+    return rows.isNotEmpty;
+  }
+
+  /// 清空本地分类与位置（仅用于无物品时的模板切换）
+  Future<void> clearCategoriesAndLocations() async {
+    await delete(locations).go();
+    await delete(categories).go();
+    debugPrint('[DB] INFO: 已清空本地分类与位置');
+  }
+
+  /// B3 — 店铺空间首次 seed：无物品且未应用过店铺模板时写入
+  Future<void> seedShopPresetIfNeeded() async {
+    if (await hasAnyItems()) {
+      debugPrint('[DB] WARN: 已有物品，跳过店铺模板 seed');
+      return;
+    }
+    if (await hasCategoryNamed(SpaceShopSeedData.markerCategoryName)) {
+      debugPrint('[DB] INFO: 店铺模板已存在，跳过');
+      return;
+    }
+
+    debugPrint('[DB] INFO: 应用店铺默认分类与位置模板');
+    await transaction(() async {
+      await clearCategoriesAndLocations();
+      await batch((batch) {
+        batch.insertAll(categories, SpaceShopSeedData.categoryCompanions());
+        batch.insertAll(locations, SpaceShopSeedData.locationCompanions());
+      });
+    });
   }
 }

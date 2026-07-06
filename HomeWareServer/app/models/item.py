@@ -25,6 +25,8 @@ class Item(Base, BaseMixin):
     
     # 价格相关
     purchase_price = Column(Numeric(10, 2), nullable=True, comment="购买单价")
+    sale_price = Column(Numeric(10, 2), nullable=True, comment="售价（店铺场景）")
+    supplier = Column(String(100), nullable=True, comment="供应商（店铺场景）")
     total_price = Column(Numeric(10, 2), nullable=True, comment="总价")
     purchase_quantity = Column(Integer, default=1, comment="购买数量（包装数）")
     package_unit = Column(String(10), nullable=True, comment="包装单位（盒/箱/提）")

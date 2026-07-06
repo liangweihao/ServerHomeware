@@ -1136,6 +1136,28 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _salePriceMeta = const VerificationMeta(
+    'salePrice',
+  );
+  @override
+  late final GeneratedColumn<double> salePrice = GeneratedColumn<double>(
+    'sale_price',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _supplierMeta = const VerificationMeta(
+    'supplier',
+  );
+  @override
+  late final GeneratedColumn<String> supplier = GeneratedColumn<String>(
+    'supplier',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _purchaseQuantityMeta = const VerificationMeta(
     'purchaseQuantity',
   );
@@ -1417,6 +1439,8 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     locationId,
     containerName,
     purchasePrice,
+    salePrice,
+    supplier,
     purchaseQuantity,
     packageUnit,
     packageQuantity,
@@ -1516,6 +1540,18 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
           data['purchase_price']!,
           _purchasePriceMeta,
         ),
+      );
+    }
+    if (data.containsKey('sale_price')) {
+      context.handle(
+        _salePriceMeta,
+        salePrice.isAcceptableOrUnknown(data['sale_price']!, _salePriceMeta),
+      );
+    }
+    if (data.containsKey('supplier')) {
+      context.handle(
+        _supplierMeta,
+        supplier.isAcceptableOrUnknown(data['supplier']!, _supplierMeta),
       );
     }
     if (data.containsKey('purchase_quantity')) {
@@ -1752,6 +1788,14 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.double,
         data['${effectivePrefix}purchase_price'],
       ),
+      salePrice: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}sale_price'],
+      ),
+      supplier: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}supplier'],
+      ),
       purchaseQuantity: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}purchase_quantity'],
@@ -1867,6 +1911,12 @@ class Item extends DataClass implements Insertable<Item> {
   final int? locationId;
   final String? containerName;
   final double? purchasePrice;
+
+  /// B+ 售价 — 店铺场景零售价
+  final double? salePrice;
+
+  /// B+ 供应商 — 店铺场景
+  final String? supplier;
   final int purchaseQuantity;
   final String? packageUnit;
   final int packageQuantity;
@@ -1903,6 +1953,8 @@ class Item extends DataClass implements Insertable<Item> {
     this.locationId,
     this.containerName,
     this.purchasePrice,
+    this.salePrice,
+    this.supplier,
     required this.purchaseQuantity,
     this.packageUnit,
     required this.packageQuantity,
@@ -1951,6 +2003,12 @@ class Item extends DataClass implements Insertable<Item> {
     }
     if (!nullToAbsent || purchasePrice != null) {
       map['purchase_price'] = Variable<double>(purchasePrice);
+    }
+    if (!nullToAbsent || salePrice != null) {
+      map['sale_price'] = Variable<double>(salePrice);
+    }
+    if (!nullToAbsent || supplier != null) {
+      map['supplier'] = Variable<String>(supplier);
     }
     map['purchase_quantity'] = Variable<int>(purchaseQuantity);
     if (!nullToAbsent || packageUnit != null) {
@@ -2030,6 +2088,12 @@ class Item extends DataClass implements Insertable<Item> {
       purchasePrice: purchasePrice == null && nullToAbsent
           ? const Value.absent()
           : Value(purchasePrice),
+      salePrice: salePrice == null && nullToAbsent
+          ? const Value.absent()
+          : Value(salePrice),
+      supplier: supplier == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supplier),
       purchaseQuantity: Value(purchaseQuantity),
       packageUnit: packageUnit == null && nullToAbsent
           ? const Value.absent()
@@ -2100,6 +2164,8 @@ class Item extends DataClass implements Insertable<Item> {
       locationId: serializer.fromJson<int?>(json['locationId']),
       containerName: serializer.fromJson<String?>(json['containerName']),
       purchasePrice: serializer.fromJson<double?>(json['purchasePrice']),
+      salePrice: serializer.fromJson<double?>(json['salePrice']),
+      supplier: serializer.fromJson<String?>(json['supplier']),
       purchaseQuantity: serializer.fromJson<int>(json['purchaseQuantity']),
       packageUnit: serializer.fromJson<String?>(json['packageUnit']),
       packageQuantity: serializer.fromJson<int>(json['packageQuantity']),
@@ -2143,6 +2209,8 @@ class Item extends DataClass implements Insertable<Item> {
       'locationId': serializer.toJson<int?>(locationId),
       'containerName': serializer.toJson<String?>(containerName),
       'purchasePrice': serializer.toJson<double?>(purchasePrice),
+      'salePrice': serializer.toJson<double?>(salePrice),
+      'supplier': serializer.toJson<String?>(supplier),
       'purchaseQuantity': serializer.toJson<int>(purchaseQuantity),
       'packageUnit': serializer.toJson<String?>(packageUnit),
       'packageQuantity': serializer.toJson<int>(packageQuantity),
@@ -2180,6 +2248,8 @@ class Item extends DataClass implements Insertable<Item> {
     Value<int?> locationId = const Value.absent(),
     Value<String?> containerName = const Value.absent(),
     Value<double?> purchasePrice = const Value.absent(),
+    Value<double?> salePrice = const Value.absent(),
+    Value<String?> supplier = const Value.absent(),
     int? purchaseQuantity,
     Value<String?> packageUnit = const Value.absent(),
     int? packageQuantity,
@@ -2220,6 +2290,8 @@ class Item extends DataClass implements Insertable<Item> {
     purchasePrice: purchasePrice.present
         ? purchasePrice.value
         : this.purchasePrice,
+    salePrice: salePrice.present ? salePrice.value : this.salePrice,
+    supplier: supplier.present ? supplier.value : this.supplier,
     purchaseQuantity: purchaseQuantity ?? this.purchaseQuantity,
     packageUnit: packageUnit.present ? packageUnit.value : this.packageUnit,
     packageQuantity: packageQuantity ?? this.packageQuantity,
@@ -2278,6 +2350,8 @@ class Item extends DataClass implements Insertable<Item> {
       purchasePrice: data.purchasePrice.present
           ? data.purchasePrice.value
           : this.purchasePrice,
+      salePrice: data.salePrice.present ? data.salePrice.value : this.salePrice,
+      supplier: data.supplier.present ? data.supplier.value : this.supplier,
       purchaseQuantity: data.purchaseQuantity.present
           ? data.purchaseQuantity.value
           : this.purchaseQuantity,
@@ -2353,6 +2427,8 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('locationId: $locationId, ')
           ..write('containerName: $containerName, ')
           ..write('purchasePrice: $purchasePrice, ')
+          ..write('salePrice: $salePrice, ')
+          ..write('supplier: $supplier, ')
           ..write('purchaseQuantity: $purchaseQuantity, ')
           ..write('packageUnit: $packageUnit, ')
           ..write('packageQuantity: $packageQuantity, ')
@@ -2392,6 +2468,8 @@ class Item extends DataClass implements Insertable<Item> {
     locationId,
     containerName,
     purchasePrice,
+    salePrice,
+    supplier,
     purchaseQuantity,
     packageUnit,
     packageQuantity,
@@ -2430,6 +2508,8 @@ class Item extends DataClass implements Insertable<Item> {
           other.locationId == this.locationId &&
           other.containerName == this.containerName &&
           other.purchasePrice == this.purchasePrice &&
+          other.salePrice == this.salePrice &&
+          other.supplier == this.supplier &&
           other.purchaseQuantity == this.purchaseQuantity &&
           other.packageUnit == this.packageUnit &&
           other.packageQuantity == this.packageQuantity &&
@@ -2466,6 +2546,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<int?> locationId;
   final Value<String?> containerName;
   final Value<double?> purchasePrice;
+  final Value<double?> salePrice;
+  final Value<String?> supplier;
   final Value<int> purchaseQuantity;
   final Value<String?> packageUnit;
   final Value<int> packageQuantity;
@@ -2500,6 +2582,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.locationId = const Value.absent(),
     this.containerName = const Value.absent(),
     this.purchasePrice = const Value.absent(),
+    this.salePrice = const Value.absent(),
+    this.supplier = const Value.absent(),
     this.purchaseQuantity = const Value.absent(),
     this.packageUnit = const Value.absent(),
     this.packageQuantity = const Value.absent(),
@@ -2535,6 +2619,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.locationId = const Value.absent(),
     this.containerName = const Value.absent(),
     this.purchasePrice = const Value.absent(),
+    this.salePrice = const Value.absent(),
+    this.supplier = const Value.absent(),
     this.purchaseQuantity = const Value.absent(),
     this.packageUnit = const Value.absent(),
     this.packageQuantity = const Value.absent(),
@@ -2571,6 +2657,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<int>? locationId,
     Expression<String>? containerName,
     Expression<double>? purchasePrice,
+    Expression<double>? salePrice,
+    Expression<String>? supplier,
     Expression<int>? purchaseQuantity,
     Expression<String>? packageUnit,
     Expression<int>? packageQuantity,
@@ -2606,6 +2694,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (locationId != null) 'location_id': locationId,
       if (containerName != null) 'container_name': containerName,
       if (purchasePrice != null) 'purchase_price': purchasePrice,
+      if (salePrice != null) 'sale_price': salePrice,
+      if (supplier != null) 'supplier': supplier,
       if (purchaseQuantity != null) 'purchase_quantity': purchaseQuantity,
       if (packageUnit != null) 'package_unit': packageUnit,
       if (packageQuantity != null) 'package_quantity': packageQuantity,
@@ -2645,6 +2735,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<int?>? locationId,
     Value<String?>? containerName,
     Value<double?>? purchasePrice,
+    Value<double?>? salePrice,
+    Value<String?>? supplier,
     Value<int>? purchaseQuantity,
     Value<String?>? packageUnit,
     Value<int>? packageQuantity,
@@ -2680,6 +2772,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       locationId: locationId ?? this.locationId,
       containerName: containerName ?? this.containerName,
       purchasePrice: purchasePrice ?? this.purchasePrice,
+      salePrice: salePrice ?? this.salePrice,
+      supplier: supplier ?? this.supplier,
       purchaseQuantity: purchaseQuantity ?? this.purchaseQuantity,
       packageUnit: packageUnit ?? this.packageUnit,
       packageQuantity: packageQuantity ?? this.packageQuantity,
@@ -2736,6 +2830,12 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     }
     if (purchasePrice.present) {
       map['purchase_price'] = Variable<double>(purchasePrice.value);
+    }
+    if (salePrice.present) {
+      map['sale_price'] = Variable<double>(salePrice.value);
+    }
+    if (supplier.present) {
+      map['supplier'] = Variable<String>(supplier.value);
     }
     if (purchaseQuantity.present) {
       map['purchase_quantity'] = Variable<int>(purchaseQuantity.value);
@@ -2828,6 +2928,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('locationId: $locationId, ')
           ..write('containerName: $containerName, ')
           ..write('purchasePrice: $purchasePrice, ')
+          ..write('salePrice: $salePrice, ')
+          ..write('supplier: $supplier, ')
           ..write('purchaseQuantity: $purchaseQuantity, ')
           ..write('packageUnit: $packageUnit, ')
           ..write('packageQuantity: $packageQuantity, ')
@@ -5276,6 +5378,8 @@ typedef $$ItemsTableCreateCompanionBuilder =
       Value<int?> locationId,
       Value<String?> containerName,
       Value<double?> purchasePrice,
+      Value<double?> salePrice,
+      Value<String?> supplier,
       Value<int> purchaseQuantity,
       Value<String?> packageUnit,
       Value<int> packageQuantity,
@@ -5312,6 +5416,8 @@ typedef $$ItemsTableUpdateCompanionBuilder =
       Value<int?> locationId,
       Value<String?> containerName,
       Value<double?> purchasePrice,
+      Value<double?> salePrice,
+      Value<String?> supplier,
       Value<int> purchaseQuantity,
       Value<String?> packageUnit,
       Value<int> packageQuantity,
@@ -5388,6 +5494,16 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<double> get purchasePrice => $composableBuilder(
     column: $table.purchasePrice,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get salePrice => $composableBuilder(
+    column: $table.salePrice,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get supplier => $composableBuilder(
+    column: $table.supplier,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5566,6 +5682,16 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get salePrice => $composableBuilder(
+    column: $table.salePrice,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get supplier => $composableBuilder(
+    column: $table.supplier,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get purchaseQuantity => $composableBuilder(
     column: $table.purchaseQuantity,
     builder: (column) => ColumnOrderings(column),
@@ -5733,6 +5859,12 @@ class $$ItemsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<double> get salePrice =>
+      $composableBuilder(column: $table.salePrice, builder: (column) => column);
+
+  GeneratedColumn<String> get supplier =>
+      $composableBuilder(column: $table.supplier, builder: (column) => column);
+
   GeneratedColumn<int> get purchaseQuantity => $composableBuilder(
     column: $table.purchaseQuantity,
     builder: (column) => column,
@@ -5879,6 +6011,8 @@ class $$ItemsTableTableManager
                 Value<int?> locationId = const Value.absent(),
                 Value<String?> containerName = const Value.absent(),
                 Value<double?> purchasePrice = const Value.absent(),
+                Value<double?> salePrice = const Value.absent(),
+                Value<String?> supplier = const Value.absent(),
                 Value<int> purchaseQuantity = const Value.absent(),
                 Value<String?> packageUnit = const Value.absent(),
                 Value<int> packageQuantity = const Value.absent(),
@@ -5913,6 +6047,8 @@ class $$ItemsTableTableManager
                 locationId: locationId,
                 containerName: containerName,
                 purchasePrice: purchasePrice,
+                salePrice: salePrice,
+                supplier: supplier,
                 purchaseQuantity: purchaseQuantity,
                 packageUnit: packageUnit,
                 packageQuantity: packageQuantity,
@@ -5949,6 +6085,8 @@ class $$ItemsTableTableManager
                 Value<int?> locationId = const Value.absent(),
                 Value<String?> containerName = const Value.absent(),
                 Value<double?> purchasePrice = const Value.absent(),
+                Value<double?> salePrice = const Value.absent(),
+                Value<String?> supplier = const Value.absent(),
                 Value<int> purchaseQuantity = const Value.absent(),
                 Value<String?> packageUnit = const Value.absent(),
                 Value<int> packageQuantity = const Value.absent(),
@@ -5983,6 +6121,8 @@ class $$ItemsTableTableManager
                 locationId: locationId,
                 containerName: containerName,
                 purchasePrice: purchasePrice,
+                salePrice: salePrice,
+                supplier: supplier,
                 purchaseQuantity: purchaseQuantity,
                 packageUnit: packageUnit,
                 packageQuantity: packageQuantity,

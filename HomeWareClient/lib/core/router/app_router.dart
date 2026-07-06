@@ -5,6 +5,7 @@ import '../../presentation/items/item_list_page.dart';
 import '../../presentation/items/item_detail_page.dart';
 import '../../presentation/items/add_item_page.dart';
 import '../../presentation/items/add_item_method_page.dart';
+import '../../presentation/items/shop_csv_import_page.dart';
 import '../../presentation/inventory/inventory_task_page.dart';
 import '../../presentation/items/widgets/add_item_wizard_view.dart';
 import '../../presentation/items/edit_item_page.dart';
@@ -17,6 +18,7 @@ import '../../presentation/profile/family_contribution_page.dart';
 import '../../presentation/profile/edit_profile_page.dart';
 import '../../presentation/profile/category_management_page.dart';
 import '../../presentation/profile/family_management_page.dart';
+import '../../presentation/profile/shop_family_members_page.dart';
 import '../../presentation/profile/member_contribution_detail_page.dart';
 import '../../presentation/profile/widgets/member_contribution_navigation.dart';
 import '../../presentation/profile/theme_settings_page.dart';
@@ -232,16 +234,25 @@ final appRouter = GoRouter(
         final barcode = state.uri.queryParameters['barcode'];
         final initialName = state.uri.queryParameters['name'];
         final resumeDraft = state.uri.queryParameters['resumeDraft'] == '1';
+        final nlPrefill = state.uri.queryParameters['nlPrefill'] == '1';
         final stepParam = state.uri.queryParameters['step'];
         return SlideTransitionPage(
           child: AddItemPage(
             initialBarcode: barcode,
             initialName: initialName,
             resumeDraft: resumeDraft,
+            nlPrefill: nlPrefill,
             initialStep: addItemWizardStepFromQuery(stepParam),
           ),
         );
       },
+    ),
+    GoRoute(
+      path: '/items/import/csv',
+      name: 'shopCsvImport',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const ShopCsvImportPage(),
+      ),
     ),
     GoRoute(
       path: '/items/scan',
@@ -350,6 +361,13 @@ final appRouter = GoRouter(
           ),
         );
       },
+    ),
+    GoRoute(
+      path: '/profile/family/roles',
+      name: 'shopFamilyRoles',
+      pageBuilder: (context, state) => SlideTransitionPage(
+        child: const ShopFamilyMembersPage(),
+      ),
     ),
     GoRoute(
       path: '/profile/family',

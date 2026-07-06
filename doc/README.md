@@ -10,7 +10,7 @@
 | 读者 | 推荐路径 |
 |------|----------|
 | **新成员快速了解** | [core/system-overview.md](core/system-overview.md) → [core/modules/](core/modules/) → [core/business-flows.md](core/business-flows.md) |
-| 产品 / PM | [product/current-phase.md](product/current-phase.md) → [product/vision.md](product/vision.md) → [product/roadmap.md](product/roadmap.md) |
+| 产品 / PM | [product/current-phase.md](product/current-phase.md) → [product/phase-b-gate.md](product/phase-b-gate.md) → [product/vision.md](product/vision.md) |
 | 前端 / UI | [design/ui_system.md](design/ui_system.md) → [design/information-architecture.md](design/information-architecture.md) |
 | 客户端开发 | [client/architecture.md](client/architecture.md) + [core/business-flows.md](core/business-flows.md) |
 | 后端开发 | [server/architecture.md](server/architecture.md) → [server/api-reference.md](server/api-reference.md) |
@@ -36,6 +36,11 @@ doc/
 │       └── ui-and-home.md             UI 体系、单页首页
 ├── product/                           产品与规划
 │   ├── current-phase.md               ★ Phase A 方向与里程碑（现行）
+│   ├── phase-a-gate.md                ★ Phase A Gate 走查清单
+│   ├── phase-b-shop-skin-prd.md       ★ Phase B 小店铺皮肤 PRD
+│   ├── phase-b-milestones.md          Phase B 里程碑 B1～B4
+│   ├── phase-b-gate.md                ★ Phase B Gate 走查（暂定通过）
+│   ├── guanguan-butler-panel-prd.md   管管管家面板 PRD
 │   ├── vision.md                      产品愿景与核心维度
 │   ├── roadmap.md                     已交付 vs 规划中功能
 │   └── prd/                           功能 PRD

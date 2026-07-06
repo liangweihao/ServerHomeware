@@ -51,7 +51,8 @@ async def create_family(
     family_service = FamilyService(db)
     family = await family_service.create_family(
         name=request.name,
-        owner_id=current_user.id
+        owner_id=current_user.id,
+        space_type=request.space_type,
     )
     
     return ResponseSchema(
@@ -144,9 +145,10 @@ async def update_member_role(
 ):
     family_service = FamilyService(db)
     await family_service.update_member_role(
+        operator_id=current_user.id,
         family_id=family_id,
         user_id=user_id,
-        role=request.role
+        role=request.role,
     )
     
     return ResponseSchema(
@@ -167,6 +169,14 @@ async def get_current_family_detail(
     """
     family_service = FamilyService(db)
     
+    # 当前用户在家庭中的角色
+    members = await family_service.get_family_members(current_family_id)
+    current_role = "member"
+    for m in members:
+        if m.user_id == current_user.id:
+            current_role = m.role
+            break
+    
     # 获取家庭信息
     family = await family_service.get_family_by_id(current_family_id)
     if not family:
@@ -175,9 +185,6 @@ async def get_current_family_detail(
             message="家庭不存在",
             data=None
         )
-    
-    # 获取成员列表
-    members = await family_service.get_family_members(current_family_id)
     
     # 获取物品统计
     item_count = await family_service.get_family_item_count(current_family_id)
@@ -190,6 +197,9 @@ async def get_current_family_detail(
             "name": family.name,
             "invite_code": family.invite_code,
             "owner_id": family.owner_id,
+            "icon": family.icon or "🏠",
+            "space_type": getattr(family, "space_type", "home") or "home",
+            "current_user_role": current_role,
             "member_count": len(members),
             "item_count": item_count,
             "members": [FamilyMemberResponse.from_orm(m) for m in members],

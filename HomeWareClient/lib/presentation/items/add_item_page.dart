@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../../core/constants/app_colors.dart';
+import '../../core/assistant/guanguan_copy.dart';
 import '../../core/events/item_event_bus.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/services/barcode_service.dart';
@@ -19,6 +20,8 @@ import '../common/widgets/app_button.dart';
 import '../common/widgets/warm_scaffold.dart';
 import 'category_form_policy.dart';
 import 'item_add_draft_storage.dart';
+import 'add_item_nl_applier.dart';
+import 'item_add_nl_prefill_storage.dart';
 import 'item_form_controller.dart';
 import 'widgets/add_item_wizard_view.dart';
 
@@ -30,6 +33,7 @@ class AddItemPage extends ConsumerStatefulWidget {
     this.initialName,
     this.initialStep,
     this.resumeDraft = false,
+    this.nlPrefill = false,
   });
 
   /// 路由 query `barcode` — 扫码跳转预填
@@ -43,6 +47,9 @@ class AddItemPage extends ConsumerStatefulWidget {
 
   /// 路由 query `resumeDraft=1` — 直接恢复草稿
   final bool resumeDraft;
+
+  /// 路由 query `nlPrefill=1` — M5 规则 NL 一句话预填
+  final bool nlPrefill;
 
   @override
   ConsumerState<AddItemPage> createState() => _AddItemPageState();
@@ -70,17 +77,50 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
       _currentStep = widget.initialStep!;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (widget.resumeDraft) {
+      if (widget.nlPrefill) {
+        await _applyNlPrefill();
+      } else if (widget.resumeDraft) {
         await _restoreDraft(force: true);
       } else if (widget.initialBarcode?.trim().isNotEmpty == true) {
         await _handleBarcodeDraftConflict();
       } else {
         await _offerRestoreDraft();
       }
-      if (mounted) {
+      if (mounted && !widget.nlPrefill) {
         await _handleInitialBarcode();
       }
     });
+  }
+
+  /// M5 — 应用规则 NL 预填并跳到合适向导步
+  Future<void> _applyNlPrefill() async {
+    final parsed = ItemAddNlPrefillStorage.take();
+    if (parsed == null || !parsed.isAddIntent) {
+      debugPrint('[AddItemPage] WARN: nlPrefill 无有效数据');
+      if (mounted) {
+        setState(() => _prefillHint = GuanguanCopy.addItemParseFailed);
+      }
+      return;
+    }
+
+    final db = ref.read(databaseProvider);
+    final outcome = await applyAddItemNlPrefill(
+      parsed: parsed,
+      form: _form,
+      db: db,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _prefillHint = outcome.hintMessage;
+      _currentStep = outcome.startStep;
+      _completedThroughStep = outcome.completedThroughStep;
+      _formResetKey++;
+    });
+    debugPrint(
+      '[AddItemPage] INFO: NL 预填 step=${outcome.startStep} '
+      'applied=${outcome.appliedFields}',
+    );
   }
 
   /// 搜索无结果跳转时预填物品名称
@@ -709,7 +749,11 @@ class _AddItemPageState extends ConsumerState<AddItemPage> {
       ),
       child: Row(
         children: [
-          Icon(Icons.qr_code_2, size: 18, color: AppColors.textSecondary),
+          Icon(
+            widget.nlPrefill ? Icons.mic_none_outlined : Icons.qr_code_2,
+            size: 18,
+            color: AppColors.textSecondary,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

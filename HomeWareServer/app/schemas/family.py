@@ -4,7 +4,9 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from app.core.space_type import DEFAULT_SPACE_TYPE, VALID_SPACE_TYPES, normalize_space_type
 
 
 class FamilyResponse(BaseModel):
@@ -15,6 +17,7 @@ class FamilyResponse(BaseModel):
     invite_code: str = Field(..., description="邀请码")
     owner_id: int = Field(..., description="创建者ID")
     icon: str = Field("🏠", description="家庭图标")
+    space_type: str = Field(DEFAULT_SPACE_TYPE, description="空间类型 home|shop")
     created_at: datetime = Field(..., description="创建时间")
     
     model_config = {"from_attributes": True}
@@ -29,6 +32,7 @@ class UserFamilyResponse(BaseModel):
     member_count: int = Field(..., description="成员数量")
     item_count: int = Field(..., description="物品数量")
     role: str = Field(..., description="当前用户在家庭中的角色")
+    space_type: str = Field(DEFAULT_SPACE_TYPE, description="空间类型 home|shop")
     created_at: datetime = Field(..., description="创建时间")
 
 
@@ -47,8 +51,20 @@ class FamilyMemberResponse(BaseModel):
 
 class CreateFamilyRequest(BaseModel):
     """创建家庭请求"""
-    
+
     name: str = Field(..., description="家庭名称")
+    space_type: str = Field(
+        DEFAULT_SPACE_TYPE,
+        description="空间类型：home 家庭物品 | shop 小店铺库存",
+    )
+
+    @field_validator("space_type")
+    @classmethod
+    def validate_space_type(cls, value: str) -> str:
+        normalized = normalize_space_type(value)
+        if normalized not in VALID_SPACE_TYPES:
+            return DEFAULT_SPACE_TYPE
+        return normalized
 
 
 class JoinFamilyRequest(BaseModel):
@@ -66,7 +82,7 @@ class UpdateFamilyRequest(BaseModel):
 class UpdateFamilyMemberRequest(BaseModel):
     """更新家庭成员请求"""
     
-    role: Optional[str] = Field(None, description="角色")
+    role: str = Field(..., description="角色 owner/admin/clerk/member")
     nickname_in_family: Optional[str] = Field(None, description="家庭内昵称")
 
 

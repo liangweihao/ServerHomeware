@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/models/alert_type.dart';
+import '../../../core/config/space_skin_config.dart';
+import '../../../core/providers/space_skin_provider.dart';
 import '../../../core/utils/alert_display_helper.dart';
 import '../../../data/database/app_database.dart';
 import '../../common/widgets/app_button.dart';
@@ -10,7 +13,7 @@ import '../../common/widgets/app_reason_tag.dart';
 export '../../../core/models/alert_type.dart';
 
 /// 提醒卡片 — 工具风白底 + 左侧色条 + AppReasonTag 标签
-class AlertCard extends StatelessWidget {
+class AlertCard extends ConsumerWidget {
   final Item item;
   final AlertType type;
   final VoidCallback? onUse;
@@ -33,7 +36,8 @@ class AlertCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final skin = ref.watch(spaceSkinProvider);
     final info = getAlertDisplayInfo(item, type);
 
     return Material(
@@ -101,7 +105,7 @@ class AlertCard extends StatelessWidget {
                             ),
                       ),
                       const SizedBox(height: 12),
-                      _buildActionButtons(context),
+                      _buildActionButtons(context, skin),
                     ],
                   ),
                 ),
@@ -141,7 +145,7 @@ class AlertCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildActionButtons(BuildContext context, SpaceSkinConfig skin) {
     final buttons = <Widget>[];
 
     switch (type) {
@@ -149,7 +153,7 @@ class AlertCard extends StatelessWidget {
         if (onUse != null) {
           buttons.add(
             AppButton(
-              label: '今天用掉',
+              label: skin.alertUseTodayLabel,
               variant: ButtonVariant.secondary,
               size: ButtonSize.small32,
               onPressed: onUse,
@@ -160,7 +164,7 @@ class AlertCard extends StatelessWidget {
           buttons.add(const SizedBox(width: 8));
           buttons.add(
             AppButton(
-              label: '已丢弃',
+              label: skin.discardShortLabel,
               variant: ButtonVariant.outline,
               size: ButtonSize.small32,
               onPressed: onDiscard,
@@ -184,7 +188,7 @@ class AlertCard extends StatelessWidget {
         if (onAddToShopping != null) {
           buttons.add(
             AppButton(
-              label: '加入购物清单',
+              label: skin.addToShoppingLabel,
               variant: ButtonVariant.primary,
               size: ButtonSize.small32,
               onPressed: onAddToShopping,
@@ -208,7 +212,7 @@ class AlertCard extends StatelessWidget {
         if (onAddToShopping != null) {
           buttons.add(
             AppButton(
-              label: '加入购物清单',
+              label: skin.addToShoppingLabel,
               variant: ButtonVariant.primary,
               size: ButtonSize.small32,
               onPressed: onAddToShopping,

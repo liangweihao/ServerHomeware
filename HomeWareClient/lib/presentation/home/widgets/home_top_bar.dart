@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/home_constants.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/space_skin_provider.dart';
 import '../../../core/services/auth_service.dart';
+import '../../common/widgets/guanguan_mascot_avatar.dart';
 
 /// 首页固定顶栏：头像 | 搜索框 | 问管家 | 添加入口
 class HomeTopBar extends ConsumerWidget {
@@ -93,11 +95,12 @@ class _UserAvatarButton extends StatelessWidget {
 }
 
 /// 搜索入口 — 点击跳转搜索页
-class _HomeSearchField extends StatelessWidget {
+class _HomeSearchField extends ConsumerWidget {
   const _HomeSearchField();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hint = ref.watch(spaceSkinProvider).searchHint;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -119,7 +122,7 @@ class _HomeSearchField extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '搜索物品、位置、品牌',
+                  hint,
                   style: TextStyle(
                     fontSize: 14,
                     color: AppColors.textHint.withValues(alpha: 0.9),
@@ -150,7 +153,7 @@ class _AssistantEntryButton extends StatelessWidget {
           context.push('/assistant');
         },
         customBorder: const CircleBorder(),
-        child: Ink(
+          child: Ink(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
@@ -158,10 +161,11 @@ class _AssistantEntryButton extends StatelessWidget {
             color: AppColors.white,
             border: Border.all(color: AppColors.homeDivider),
           ),
-          child: Icon(
-            Icons.smart_toy_outlined,
-            size: 22,
-            color: AppColors.primary,
+          child: const Center(
+            child: GuanguanMascotAvatar(
+              size: 36,
+              mode: GuanguanAvatarMode.icon,
+            ),
           ),
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/providers/space_skin_provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/database/app_database.dart';
 import '../providers/quick_consume_provider.dart';
@@ -38,6 +39,7 @@ class _QuickConsumeBodyState extends ConsumerState<_QuickConsumeBody> {
 
   @override
   Widget build(BuildContext context) {
+    final skin = ref.watch(spaceSkinProvider);
     final itemsAsync = ref.watch(quickConsumeItemsProvider);
 
     return DraggableScrollableSheet(
@@ -63,8 +65,8 @@ class _QuickConsumeBodyState extends ConsumerState<_QuickConsumeBody> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      '记消耗',
+                    Text(
+                      skin.consumeActionLabel,
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,

@@ -3,13 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/providers/alert_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/models/alert_tab.dart';
-import '../../core/providers/alert_provider.dart';
+import '../../core/models/space_type.dart';
 import '../../core/providers/database_provider.dart';
+import '../../core/providers/space_skin_provider.dart';
 import '../../core/utils/alert_display_helper.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/async_list_body.dart';
+import '../common/widgets/guanguan_celebration_snackbar.dart';
 import '../common/widgets/warm_scaffold.dart';
 import '../items/widgets/usage_dialog.dart';
 import 'widgets/alert_card.dart';
@@ -29,50 +32,67 @@ class AlertCenterPage extends ConsumerStatefulWidget {
 
 class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  TabController? _tabController;
+  bool _tabInitialized = false;
 
   @override
-  void initState() {
-    super.initState();
-    final tab = widget.initialTab ?? AlertTab.all;
-    final index = AlertTab.values.indexOf(tab).clamp(0, AlertTab.values.length - 1);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_tabInitialized) return;
+    _tabInitialized = true;
+
+    // B4：店铺空间无路由 tab 时默认打开低库存 Tab
+    final tab = widget.initialTab ??
+        (ref.read(spaceSkinProvider).spaceType == SpaceType.shop
+            ? AlertTab.stock
+            : AlertTab.all);
+    final index =
+        AlertTab.values.indexOf(tab).clamp(0, AlertTab.values.length - 1);
     _tabController = TabController(
       length: AlertTab.values.length,
       vsync: this,
       initialIndex: index,
     );
-    if (widget.initialTab != null) {
-      debugPrint('[AlertCenter] INFO: 初始 Tab=${widget.initialTab}');
-    }
+    debugPrint('[AlertCenter] INFO: 初始 Tab=$tab spaceType=${ref.read(spaceSkinProvider).spaceType.apiValue}');
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose();
     super.dispose();
   }
 
   void _markAsUsed(Item item) async {
+    final skin = ref.read(spaceSkinProvider);
     debugPrint('[AlertCenter] INFO: 今天用掉 itemId=${item.id}');
     final ok = await recordQuickUsage(ref: ref, item: item);
     if (mounted && ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('已记录使用 1 件${item.name}')),
+      final remaining =
+          (item.currentQuantity - 1).clamp(0.0, double.infinity);
+      GuanguanCelebrationSnackBar.show(
+        context,
+        message: skin.celebrateConsume(
+          itemName: item.name,
+          depleted: remaining <= 0,
+        ),
       );
     }
   }
 
   void _markAsDiscarded(Item item) async {
+    final skin = ref.read(spaceSkinProvider);
     debugPrint('[AlertCenter] INFO: 已丢弃 itemId=${item.id}');
     await recordItemDiscard(ref: ref, item: item);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${item.name} 已标记为丢弃')),
+      GuanguanCelebrationSnackBar.show(
+        context,
+        message: skin.celebrateDiscard(item.name),
       );
     }
   }
 
   void _addToShoppingList(Item item) async {
+    final skin = ref.read(spaceSkinProvider);
     final db = ref.read(databaseProvider);
 
     await db.insertShoppingListItem(ShoppingListCompanion.insert(
@@ -86,8 +106,9 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
     ));
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${item.name} 已加入购物清单')),
+      GuanguanCelebrationSnackBar.show(
+        context,
+        message: skin.celebrateAddShopping(item.name),
       );
     }
   }
@@ -104,6 +125,14 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
 
   @override
   Widget build(BuildContext context) {
+    final tabController = _tabController;
+    if (tabController == null) {
+      return const WarmScaffold(
+        title: '提醒中心',
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return WarmScaffold(
       title: '提醒中心',
       actions: [
@@ -113,7 +142,7 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
         ),
       ],
       bottom: TabBar(
-        controller: _tabController,
+        controller: tabController,
         isScrollable: true,
         labelColor: AppColors.primaryDark,
         unselectedLabelColor: AppColors.textSecondary,
@@ -123,7 +152,7 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
             .toList(),
       ),
       body: TabBarView(
-        controller: _tabController,
+        controller: tabController,
         children: [
           for (final tab in AlertTab.values) _buildAlertList(tab),
         ],

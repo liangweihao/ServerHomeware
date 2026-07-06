@@ -1,4 +1,6 @@
-/// 对话助手 — 意图类型（Phase 1 仅查询）
+import 'add_item_nl_parser.dart';
+
+/// 对话助手 — 意图类型（Phase 1 查询 + M5 入库预填）
 enum AssistantIntentType {
   /// 某空间下有什么物品
   querySpaceItems,
@@ -15,6 +17,9 @@ enum AssistantIntentType {
   /// 待处理汇总
   queryPending,
 
+  /// M5 — 规则 NL 添加入库预填
+  addItem,
+
   /// 无法理解 — 返回帮助
   unknown,
 }
@@ -25,11 +30,13 @@ class AssistantParsedQuery {
     required this.intent,
     this.spaceName,
     this.itemName,
+    this.addItemDraft,
   });
 
   final AssistantIntentType intent;
   final String? spaceName;
   final String? itemName;
+  final AddItemNlResult? addItemDraft;
 }
 
 /// 助手回复中的物品摘要
@@ -53,6 +60,8 @@ class AssistantReply {
     required this.text,
     this.items = const [],
     this.suggestions = const [],
+    this.actionLabel,
+    this.actionRoute,
   });
 
   final String text;
@@ -60,6 +69,12 @@ class AssistantReply {
 
   /// 下一轮建议问题
   final List<String> suggestions;
+
+  /// M5 — 引导用户进入向导的按钮文案
+  final String? actionLabel;
+
+  /// M5 — 跳转路由（如 `/items/add?nlPrefill=1`）
+  final String? actionRoute;
 }
 
 /// 会话气泡
@@ -68,9 +83,13 @@ class AssistantChatMessage {
     required this.isUser,
     required this.text,
     this.items = const [],
+    this.actionLabel,
+    this.actionRoute,
   });
 
   final bool isUser;
   final String text;
   final List<AssistantItemSummary> items;
+  final String? actionLabel;
+  final String? actionRoute;
 }

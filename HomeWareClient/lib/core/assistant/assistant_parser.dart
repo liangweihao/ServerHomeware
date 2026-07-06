@@ -1,16 +1,44 @@
+import 'add_item_nl_parser.dart';
 import 'assistant_models.dart';
 
-/// 端侧规则解析 — 不依赖大模型（Phase 1）
+/// 端侧规则解析 — 不依赖大模型（Phase 1 查询 + M5 入库 + B4 店铺词表）
 class AssistantParser {
   static const _expiringKeywords = ['临期', '过期', '快过期', '到期', '还能放'];
-  static const _lowStockKeywords = ['库存不足', '快没了', '不够', '低库存', '快用完'];
-  static const _pendingKeywords = ['要处理', '待处理', '怎么办', '需要处理'];
+  /// 家庭 + 店铺低库存/断货关键词（skin 无关，合并匹配）
+  static const _lowStockKeywords = [
+    '库存不足',
+    '快没了',
+    '不够',
+    '低库存',
+    '快用完',
+    '断货',
+    '快断货',
+  ];
+  /// 家庭待处理 + 店铺补货询问
+  static const _pendingKeywords = [
+    '要处理',
+    '待处理',
+    '怎么办',
+    '需要处理',
+    '今天要补什么',
+    '要补什么',
+    '补什么',
+  ];
 
   /// 解析用户输入
   static AssistantParsedQuery parse(String raw) {
     final msg = raw.trim();
     if (msg.isEmpty) {
       return const AssistantParsedQuery(intent: AssistantIntentType.unknown);
+    }
+
+    // M5 — 添加入库优先于查询（避免「添加」被误判）
+    final addDraft = AddItemNlParser.parse(msg);
+    if (addDraft.isAddIntent) {
+      return AssistantParsedQuery(
+        intent: AssistantIntentType.addItem,
+        addItemDraft: addDraft,
+      );
     }
 
     if (_containsAny(msg, _pendingKeywords)) {
@@ -76,26 +104,37 @@ class AssistantParser {
     return null;
   }
 
-  /// 「牛奶在哪」「还有牛奶吗」
+  /// 「牛奶在哪」「红牛还剩多少」「还有牛奶吗」
   static String? _extractItemName(String msg) {
-    final patterns = [
-      RegExp(r'^(.+?)(在哪|在哪里|在哪儿|放在哪|放哪|的位置)$'),
-      RegExp(r'^(还有|有没有)(.+?)(吗|？|\?)?$'),
-      RegExp(r'^(.+?)还有吗$'),
-    ];
-    for (final p in patterns) {
-      final m = p.firstMatch(msg);
-      if (m != null) {
-        var name = (m.groupCount >= 2 ? m.group(2) : m.group(1))?.trim();
-        if (name == null || name.isEmpty) {
-          name = m.group(1)?.trim();
-        }
-        if (name != null && name.isNotEmpty) {
-          name = _stripFillers(name);
-          if (name.length <= 30) return name;
-        }
-      }
+    // B4 店铺：还剩多少 / 剩多少
+    final remainQty = RegExp(r'^(.+?)(还剩多少|剩多少)$');
+    final mRemain = remainQty.firstMatch(msg);
+    if (mRemain != null) {
+      final name = _stripFillers(mRemain.group(1)?.trim() ?? '');
+      if (name.isNotEmpty && name.length <= 30) return name;
     }
+
+    final where = RegExp(r'^(.+?)(在哪|在哪里|在哪儿|放在哪|放哪|的位置)$');
+    final mWhere = where.firstMatch(msg);
+    if (mWhere != null) {
+      final name = _stripFillers(mWhere.group(1)?.trim() ?? '');
+      if (name.isNotEmpty && name.length <= 30) return name;
+    }
+
+    final has = RegExp(r'^(还有|有没有)(.+?)(吗|？|\?)?$');
+    final mHas = has.firstMatch(msg);
+    if (mHas != null) {
+      final name = _stripFillers(mHas.group(2)?.trim() ?? '');
+      if (name.isNotEmpty && name.length <= 30) return name;
+    }
+
+    final still = RegExp(r'^(.+?)还有吗$');
+    final mStill = still.firstMatch(msg);
+    if (mStill != null) {
+      final name = _stripFillers(mStill.group(1)?.trim() ?? '');
+      if (name.isNotEmpty && name.length <= 30) return name;
+    }
+
     return null;
   }
 

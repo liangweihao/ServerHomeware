@@ -26,7 +26,9 @@ import 'widgets/profile_health_ring.dart';
 import 'widgets/profile_identity_header.dart';
 import 'widgets/profile_inventory_health.dart';
 import 'widgets/profile_overview_strip.dart';
-import '../../core/providers/profile_health_history_provider.dart';
+import '../../core/auth/shop_role_guard.dart';
+import '../../core/providers/family_role_provider.dart';
+import '../../core/providers/space_skin_provider.dart';
 import 'widgets/profile_health_trend_card.dart';
 import 'widgets/profile_quick_action_grid.dart';
 import 'widgets/profile_quick_actions_config.dart';
@@ -152,6 +154,8 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
     final pendingCount = stats == null
         ? 0
         : stats.expiredCount + stats.expiringCount + stats.lowStockCount;
+    final skin = ref.watch(spaceSkinProvider);
+    final role = ref.watch(familyRoleProvider);
 
     return WarmScaffold(
       title: '个人中心',
@@ -167,7 +171,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                 nickname: user?.nickname ?? '用户',
                 phone: user?.phone ?? '',
                 familyName: _familyData?['name']?.toString(),
-                roleLabel: _roleLabel(user?.familyRole),
+                roleLabel: _roleLabel(role ?? user?.familyRole),
                 health: health,
                 onHealthTap: () => context.push('/alerts'),
                 onEdit: () => context.push('/profile/edit'),
@@ -238,8 +242,18 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
                   const SnackBar(content: Text('邀请码已复制')),
                 );
               },
-              onRefreshInvite: _refreshInviteCode,
-              onManageMembers: () => context.push('/profile/family'),
+              onRefreshInvite: ShopRoleGuard.canManageShop(skin, role)
+                  ? _refreshInviteCode
+                  : null,
+              onManageMembers: ShopRoleGuard.canManageShop(skin, role)
+                  ? () {
+                      if (ShopRoleGuard.canChangeMemberRole(skin, role)) {
+                        context.push('/profile/family/roles');
+                      } else {
+                        context.push('/profile/family');
+                      }
+                    }
+                  : null,
               onSwitchFamily: _showSwitchFamily,
               ),
             ),
@@ -269,8 +283,10 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
               child: ProfileQuickActionGrid(
                 actions: buildProfileQuickActions(
                   context,
+                  skin: skin,
                   unreadCount: unreadCount,
                   pendingCount: pendingCount,
+                  familyRole: role,
                   compact: true,
                 ),
               ),
@@ -281,37 +297,38 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
               child: _buildRealtimeSyncStatus(),
             ),
             const SizedBox(height: 16),
-            AppCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  AppListRow(
-                    icon: Icons.settings_outlined,
-                    title: '提醒设置',
-                    onTap: () =>
-                        context.push('/profile/notification-settings'),
-                  ),
-                  const AppListDivider(),
-                  AppListRow(
-                    icon: Icons.checklist_outlined,
-                    title: '盘点任务',
-                    onTap: () => context.push('/profile/inventory'),
-                  ),
-                  const AppListDivider(),
-                  AppListRow(
-                    icon: Icons.upload_outlined,
-                    title: '数据导出',
-                    onTap: () => ExportDataDialog.show(context, ref),
-                  ),
-                  const AppListDivider(),
-                  AppListRow(
-                    icon: Icons.palette_outlined,
-                    title: '主题样式',
-                    onTap: () => context.push('/profile/theme-settings'),
-                  ),
-                ],
+            if (ShopRoleGuard.canAccessProfileSettings(skin, role))
+              AppCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    AppListRow(
+                      icon: Icons.settings_outlined,
+                      title: '提醒设置',
+                      onTap: () =>
+                          context.push('/profile/notification-settings'),
+                    ),
+                    const AppListDivider(),
+                    AppListRow(
+                      icon: Icons.checklist_outlined,
+                      title: '盘点任务',
+                      onTap: () => context.push('/profile/inventory'),
+                    ),
+                    const AppListDivider(),
+                    AppListRow(
+                      icon: Icons.upload_outlined,
+                      title: '数据导出',
+                      onTap: () => ExportDataDialog.show(context, ref),
+                    ),
+                    const AppListDivider(),
+                    AppListRow(
+                      icon: Icons.palette_outlined,
+                      title: '主题样式',
+                      onTap: () => context.push('/profile/theme-settings'),
+                    ),
+                  ],
+                ),
               ),
-            ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -457,15 +474,7 @@ class _ProfilePanelPageState extends ConsumerState<ProfilePanelPage> {
   }
 
   String? _roleLabel(String? role) {
-    switch (role) {
-      case 'admin':
-        return '管理员';
-      case 'owner':
-        return '户主';
-      case 'member':
-        return '成员';
-      default:
-        return null;
-    }
+    final isShop = ref.read(spaceSkinProvider).showSalePrice;
+    return ShopRoleGuard.roleLabel(role, isShop: isShop);
   }
 }

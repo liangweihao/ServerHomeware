@@ -10,7 +10,15 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user, get_current_family
 from app.models.user import User
 from app.schemas.common import ResponseSchema
-from app.schemas.item import CreateItemRequest, ItemResponse, MoveItemRequest, UpdateItemRequest, UseItemRequest
+from app.schemas.item import (
+    BulkCreateItemsRequest,
+    BulkCreateItemsResponse,
+    CreateItemRequest,
+    ItemResponse,
+    MoveItemRequest,
+    UpdateItemRequest,
+    UseItemRequest,
+)
 from app.services.item_service import ItemService
 from app.services.prediction_service import PredictionService
 
@@ -94,6 +102,28 @@ async def create_item(
         code=200,
         message="物品创建成功",
         data=item_detail
+    )
+
+
+@router.post("/bulk", summary="批量创建物品（CSV 进货等）")
+async def bulk_create_items(
+    request: BulkCreateItemsRequest,
+    current_user: User = Depends(get_current_user),
+    current_family_id: int = Depends(get_current_family),
+    db: AsyncSession = Depends(get_db),
+):
+    """一次最多创建 100 条物品，部分失败时返回 failures 明细"""
+    item_service = ItemService(db)
+    payload = [item.model_dump() for item in request.items]
+    result = await item_service.bulk_create_items(
+        user_id=current_user.id,
+        family_id=current_family_id,
+        items_data=payload,
+    )
+    return ResponseSchema(
+        code=200,
+        message="批量创建完成",
+        data=result,
     )
 
 

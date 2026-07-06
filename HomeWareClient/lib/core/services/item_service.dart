@@ -45,6 +45,40 @@ class ItemService {
     }
   }
 
+  /// 批量创建物品 — POST /api/v1/items/bulk（最多 100 条/次）
+  Future<ApiResponse<Map<String, dynamic>>> bulkCreateItems({
+    required List<Map<String, dynamic>> items,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        _log('ERROR: 未登录');
+        return ApiResponse<Map<String, dynamic>>(
+          code: 401,
+          message: '未登录',
+        );
+      }
+
+      _log('INFO: 调用 POST /api/v1/items/bulk count=${items.length}');
+      final response = await http.post(
+        Uri.parse('$_baseUrl/items/bulk'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'items': items}),
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 批量创建物品失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: '批量创建物品失败: $e',
+      );
+    }
+  }
+
   /// 更新物品
   /// 调用服务端 PUT /api/v1/items/{id} 接口
   Future<ApiResponse<Map<String, dynamic>>> updateItem({

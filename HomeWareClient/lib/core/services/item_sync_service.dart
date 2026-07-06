@@ -178,7 +178,15 @@ class ItemSyncService {
       // 以下字段列表接口不返回或无对应列，设为 absent
       specification: const Value.absent(),
       barcode: const Value.absent(),
-      purchasePrice: const Value.absent(),
+      purchasePrice: json['purchase_price'] != null
+          ? Value(_parseDouble(json['purchase_price']))
+          : const Value.absent(),
+      salePrice: json['sale_price'] != null
+          ? Value(_parseDouble(json['sale_price']))
+          : const Value.absent(),
+      supplier: json['supplier'] != null
+          ? Value(json['supplier'].toString())
+          : const Value.absent(),
       purchaseDate: const Value.absent(),
       purchaseChannel: const Value.absent(),
       productionDate: const Value.absent(),

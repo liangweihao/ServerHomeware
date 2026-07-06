@@ -1,29 +1,28 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import '../../data/database/app_database.dart';
+import '../../presentation/items/item_add_nl_prefill_storage.dart';
+import '../config/space_skin_config.dart';
 import '../utils/item_list_reason_helper.dart';
 import '../utils/search_utils.dart';
+import 'add_item_nl_parser.dart';
 import 'assistant_models.dart';
 import 'assistant_parser.dart';
+import 'guanguan_copy.dart';
 
-/// 对话助手执行器 — 查询本地 Drift，离线可用
+/// 对话助手执行器 — 查询本地 Drift，离线可用；文案走 [SpaceSkinConfig]
 class AssistantExecutor {
-  AssistantExecutor(this._db);
+  AssistantExecutor(this._db, {SpaceSkinConfig? skin})
+      : _skin = skin ?? SpaceSkinConfig.home;
 
   final AppDatabase _db;
-
-  static const _defaultSuggestions = [
-    '厨房有什么',
-    '什么快过期',
-    '库存不足',
-    '有什么要处理',
-  ];
+  final SpaceSkinConfig _skin;
 
   /// 处理用户一句话
   Future<AssistantReply> handle(String userMessage) async {
     final parsed = AssistantParser.parse(userMessage);
     debugPrint('[AssistantExecutor] INFO: intent=${parsed.intent} '
-        'space=${parsed.spaceName} item=${parsed.itemName}');
+        'space=${parsed.spaceName} item=${parsed.itemName} skin=${_skin.spaceType.name}');
 
     await _db.ensureInitialized();
 
@@ -38,6 +37,8 @@ class AssistantExecutor {
         return _queryLowStock();
       case AssistantIntentType.queryPending:
         return _queryPending();
+      case AssistantIntentType.addItem:
+        return _handleAddItem(parsed.addItemDraft!);
       case AssistantIntentType.unknown:
         return _helpReply();
     }
@@ -45,8 +46,20 @@ class AssistantExecutor {
 
   Future<AssistantReply> _helpReply() {
     return Future.value(AssistantReply(
-      text: '我可以帮你查库存位置、空间物品和待处理提醒。试试下面这些问题：',
-      suggestions: _defaultSuggestions,
+      text: _skin.helpReply(),
+      suggestions: _skin.assistantSuggestions,
+    ));
+  }
+
+  /// M5 — 保存 NL 预填并引导进向导
+  Future<AssistantReply> _handleAddItem(AddItemNlResult draft) {
+    ItemAddNlPrefillStorage.save(draft);
+    debugPrint('[AssistantExecutor] INFO: NL 入库预填 name=${draft.name}');
+    return Future.value(AssistantReply(
+      text: _skin.addItemPrefillReply(draft),
+      suggestions: _skin.assistantSuggestions,
+      actionLabel: _skin.addItemConfirmLabel,
+      actionRoute: '/items/add?nlPrefill=1',
     ));
   }
 
@@ -83,9 +96,9 @@ class AssistantExecutor {
 
   Future<AssistantReply> _querySpaceItems(String spaceName) async {
     if (spaceName.isEmpty) {
-      return const AssistantReply(
-        text: '请告诉我要查哪个空间，例如「厨房有什么」。',
-        suggestions: ['厨房有什么', '卫生间有什么'],
+      return AssistantReply(
+        text: _skin.spaceNameMissing(),
+        suggestions: _skin.spaceSuggestions,
       );
     }
 
@@ -93,8 +106,8 @@ class AssistantExecutor {
     final matched = _matchLocation(spaceName, locations);
     if (matched == null) {
       return AssistantReply(
-        text: '没有找到叫「$spaceName」的空间。请检查名称或到「位置管理」里确认。',
-        suggestions: _defaultSuggestions,
+        text: _skin.spaceNotFound(spaceName),
+        suggestions: _skin.assistantSuggestions,
       );
     }
 
@@ -103,25 +116,35 @@ class AssistantExecutor {
 
     if (items.isEmpty) {
       return AssistantReply(
-        text: '「${matched.fullPath}」下暂时没有使用中的物品。',
-        suggestions: ['什么快过期', '库存不足'],
+        text: _skin.spaceEmpty(matched.fullPath),
+        suggestions: [
+          _skin.assistantSuggestions[1],
+          _skin.assistantSuggestions[2],
+        ],
       );
     }
 
-    final summaries = _toSummaries(items, pathById);
-    final more = items.length > summaries.length ? '（共 ${items.length} 件，仅展示前 ${summaries.length} 件）' : '';
+    const limit = 20;
+    final summaries = _toSummaries(items, pathById, limit: limit);
     return AssistantReply(
-      text: '「${matched.fullPath}」下有 ${items.length} 件物品$more：',
+      text: _skin.spaceItemsFound(
+        fullPath: matched.fullPath,
+        total: items.length,
+        shown: summaries.length,
+      ),
       items: summaries,
-      suggestions: ['什么快过期', '${matched.name}还有什么要处理'],
+      suggestions: [
+        _skin.assistantSuggestions[1],
+        '${matched.name}还有什么要处理',
+      ],
     );
   }
 
   Future<AssistantReply> _queryItemLocation(String itemName) async {
     if (itemName.isEmpty) {
-      return const AssistantReply(
-        text: '请告诉我要找什么物品，例如「牛奶在哪」。',
-        suggestions: ['牛奶在哪', '创可贴在哪'],
+      return AssistantReply(
+        text: _skin.itemNameMissing(),
+        suggestions: GuanguanCopy.itemSuggestions,
       );
     }
 
@@ -142,8 +165,8 @@ class AssistantExecutor {
 
     if (matches.isEmpty) {
       return AssistantReply(
-        text: '没有找到与「$itemName」相关的使用中物品。你可以换个关键词，或用 + 添加入库。',
-        suggestions: _defaultSuggestions,
+        text: _skin.itemNotFound(itemName),
+        suggestions: _skin.assistantSuggestions,
       );
     }
 
@@ -154,8 +177,13 @@ class AssistantExecutor {
       final qty = item.currentQuantity.toStringAsFixed(
         item.currentQuantity == item.currentQuantity.roundToDouble() ? 0 : 1,
       );
+      final qtyText = '$qty${item.unit}';
       return AssistantReply(
-        text: '「${item.name}」在 $loc，剩余 $qty${item.unit}。',
+        text: _skin.itemFoundSingle(
+          name: item.name,
+          location: loc,
+          quantityText: qtyText,
+        ),
         items: [
           AssistantItemSummary(
             itemId: item.id,
@@ -163,7 +191,10 @@ class AssistantExecutor {
             subtitle: _formatItemSubtitle(item, pathById),
           ),
         ],
-        suggestions: ['什么快过期', '库存不足'],
+        suggestions: [
+          _skin.assistantSuggestions[1],
+          _skin.assistantSuggestions[2],
+        ],
       );
     }
 
@@ -178,9 +209,9 @@ class AssistantExecutor {
         .toList();
 
     return AssistantReply(
-      text: '找到 ${matches.length} 个与「$itemName」相关的物品：',
+      text: _skin.itemFoundMultiple(matches.length, itemName),
       items: summaries,
-      suggestions: _defaultSuggestions,
+      suggestions: _skin.assistantSuggestions,
     );
   }
 
@@ -207,17 +238,27 @@ class AssistantExecutor {
 
     final combined = [...expired, ...expiring];
     if (combined.isEmpty) {
-      return const AssistantReply(
-        text: '近 7 天内没有临期或已过期物品，一切正常。',
-        suggestions: ['库存不足', '厨房有什么'],
+      return AssistantReply(
+        text: _skin.expiringAllClear,
+        suggestions: [
+          _skin.assistantSuggestions[2],
+          _skin.assistantSuggestions[0],
+        ],
       );
     }
 
     final summaries = _toSummaries(combined, pathById);
     return AssistantReply(
-      text: '共有 ${combined.length} 件需要关注（已过期 ${expired.length}，临期 ${expiring.length}）：',
+      text: _skin.expiringFound(
+        total: combined.length,
+        expired: expired.length,
+        expiring: expiring.length,
+      ),
       items: summaries,
-      suggestions: ['有什么要处理', '库存不足'],
+      suggestions: [
+        _skin.assistantSuggestions[3],
+        _skin.assistantSuggestions[2],
+      ],
     );
   }
 
@@ -226,17 +267,23 @@ class AssistantExecutor {
     final pathById = await _locationPathById();
 
     if (items.isEmpty) {
-      return const AssistantReply(
-        text: '目前没有库存不足的物品。',
-        suggestions: ['什么快过期', '厨房有什么'],
+      return AssistantReply(
+        text: _skin.lowStockAllClear,
+        suggestions: [
+          _skin.assistantSuggestions[1],
+          _skin.assistantSuggestions[0],
+        ],
       );
     }
 
     final summaries = _toSummaries(items, pathById);
     return AssistantReply(
-      text: '有 ${items.length} 件物品库存偏低：',
+      text: _skin.lowStockFound(items.length),
       items: summaries,
-      suggestions: ['什么快过期', '有什么要处理'],
+      suggestions: [
+        _skin.assistantSuggestions[1],
+        _skin.assistantSuggestions[3],
+      ],
     );
   }
 
@@ -252,17 +299,23 @@ class AssistantExecutor {
     sortItemsByUrgency(pending);
 
     if (pending.isEmpty) {
-      return const AssistantReply(
-        text: '目前没有需要优先处理的物品，一切正常。',
-        suggestions: ['厨房有什么', '什么快过期'],
+      return AssistantReply(
+        text: _skin.pendingAllClear,
+        suggestions: [
+          _skin.assistantSuggestions[0],
+          _skin.assistantSuggestions[1],
+        ],
       );
     }
 
     final summaries = _toSummaries(pending, pathById);
     return AssistantReply(
-      text: '建议优先处理这 ${pending.length} 件：',
+      text: _skin.pendingFound(pending.length),
       items: summaries,
-      suggestions: ['什么快过期', '库存不足'],
+      suggestions: [
+        _skin.assistantSuggestions[1],
+        _skin.assistantSuggestions[2],
+      ],
     );
   }
 

@@ -119,6 +119,7 @@ class FamilyService {
   /// 逻辑：创建家庭 → 生成8位邀请码 → 创建family_member记录(role=owner) → 更新用户current_family_id
   Future<ApiResponse<Map<String, dynamic>>> createFamily({
     required String name,
+    String spaceType = 'home',
   }) async {
     try {
       final token = await _getToken();
@@ -130,7 +131,7 @@ class FamilyService {
         );
       }
 
-      _log('INFO: 调用 POST /api/v1/families');
+      _log('INFO: 调用 POST /api/v1/families space_type=$spaceType');
       final response = await http.post(
         Uri.parse('$_baseUrl/families'),
         headers: {
@@ -139,6 +140,7 @@ class FamilyService {
         },
         body: json.encode({
           'name': name,
+          'space_type': spaceType,
         }),
       );
 
@@ -329,6 +331,37 @@ class FamilyService {
       return ApiResponse<Map<String, dynamic>>(
         code: 500,
         message: '加入家庭失败: $e',
+      );
+    }
+  }
+
+  /// 更新成员角色 — PUT /api/v1/families/{familyId}/members/{userId}
+  Future<ApiResponse<Map<String, dynamic>>> updateMemberRole({
+    required int familyId,
+    required int userId,
+    required String role,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null || token.isEmpty) {
+        return ApiResponse<Map<String, dynamic>>(code: 401, message: '未登录');
+      }
+
+      _log('INFO: 更新成员角色 family=$familyId user=$userId role=$role');
+      final response = await http.put(
+        Uri.parse('$_baseUrl/families/$familyId/members/$userId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'role': role}),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      _log('ERROR: 更新成员角色失败 - $e');
+      return ApiResponse<Map<String, dynamic>>(
+        code: 500,
+        message: '更新成员角色失败: $e',
       );
     }
   }

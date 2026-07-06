@@ -4,9 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/models/space_type.dart';
+import '../../core/auth/shop_role_guard.dart';
+import '../../core/providers/family_role_provider.dart';
+import '../../core/providers/space_skin_provider.dart';
 import '../common/widgets/warm_scaffold.dart';
 import '../home/widgets/publish_action_sheet.dart';
 import 'item_add_draft_storage.dart';
+import 'widgets/add_item_nl_sheet.dart';
 
 /// 录入方式选择页 — Epic E4 D1（借鉴闲鱼发布入口）
 class AddItemMethodPage extends ConsumerStatefulWidget {
@@ -28,25 +33,52 @@ class _AddItemMethodPageState extends ConsumerState<AddItemMethodPage> {
 
   @override
   Widget build(BuildContext context) {
+    final skin = ref.watch(spaceSkinProvider);
+    final role = ref.watch(familyRoleProvider);
+    final canCsv = ShopRoleGuard.canBulkImport(skin, role);
     return WarmScaffold(
       title: '选择录入方式',
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
-          const Text(
-            '选最快的方式把物品记进家庭库存',
-            style: TextStyle(
+          Text(
+            skin.spaceType == SpaceType.shop
+                ? '选最快的方式把商品记进店里'
+                : '选最快的方式把物品记进家庭库存',
+            style: const TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),
+          if (skin.spaceType == SpaceType.shop && canCsv)
+            _MethodCard(
+              icon: Icons.table_chart_outlined,
+              title: skin.csvImportTitle,
+              subtitle: skin.csvImportSubtitle,
+              eta: '批量',
+              highlight: true,
+              onTap: () {
+                debugPrint('[AddItemMethodPage] INFO: 选择 CSV 批量进货');
+                _navigateAndRefresh('/items/import/csv');
+              },
+            ),
+          _MethodCard(
+            icon: Icons.mic_none_outlined,
+            title: '说话添物品',
+            subtitle: '一句话描述，自动预填分类、位置与数量',
+            eta: '约 15 秒',
+            highlight: true,
+            onTap: () {
+              debugPrint('[AddItemMethodPage] INFO: 选择说话添物品');
+              AddItemNlSheet.show(context);
+            },
+          ),
           _MethodCard(
             icon: Icons.qr_code_scanner_outlined,
             title: '扫码录入',
             subtitle: '对准条码，自动识别商品信息',
             eta: '约 10 秒',
-            highlight: true,
             onTap: () {
               debugPrint('[AddItemMethodPage] INFO: 选择扫码录入');
               _navigateAndRefresh('/items/scan');

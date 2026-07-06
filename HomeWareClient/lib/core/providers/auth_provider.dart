@@ -7,6 +7,8 @@ import '../services/family_service.dart';
 import '../services/api_service.dart';
 import '../exceptions/auth_exception.dart';
 import '../config/app_env.dart';
+import 'database_provider.dart';
+import 'space_skin_provider.dart';
 
 /// 认证状态枚举
 enum AuthState {
@@ -279,16 +281,18 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   /// 逻辑：创建家庭 → 生成8位邀请码 → 创建family_member记录(role=owner) → 更新用户current_family_id
   Future<void> createFamily({
     required String name,
+    String spaceType = 'home',
   }) async {
     state = const AsyncLoading();
     
     try {
       final familyService = FamilyService();
       
-      _log('INFO: 开始创建家庭 - $name');
-      
+      _log('INFO: 开始创建空间 - $name space_type=$spaceType');
+
       final response = await familyService.createFamily(
         name: name,
+        spaceType: spaceType,
       );
       
       if (!response.isSuccess) {
@@ -312,6 +316,15 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       }
 
       await _saveFamilyFromApiData(data, role: 'owner');
+
+      // B3 — 店铺空间：无物品时切换本地默认分类/位置模板
+      if (spaceType == 'shop') {
+        final db = ref.read(databaseProvider);
+        await db.seedShopPresetIfNeeded();
+        ref.invalidate(topLevelCategoriesProvider);
+        ref.invalidate(topLevelLocationsProvider);
+        _log('INFO: 店铺模板 seed 检查完成');
+      }
 
       _log('INFO: 创建家庭成功 - familyId: ${data['id']}');
       
@@ -362,7 +375,10 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
         throw Exception('加入家庭失败');
       }
 
-      await _saveFamilyFromApiData(data, role: 'member');
+      final spaceType = data['space_type']?.toString();
+      final joinRole =
+          spaceType == 'shop' ? 'clerk' : 'member';
+      await _saveFamilyFromApiData(data, role: joinRole);
 
       _log('INFO: 加入家庭成功 - familyId: ${data['id']}');
       
@@ -419,6 +435,13 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   }
 
   /// 根据创建/加入家庭接口返回的 FamilyResponse 更新本地缓存
+  Future<void> updateFamilyRole(String? role) async {
+    if (role == null || role.isEmpty) return;
+    await _prefs?.setString(_keyFamilyRole, role);
+    _log('INFO: 已更新 family_role=$role');
+  }
+
+  /// 根据创建/加入家庭接口返回的 FamilyResponse 更新本地缓存
   Future<void> _saveFamilyFromApiData(
     Map<String, dynamic> familyData, {
     required String role,
@@ -430,6 +453,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     }
     await _prefs?.setString(_keyFamilyId, familyId.toString());
     await _prefs?.setString(_keyFamilyRole, role);
+    await persistFamilySpaceType(familyData['space_type']?.toString());
     _log('INFO: 已更新本地家庭 - familyId: $familyId, role: $role');
   }
 
@@ -441,6 +465,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     await _prefs?.remove(_keyUserNickname);
     await _prefs?.remove(_keyFamilyId);
     await _prefs?.remove(_keyFamilyRole);
+    await _prefs?.remove(kFamilySpaceTypePrefsKey);
   }
 
   /// 日志记录

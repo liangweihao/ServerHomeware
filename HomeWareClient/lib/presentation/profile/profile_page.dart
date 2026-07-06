@@ -8,6 +8,7 @@ import '../../core/providers/alert_provider.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/family_provider.dart';
 import '../../core/providers/home_provider.dart';
+import '../../core/providers/space_skin_provider.dart';
 import '../common/widgets/app_card.dart';
 import '../common/widgets/app_list_row.dart';
 import '../common/widgets/app_section_header.dart';
@@ -42,6 +43,7 @@ class ProfilePage extends ConsumerWidget {
         : stats.expiredCount + stats.expiringCount + stats.lowStockCount;
 
     final familyName = familyAsync.valueOrNull?['name']?.toString();
+    final skin = ref.watch(spaceSkinProvider);
 
     return WarmScaffold(
       title: '我的',
@@ -103,7 +105,7 @@ class ProfilePage extends ConsumerWidget {
                     onTap: () => context.push('/alerts'),
                   ),
                   ProfileOverviewTile(
-                    label: '购物清单',
+                    label: skin.shoppingListLabel,
                     value: '${stats?.shoppingCount ?? 0}',
                     icon: Icons.shopping_cart_outlined,
                     accentColor: AppColors.accentAmber,
@@ -132,6 +134,7 @@ class ProfilePage extends ConsumerWidget {
               child: ProfileQuickActionGrid(
                 actions: buildProfileQuickActions(
                   context,
+                  skin: skin,
                   unreadCount: unreadCount,
                   pendingCount: pendingCount,
                 ),

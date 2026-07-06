@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/auth/shop_role_guard.dart';
+import '../../../core/config/space_skin_config.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/models/space_type.dart';
 import 'profile_quick_action_grid.dart';
 
 /// 个人中心宫格快捷项配置 — Tab / Panel 共用
 List<ProfileQuickAction> buildProfileQuickActions(
   BuildContext context, {
+  required SpaceSkinConfig skin,
   required int unreadCount,
   required int pendingCount,
+  String? familyRole,
   bool compact = false,
 }) {
   final items = <ProfileQuickAction>[
@@ -21,7 +26,7 @@ List<ProfileQuickAction> buildProfileQuickActions(
       onTap: () => context.push('/items'),
       shortcuts: [
         ProfileQuickShortcut(
-          label: '添加入库',
+          label: skin.addItemLabel,
           icon: Icons.add_circle_outline,
           onTap: () => context.push('/items/add/method'),
         ),
@@ -30,6 +35,12 @@ List<ProfileQuickAction> buildProfileQuickActions(
           icon: Icons.qr_code_scanner_outlined,
           onTap: () => context.push('/items/scan'),
         ),
+        if (skin.showSalePrice && ShopRoleGuard.canBulkImport(skin, familyRole))
+          ProfileQuickShortcut(
+            label: skin.csvImportTitle,
+            icon: Icons.table_chart_outlined,
+            onTap: () => context.push('/items/import/csv'),
+          ),
         ProfileQuickShortcut(
           label: '物品列表',
           icon: Icons.list_alt_outlined,
@@ -95,12 +106,12 @@ List<ProfileQuickAction> buildProfileQuickActions(
     items.addAll([
       ProfileQuickAction(
         icon: Icons.shopping_cart_outlined,
-        label: '购物',
+        label: skin.spaceType == SpaceType.shop ? '采购' : '购物',
         tint: AppColors.accentAmber,
         onTap: () => context.push('/shopping'),
         shortcuts: [
           ProfileQuickShortcut(
-            label: '购物清单',
+            label: skin.shoppingListLabel,
             icon: Icons.shopping_bag_outlined,
             onTap: () => context.push('/shopping'),
           ),

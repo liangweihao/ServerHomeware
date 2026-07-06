@@ -8,123 +8,23 @@ from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ConflictException, ForbiddenException, NotFoundException
+from app.core.shop_permissions import (
+    assert_can_change_member_role,
+    default_join_role,
+    validate_assignable_role,
+)
+from app.core.space_type import SPACE_TYPE_HOME, SPACE_TYPE_SHOP, normalize_space_type
+from app.core.space_templates import (
+    SHOP_CATEGORY_TEMPLATE,
+    location_template_for,
+    should_seed_shop_categories,
+)
 from app.models.family import Family, FamilyMember
 from app.models.user import User
+from app.repositories.category_repo import CategoryRepository
 from app.repositories.family_repo import FamilyMemberRepository, FamilyRepository
 from app.repositories.user_repo import UserRepository
 from app.services.location_service import LocationService
-
-# 位置模板（创建家庭时自动复制）
-LOCATION_TEMPLATE = [
-    {
-        "name": "厨房",
-        "icon": "🍳",
-        "children": [
-            {
-                "name": "冰箱",
-                "icon": "🧊",
-                "children": [
-                    {"name": "冷藏层", "icon": "❄️"},
-                    {"name": "冷冻层", "icon": "🧊"},
-                    {"name": "门侧", "icon": "🚪"}
-                ]
-            },
-            {
-                "name": "吊柜",
-                "icon": "🚪",
-                "children": [
-                    {"name": "一层", "icon": "1️⃣"},
-                    {"name": "二层", "icon": "2️⃣"},
-                    {"name": "三层", "icon": "3️⃣"}
-                ]
-            },
-            {"name": "调料架", "icon": "🧂"},
-            {"name": "水槽下方", "icon": "🚿"},
-            {"name": "台面", "icon": "🪑"}
-        ]
-    },
-    {
-        "name": "卫生间",
-        "icon": "🛁",
-        "children": [
-            {
-                "name": "洗漱台",
-                "icon": "🚰",
-                "children": [
-                    {"name": "台面", "icon": "🪑"},
-                    {"name": "镜柜", "icon": "🪞"},
-                    {"name": "下方", "icon": "⬇️"}
-                ]
-            },
-            {"name": "浴室柜", "icon": "🗄️"},
-            {"name": "马桶旁", "icon": "🚽"}
-        ]
-    },
-    {
-        "name": "客厅",
-        "icon": "🛋️",
-        "children": [
-            {"name": "电视柜", "icon": "📺"},
-            {
-                "name": "茶几",
-                "icon": "🪑",
-                "children": [
-                    {"name": "上方", "icon": "⬆️"},
-                    {"name": "下方", "icon": "⬇️"}
-                ]
-            },
-            {"name": "书架", "icon": "📚"}
-        ]
-    },
-    {
-        "name": "主卧",
-        "icon": "🛏️",
-        "children": [
-            {
-                "name": "衣柜",
-                "icon": "🗄️",
-                "children": [
-                    {"name": "上层", "icon": "⬆️"},
-                    {"name": "中层", "icon": "➡️"},
-                    {"name": "下层", "icon": "⬇️"},
-                    {"name": "抽屉", "icon": "🗄️"}
-                ]
-            },
-            {
-                "name": "床头柜",
-                "icon": "🛏️",
-                "children": [
-                    {"name": "台面", "icon": "🪑"},
-                    {"name": "抽屉", "icon": "🗄️"}
-                ]
-            },
-            {"name": "梳妆台", "icon": "🪞"}
-        ]
-    },
-    {
-        "name": "次卧",
-        "icon": "🛏️",
-        "children": [
-            {"name": "衣柜", "icon": "🗄️"},
-            {"name": "书桌", "icon": "🖥️"}
-        ]
-    },
-    {
-        "name": "阳台",
-        "icon": "☀️",
-        "children": [
-            {
-                "name": "储物柜",
-                "icon": "🗄️",
-                "children": [
-                    {"name": "上层", "icon": "⬆️"},
-                    {"name": "下层", "icon": "⬇️"}
-                ]
-            },
-            {"name": "晾衣区", "icon": "👕"}
-        ]
-    }
-]
 
 logger = logging.getLogger(__name__)
 
@@ -138,26 +38,40 @@ class FamilyService:
         self.family_member_repo = FamilyMemberRepository(db)
         self.user_repo = UserRepository(db)
         self.location_service = LocationService(db)
+        self.category_repo = CategoryRepository(db)
     
-    async def create_family(self, name: str, owner_id: int, description: Optional[str] = None) -> Family:
+    async def create_family(
+        self,
+        name: str,
+        owner_id: int,
+        description: Optional[str] = None,
+        space_type: Optional[str] = None,
+    ) -> Family:
         """
         创建新家庭
         :param name: 家庭名称
         :param owner_id: 创建者ID
         :param description: 描述（可选）
+        :param space_type: 空间类型 home|shop
         :return: 家庭对象
         """
-        logger.info(f"创建家庭 - 名称: {name}, 创建者ID: {owner_id}")
-        
+        resolved_type = normalize_space_type(space_type)
+        default_icon = "🏪" if resolved_type == SPACE_TYPE_SHOP else "🏠"
+        logger.info(
+            f"创建家庭 - 名称: {name}, 创建者ID: {owner_id}, space_type={resolved_type}"
+        )
+
         # 生成邀请码
         invite_code = self._generate_invite_code()
         while await self.family_repo.exists_by_invite_code(invite_code):
             invite_code = self._generate_invite_code()
-        
+
         family = await self.family_repo.create({
             "name": name,
             "invite_code": invite_code,
             "owner_id": owner_id,
+            "space_type": resolved_type,
+            "icon": default_icon,
         })
         
         # 添加创建者为家庭成员
@@ -170,11 +84,30 @@ class FamilyService:
         # 更新用户当前家庭
         await self.user_repo.update(owner_id, {"current_family_id": family.id})
         
-        # 复制位置模板到新家庭
-        await self.location_service.copy_location_template(family.id, LOCATION_TEMPLATE)
+        # 按空间类型复制位置模板；店铺额外写入分类模板
+        location_template = location_template_for(resolved_type)
+        await self.location_service.copy_location_template(family.id, location_template)
+        if should_seed_shop_categories(resolved_type):
+            await self._copy_shop_category_template(family.id)
+            logger.info(f"店铺分类模板已写入 - familyId={family.id}")
         
         logger.info(f"家庭创建成功 - 家庭ID: {family.id}")
         return family
+
+    async def _copy_shop_category_template(self, family_id: int) -> None:
+        """店铺空间：写入家庭级默认分类（不覆盖全局 system 分类）"""
+        for template in SHOP_CATEGORY_TEMPLATE:
+            await self.category_repo.create(
+                {
+                    "name": template["name"],
+                    "icon": template.get("icon"),
+                    "color": template.get("color"),
+                    "family_id": family_id,
+                    "sort_order": template.get("sort_order", 0),
+                    "is_system": False,
+                    "is_active": True,
+                }
+            )
     
     async def join_family(self, user_id: int, invite_code: str) -> Family:
         """
@@ -194,17 +127,20 @@ class FamilyService:
         if await self.family_member_repo.is_member(user_id, family.id):
             raise ConflictException("已加入该家庭")
         
-        # 添加为家庭成员
+        # 添加为家庭成员 — shop 默认店员
+        join_role = default_join_role(getattr(family, "space_type", None))
         await self.family_member_repo.create({
             "family_id": family.id,
             "user_id": user_id,
-            "role": "member",
+            "role": join_role,
         })
         
         # 更新用户当前家庭
         await self.user_repo.update(user_id, {"current_family_id": family.id})
         
-        logger.info(f"加入家庭成功 - 用户ID: {user_id}, 家庭ID: {family.id}")
+        logger.info(
+            f"加入家庭成功 - 用户ID: {user_id}, 家庭ID: {family.id}, role={join_role}"
+        )
         return family
     
     async def switch_family(self, user_id: int, family_id: int) -> Family:
@@ -284,22 +220,44 @@ class FamilyService:
         """
         return await self.family_member_repo.get_by_family_id(family_id)
     
-    async def update_member_role(self, family_id: int, user_id: int, role: str):
+    async def update_member_role(
+        self,
+        operator_id: int,
+        family_id: int,
+        user_id: int,
+        role: str,
+    ):
         """
-        更新成员角色
-        :param family_id: 家庭ID
-        :param user_id: 用户ID
-        :param role: 角色
+        更新成员角色 — 仅 owner 可改；shop 支持 clerk
         """
-        logger.info(f"更新成员角色 - 家庭ID: {family_id}, 用户ID: {user_id}, 角色: {role}")
-        
+        logger.info(
+            f"更新成员角色 - 操作者: {operator_id}, 家庭ID: {family_id}, "
+            f"目标用户: {user_id}, 角色: {role}"
+        )
+
+        family = await self.family_repo.get_by_id(family_id)
+        if not family:
+            raise NotFoundException("家庭不存在")
+
+        operator = await self.family_member_repo.get_by_user_and_family(
+            operator_id, family_id
+        )
+        if not operator:
+            raise ForbiddenException("您不是该家庭成员")
+        assert_can_change_member_role(operator.role)
+        validate_assignable_role(role, getattr(family, "space_type", None))
+
         member = await self.family_member_repo.get_by_user_and_family(user_id, family_id)
         if not member:
             raise NotFoundException("成员不存在")
-        
+        if member.role == "owner":
+            raise ForbiddenException("不能修改老板角色")
+        if family.owner_id == user_id and role != "owner":
+            raise ForbiddenException("不能变更老板的角色")
+
         await self.family_member_repo.update(member.id, {"role": role})
         
-        logger.info(f"成员角色更新成功")
+        logger.info("成员角色更新成功")
     
     async def update_family(self, user_id: int, family_id: int, name: Optional[str] = None):
         """
@@ -396,6 +354,8 @@ class FamilyService:
                     "id": family.id,
                     "name": family.name,
                     "icon": family.icon or "🏠",
+                    "space_type": getattr(family, "space_type", SPACE_TYPE_HOME)
+                    or SPACE_TYPE_HOME,
                     "role": member.role,
                     "member_count": member_count,
                     "item_count": item_count,
@@ -504,13 +464,14 @@ class FamilyService:
         # owner 可以移除任何人
         if current_role == "owner":
             pass
-        # admin 可以移除 member，但不能移除 owner
+        # admin 可移除 clerk/member，不能移除 owner
         elif current_role == "admin":
             if target_role == "owner":
                 raise ForbiddenException("管理员不能移除家庭所有者")
-        # member 不能移除任何人
+        elif current_role == "clerk":
+            raise ForbiddenException("店员不能移除其他成员")
         else:
-            raise ForbiddenException("普通成员不能移除其他成员")
+            raise ForbiddenException("权限不足，无法移除成员")
         
         # 删除成员关系
         await self.family_member_repo.delete(member_to_remove.id)

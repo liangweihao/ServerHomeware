@@ -1,6 +1,6 @@
 # 产品路线图
 
-> 最后更新：2026-07-04。功能状态以代码与 `doc/core/` 为准。  
+> 最后更新：2026-07-06。功能状态以代码与 `doc/core/` 为准。  
 > Phase A 方向见 [current-phase.md](current-phase.md)。
 
 ---
@@ -52,11 +52,12 @@
 
 | 里程碑 | 内容 | 状态 |
 |--------|------|------|
-| M1 问管管 | 查询 + 首页入口 + hello 动效 | 🟡 Phase 1 规则引擎已上线 |
+| M1 问管管 | 查询 + NL 入库 + hello 动效 + 管管 P0/P1 | ✅ |
 | M2 一键消耗 | 物品详情「用了 1」 | ✅ |
 | M3 场景入口 | 首页空间 Chip | ✅ |
-| M4 清单+库存 | 购物清单显示现有量 | ❌ |
-| M5 录入减负 | NL 规则预填 | ❌ |
+| M4 清单+库存 | 购物清单显示现有量 | ✅ |
+| M5 录入减负 | NL 规则预填 | ✅ |
+| **Gate** | [phase-a-gate.md](phase-a-gate.md) | 🟢 研发自测通过 |
 
 ---
 
@@ -66,8 +67,8 @@
 |------|------|--------|
 | 增量 sync 客户端接入 | 服务端 `/sync/changes` 已有 | P2 |
 | 验证码/SMS 登录 | 当前 Mock（123456） | P2 |
-| 问管家写操作 | 添加入库、记消耗 | P1（M1 后续） |
-| 盘点任务 | Profile 菜单占位 | P2 |
+| 问管家写操作 | NL 预填入库（M5）+ 管管引导确认 | ✅ M5 |
+| 盘点任务 | `/profile/inventory` 轻量盘点页 | ✅ 骨架已交付 |
 | 操作系统 Push | FCM/APNs | P3 |
 
 ---
@@ -84,9 +85,11 @@ PRD：[prd/PRD-home-notification-center.md](prd/PRD-home-notification-center.md)
 
 WebSocket 推送 → 客户端防抖 sync → Badge 刷新。FCM/APNs 仍 Out of Scope。
 
-### Epic E3：盘点任务（轻量）
+### Epic E3：盘点任务（轻量）— ✅ 骨架已交付
 
-按空间生成待核对清单，逐项确认/修正/跳过。
+按空间生成待核对清单，逐项确认/修正/跳过。路由 `/profile/inventory`。
+
+**后续**：外测反馈后再做深度增强（差异报告导出、多人协同等）。
 
 ### Epic E4：录入增强
 
@@ -95,10 +98,18 @@ WebSocket 推送 → 客户端防抖 sync → Badge 刷新。FCM/APNs 仍 Out of
 **建议排期**：
 
 ```
-2026 Q3  M4 清单+库存 → M5 NL 预填
-2026 Q4  E3 盘点任务 → E4 OCR 评审
+2026 Q3  Phase A/B Gate 自测 → B+ 试用包外测
+2026 Q4  外测反馈 → E4 OCR 评审 / E3 盘点增强
 2027 H1  问管家 LLM 增强
 ```
+
+### Phase B+ 试用包（2026-07-06）
+
+| 交付物 | 路径 |
+|--------|------|
+| 演示 seed | `HomeWareServer/scripts/seed_shop_demo.py` |
+| 走查脚本 | [phase-b-plus-trial-walkthrough.md](phase-b-plus-trial-walkthrough.md) |
+| B+ Gate | [phase-b-plus-gate.md](phase-b-plus-gate.md) |
 
 ---
 
@@ -122,9 +133,9 @@ WebSocket 推送 → 客户端防抖 sync → Badge 刷新。FCM/APNs 仍 Out of
 ```
 阶段 1  MVP 手动录入 + 位置 + 过期提醒     → ✅ 已完成
 阶段 2  扫码 + 统计 + 家庭共享 + WS 同步    → ✅ 已完成
-阶段 2.5 Phase A 问管家 + 一键消耗 + 场景   → 🟡 进行中（M4/M5 待做）
+阶段 2.5 Phase A 问管家 + 一键消耗 + 场景   → 🟢 Gate 研发自测通过
+阶段 4  Phase B 店铺皮肤 + B+ + 店员         → 🟢 试用包就绪（外测待执行）
 阶段 3  AI 增强 + OCR + 智能补购           → 规划中
-阶段 4  IoT / 开放生态 / Phase B 店铺皮肤   → 远期
 ```
 
 ---
@@ -135,7 +146,7 @@ WebSocket 推送 → 客户端防抖 sync → Badge 刷新。FCM/APNs 仍 Out of
 - Clean Architecture 全量重构
 - 站外消息推送、短信提醒
 - IoT / 智能冰箱联动
-- 店铺皮肤（Phase B，见 current-phase.md）
+- 店铺皮肤 Phase B MVP（B+ 见 phase-b-milestones.md）
 
 ---
 

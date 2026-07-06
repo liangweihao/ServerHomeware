@@ -8,6 +8,9 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/providers/database_provider.dart';
+import '../../core/auth/shop_role_guard.dart';
+import '../../core/providers/family_role_provider.dart';
+import '../../core/providers/space_skin_provider.dart';
 import '../../core/utils/item_image_storage.dart';
 import '../../data/database/app_database.dart';
 import '../common/widgets/location_picker.dart';
@@ -555,6 +558,10 @@ class _ItemFormViewState extends ConsumerState<ItemFormView> {
   }
 
   Widget _buildPurchaseContent(BuildContext context) {
+    final skin = ref.watch(spaceSkinProvider);
+    final role = ref.watch(familyRoleProvider);
+    final canEditPrice = ShopRoleGuard.canEditPrice(skin, role);
+
     return Column(
       children: [
         if (widget.isEditMode && c.editCurrentQuantity != null)
@@ -576,20 +583,49 @@ class _ItemFormViewState extends ConsumerState<ItemFormView> {
           ),
           onChanged: (_) => widget.onChanged(),
         ),
-        const SizedBox(height: 12),
-        TextFormField(
-          controller: c.priceController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-          ],
-          decoration: const InputDecoration(
-            labelText: '单价（可选）',
-            hintText: '请输入单价',
-            prefixText: '¥ ',
+        if (canEditPrice) ...[
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: c.priceController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            ],
+            decoration: InputDecoration(
+              labelText: skin.purchasePriceFieldLabel,
+              hintText: '请输入单价',
+              prefixText: '¥ ',
+            ),
+            onChanged: (_) => widget.onChanged(),
           ),
-          onChanged: (_) => widget.onChanged(),
-        ),
+        ],
+        if (skin.showSalePrice && canEditPrice) ...[
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: c.salePriceController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            ],
+            decoration: InputDecoration(
+              labelText: skin.salePriceFieldLabel,
+              hintText: '例如：3.50',
+              prefixText: '¥ ',
+            ),
+            onChanged: (_) => widget.onChanged(),
+          ),
+        ],
+        if (skin.showSupplier && canEditPrice) ...[
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: c.supplierController,
+            decoration: InputDecoration(
+              labelText: skin.supplierFieldLabel,
+              hintText: '例如：某某批发',
+            ),
+            onChanged: (_) => widget.onChanged(),
+          ),
+        ],
         const SizedBox(height: 12),
         GestureDetector(
           onTap: () => _selectDate(

@@ -48,6 +48,8 @@ class ItemResponse(BaseModel):
 
     # 价格相关
     purchase_price: Optional[float] = Field(None, description="购买单价")
+    sale_price: Optional[float] = Field(None, description="售价（店铺场景）")
+    supplier: Optional[str] = Field(None, description="供应商（店铺场景）")
     total_price: Optional[float] = Field(None, description="总价")
     purchase_quantity: int = Field(..., description="购买数量（包装数）")
     package_unit: Optional[str] = Field(None, description="包装单位")
@@ -100,6 +102,8 @@ class CreateItemRequest(BaseModel):
 
     # 价格相关
     purchase_price: Optional[float] = Field(None, description="购买单价")
+    sale_price: Optional[float] = Field(None, description="售价（店铺场景）")
+    supplier: Optional[str] = Field(None, max_length=100, description="供应商（店铺场景）")
     purchase_quantity: int = Field(1, description="购买数量（包装数）")
     package_unit: Optional[str] = Field(None, description="包装单位（盒/箱/提）")
     package_quantity: int = Field(1, description="一包装含多少基本单位")
@@ -145,6 +149,8 @@ class UpdateItemRequest(BaseModel):
     
     # 价格相关
     purchase_price: Optional[float] = Field(None, description="购买单价")
+    sale_price: Optional[float] = Field(None, description="售价（店铺场景）")
+    supplier: Optional[str] = Field(None, max_length=100, description="供应商（店铺场景）")
     purchase_quantity: Optional[int] = Field(None, description="购买数量（包装数）")
     package_unit: Optional[str] = Field(None, description="包装单位（盒/箱/提）")
     package_quantity: Optional[int] = Field(None, description="一包装含多少基本单位")
@@ -175,6 +181,37 @@ class UpdateItemRequest(BaseModel):
     predicted_empty_date: Optional[date] = Field(None, description="预计用完日期")
     estimated_use_days: Optional[int] = Field(
         None, description="预计使用天数（与 current_quantity 推算 avg/date）"
+    )
+
+
+class BulkCreateItemsRequest(BaseModel):
+    """批量创建物品 — B+ CSV 进货"""
+
+    items: List[CreateItemRequest] = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="待创建物品列表（最多100条）",
+    )
+
+
+class BulkCreateItemFailure(BaseModel):
+    """批量创建单条失败"""
+
+    index: int = Field(..., description="items 数组下标（0-based）")
+    name: Optional[str] = Field(None, description="商品名称")
+    message: str = Field(..., description="失败原因")
+
+
+class BulkCreateItemsResponse(BaseModel):
+    """批量创建结果"""
+
+    success_count: int = Field(..., description="成功条数")
+    failed_count: int = Field(..., description="失败条数")
+    items: List[dict] = Field(default_factory=list, description="成功创建的物品详情")
+    failures: List[BulkCreateItemFailure] = Field(
+        default_factory=list,
+        description="失败明细",
     )
 
 

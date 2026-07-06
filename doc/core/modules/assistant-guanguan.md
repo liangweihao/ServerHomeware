@@ -67,7 +67,7 @@ flowchart LR
 | 项 | 状态 | 文档 |
 |----|------|------|
 | 角色设定（管管形象、性格） | 设计完成 | `lwh/code_changed/20260703_ai_mascot_character_design.md` |
-| hello 序列帧动画 | 部分落地 | `lwh/code_changed/20260703_guanguan_hello_sequence_frames.md` |
+| hello 序列帧动画 | ✅ 已接入 | 每日首次 `/assistant` 播放；缺 PNG 时图标 fallback |
 
 Phase 1 当前 UI 使用 Material `smart_toy_outlined` 图标；序列帧动效为 M1 增强项。
 

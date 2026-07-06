@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/database_provider.dart';
+import '../../../core/providers/space_skin_provider.dart';
 import '../../../core/services/export_service.dart';
+import '../../../core/shop/shop_csv_export_service.dart';
 
 /// 数据导出弹窗 — Profile 页复用
 class ExportDataDialog {
@@ -52,18 +54,31 @@ class ExportDataDialog {
   ) async {
     try {
       final db = ref.read(databaseProvider);
-      final exportService = ExportService(db);
-      final filePath = await exportService.exportToCsv(scope);
+      final skin = ref.read(spaceSkinProvider);
+      String? filePath;
+
+      if (skin.showSalePrice) {
+        final csv = await ShopCsvExportService.buildInventoryCsv(db);
+        if (csv != null) {
+          filePath = await ExportService.writeCsvToTempFile(
+            csv,
+            prefix: 'shop_inventory',
+          );
+        }
+      } else {
+        filePath = await ExportService(db).exportToCsv(scope);
+      }
 
       if (!context.mounted) return;
 
       if (filePath != null) {
+        final exportService = ExportService(db);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('导出成功'),
+            content: Text(skin.showSalePrice ? '库存 CSV 导出成功' : '导出成功'),
             action: SnackBarAction(
               label: '分享',
-              onPressed: () => exportService.shareFile(filePath),
+              onPressed: () => exportService.shareFile(filePath!),
             ),
           ),
         );

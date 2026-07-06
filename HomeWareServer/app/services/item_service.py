@@ -9,9 +9,16 @@ from typing import Dict, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ForbiddenException, NotFoundException
+from app.core.shop_permissions import (
+    assert_can_bulk_create,
+    assert_can_create_item,
+    assert_can_delete_item,
+    assert_can_update_item,
+    assert_can_use_item,
+)
 from app.models.item import Item
 from app.models.usage_record import UsageRecord
-from app.repositories.family_repo import FamilyMemberRepository
+from app.repositories.family_repo import FamilyMemberRepository, FamilyRepository
 from app.repositories.item_repo import ItemRepository
 from app.repositories.usage_record_repo import UsageRecordRepository
 from app.services.consumption_estimate import apply_user_consumption_estimate
@@ -27,8 +34,18 @@ class ItemService:
         self.db = db
         self.item_repo = ItemRepository(db)
         self.family_member_repo = FamilyMemberRepository(db)
+        self.family_repo = FamilyRepository(db)
         self.usage_repo = UsageRecordRepository(db)
     
+    async def _get_access_context(self, user_id: int, family_id: int) -> tuple[str, str]:
+        """返回 (role, space_type)"""
+        member = await self.family_member_repo.get_by_user_and_family(user_id, family_id)
+        if not member:
+            raise ForbiddenException("无权访问该家庭")
+        family = await self.family_repo.get_by_id(family_id)
+        space_type = getattr(family, "space_type", "home") if family else "home"
+        return member.role, space_type or "home"
+
     async def _check_family_access(self, user_id: int, family_id: int):
         """检查用户是否有权访问家庭"""
         if not await self.family_member_repo.is_member(user_id, family_id):
@@ -64,7 +81,8 @@ class ItemService:
         """
         logger.info(f"创建物品 - 用户ID: {user_id}, 家庭ID: {family_id}")
         
-        await self._check_family_access(user_id, family_id)
+        role, space_type = await self._get_access_context(user_id, family_id)
+        assert_can_create_item(role, space_type, data)
         
         # 处理数据
         item_data = data.copy()
@@ -125,6 +143,53 @@ class ItemService:
         )
         broadcast_family_event(family_id, "alerts_changed", {})
         return item
+
+    async def bulk_create_items(
+        self,
+        user_id: int,
+        family_id: int,
+        items_data: List[dict],
+    ) -> dict:
+        """
+        批量创建物品 — 逐条创建，部分失败不影响其余
+        """
+        logger.info(
+            f"批量创建物品 - 用户ID: {user_id}, 家庭ID: {family_id}, 条数: {len(items_data)}"
+        )
+        await self._check_family_access(user_id, family_id)
+        role, space_type = await self._get_access_context(user_id, family_id)
+        assert_can_bulk_create(role, space_type)
+
+        successes: List[dict] = []
+        failures: List[dict] = []
+
+        for index, data in enumerate(items_data):
+            name = data.get("name")
+            try:
+                item = await self.create_item(user_id, family_id, data.copy())
+                detail = await self.get_item(user_id, item.id)
+                successes.append({"index": index, "item": detail})
+            except Exception as exc:
+                logger.warning(
+                    f"批量创建第 {index} 条失败 name={name}: {exc}",
+                )
+                failures.append(
+                    {
+                        "index": index,
+                        "name": name,
+                        "message": str(exc),
+                    }
+                )
+
+        logger.info(
+            f"批量创建完成 success={len(successes)} failed={len(failures)}"
+        )
+        return {
+            "success_count": len(successes),
+            "failed_count": len(failures),
+            "items": successes,
+            "failures": failures,
+        }
     
     async def get_item(self, user_id: int, item_id: int) -> Dict:
         """
@@ -177,6 +242,8 @@ class ItemService:
             "location_full_path": location_full_path,
             "container_name": item.container_name,
             "purchase_price": float(item.purchase_price) if item.purchase_price else None,
+            "sale_price": float(item.sale_price) if item.sale_price else None,
+            "supplier": item.supplier,
             "total_price": float(item.total_price) if item.total_price else None,
             "purchase_quantity": item.purchase_quantity,
             "package_unit": item.package_unit,
@@ -333,6 +400,7 @@ class ItemService:
             raise NotFoundException("物品不存在")
         
         await self._check_family_access(user_id, item.family_id)
+        role, space_type = await self._get_access_context(user_id, item.family_id)
 
         # 用户手填消耗预测（含 estimated_use_days 推算）
         merged = data.copy()
@@ -344,7 +412,7 @@ class ItemService:
         update_data = {}
         allowed_fields = [
             "name", "brand", "specification", "barcode", "category_id", "location_id",
-            "container_name", "purchase_price", "total_price", "purchase_quantity", "package_unit",
+            "container_name", "purchase_price", "sale_price", "supplier", "total_price", "purchase_quantity", "package_unit",
             "package_quantity", "current_quantity",
             "unit", "safety_stock", "purchase_date", "purchase_channel",
             "production_date", "expiry_date", "shelf_life_days", "opened_date",
@@ -356,6 +424,8 @@ class ItemService:
         for key, value in merged.items():
             if key in allowed_fields and value is not None:
                 update_data[key] = value
+
+        assert_can_update_item(role, space_type, update_data)
         
         # 如果更新了 purchase_price 和 purchase_quantity，重新计算 total_price
         if "purchase_price" in update_data and "purchase_quantity" in update_data:
@@ -386,6 +456,8 @@ class ItemService:
             raise NotFoundException("物品不存在")
 
         await self._check_family_access(user_id, item.family_id)
+        role, space_type = await self._get_access_context(user_id, item.family_id)
+        assert_can_delete_item(role, space_type)
 
         # 收集所有图片 URL，用于后续清理磁盘文件
         image_urls = [img.url for img in item.images]
@@ -425,6 +497,8 @@ class ItemService:
             raise NotFoundException("物品不存在")
         
         await self._check_family_access(user_id, item.family_id)
+        role, space_type = await self._get_access_context(user_id, item.family_id)
+        assert_can_use_item(role, space_type)
         
         # 更新当前数量
         new_quantity = float(item.current_quantity) - quantity

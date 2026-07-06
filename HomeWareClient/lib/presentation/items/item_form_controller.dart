@@ -13,6 +13,10 @@ class ItemFormController {
   final brandController = TextEditingController();
   final notesController = TextEditingController();
   final priceController = TextEditingController();
+  /// B+ 店铺售价
+  final salePriceController = TextEditingController();
+  /// B+ 店铺供应商
+  final supplierController = TextEditingController();
 
   Category? selectedCategory;
   Location? selectedLocation;
@@ -86,6 +90,9 @@ class ItemFormController {
     notesController.text = item.notes ?? '';
     priceController.text =
         item.purchasePrice != null ? item.purchasePrice!.toString() : '';
+    salePriceController.text =
+        item.salePrice != null ? item.salePrice!.toString() : '';
+    supplierController.text = item.supplier ?? '';
 
     selectedCategory = category;
     selectedLocation = location;
@@ -123,6 +130,8 @@ class ItemFormController {
     brandController.clear();
     notesController.clear();
     priceController.clear();
+    salePriceController.clear();
+    supplierController.clear();
     selectedCategory = null;
     selectedLocation = null;
     containerName = null;
@@ -162,6 +171,8 @@ class ItemFormController {
     brandController.dispose();
     notesController.dispose();
     priceController.dispose();
+    salePriceController.dispose();
+    supplierController.dispose();
   }
 
   bool validate() {
@@ -212,6 +223,13 @@ class ItemFormController {
     final price = double.tryParse(priceController.text);
     if (price != null) {
       body['purchase_price'] = price;
+    }
+    final salePrice = double.tryParse(salePriceController.text);
+    if (salePrice != null) {
+      body['sale_price'] = salePrice;
+    }
+    if (supplierController.text.trim().isNotEmpty) {
+      body['supplier'] = supplierController.text.trim();
     }
     if (purchaseDate != null) {
       body['purchase_date'] = formatApiDate(purchaseDate!);
@@ -282,6 +300,12 @@ class ItemFormController {
       purchasePrice: priceController.text.isEmpty
           ? const Value.absent()
           : Value(double.tryParse(priceController.text)),
+      salePrice: salePriceController.text.isEmpty
+          ? const Value.absent()
+          : Value(double.tryParse(salePriceController.text)),
+      supplier: supplierController.text.isEmpty
+          ? const Value.absent()
+          : Value(supplierController.text.trim()),
       purchaseQuantity: Value(quantity.round()),
       packageUnit: packageUnit != null ? Value(packageUnit!) : const Value.absent(),
       packageQuantity: Value(packageQuantity),
@@ -341,6 +365,12 @@ class ItemFormController {
       purchasePrice: priceController.text.isEmpty
           ? const Value.absent()
           : Value(double.tryParse(priceController.text)),
+      salePrice: salePriceController.text.isEmpty
+          ? const Value.absent()
+          : Value(double.tryParse(salePriceController.text)),
+      supplier: supplierController.text.isEmpty
+          ? const Value.absent()
+          : Value(supplierController.text.trim()),
       purchaseQuantity: quantity.round(),
       packageUnit: packageUnit != null ? Value(packageUnit!) : const Value.absent(),
       packageQuantity: packageQuantity,
@@ -406,6 +436,8 @@ class ItemFormController {
       'brand': brandController.text,
       'notes': notesController.text,
       'price': priceController.text,
+      'salePrice': salePriceController.text,
+      'supplier': supplierController.text,
       'categoryId': selectedCategory?.id,
       'locationId': selectedLocation?.id,
       'containerName': containerName,
@@ -435,6 +467,8 @@ class ItemFormController {
     brandController.text = map['brand']?.toString() ?? '';
     notesController.text = map['notes']?.toString() ?? '';
     priceController.text = map['price']?.toString() ?? '';
+    salePriceController.text = map['salePrice']?.toString() ?? '';
+    supplierController.text = map['supplier']?.toString() ?? '';
 
     final categoryId = map['categoryId'] as int?;
     if (categoryId != null) {
