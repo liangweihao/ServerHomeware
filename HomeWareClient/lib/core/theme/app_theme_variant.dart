@@ -1,37 +1,13 @@
 import 'app_color_palette.dart';
 
-/// 应用主题样式变体
+/// 应用主题 — 仅保留「糖果轻点」
 enum AppThemeVariant {
-  /// 清爽工具风（点评橙 + 闲鱼灰白，默认）
-  utilityClean(
-    storageKey: 'utility_clean',
-    label: '清爽工具',
-    description: '点评式列表橙，闲鱼式灰白底',
-    palette: AppColorPalettes.utilityClean,
-  ),
-
-  /// 糖果轻点 — 鲜活干净预览（白底多彩点缀）
+  /// 糖果轻点 — 白底 + 饱和圆角图标点缀
   vividClean(
     storageKey: 'vivid_clean',
     label: '糖果轻点',
-    description: '白底饱和图标与标签，鲜艳不厚重',
+    description: '温暖圆润，饱和色块图标，家庭与小店通用',
     palette: AppColorPalettes.vividClean,
-  ),
-
-  /// 居家暖色 — 书旗向（可选）
-  communityWarm(
-    storageKey: 'community_warm',
-    label: '居家暖色',
-    description: '米白极简，温和清晰',
-    palette: AppColorPalettes.communityWarm,
-  ),
-
-  /// 卡通轻插画
-  cartoon(
-    storageKey: 'cartoon',
-    label: '卡通轻插画',
-    description: '温暖圆润，家庭友好',
-    palette: AppColorPalettes.cartoon,
   );
 
   const AppThemeVariant({
@@ -41,27 +17,16 @@ enum AppThemeVariant {
     required this.palette,
   });
 
-  /// 默认主题 — 清爽工具风
-  static const AppThemeVariant defaultVariant = AppThemeVariant.utilityClean;
+  /// 唯一默认主题
+  static const AppThemeVariant defaultVariant = AppThemeVariant.vividClean;
 
-  /// SharedPreferences 持久化键值
   final String storageKey;
-
-  /// 展示名称
   final String label;
-
-  /// 简短说明
   final String description;
-
-  /// 对应色板
   final AppColorPalette palette;
 
-  /// 从持久化字符串解析，未知键回退 [defaultVariant]
+  /// 从持久化解析 — 任意旧键均迁移为糖果轻点
   static AppThemeVariant fromStorage(String? key) {
-    if (key == null || key.isEmpty) return defaultVariant;
-    for (final variant in AppThemeVariant.values) {
-      if (variant.storageKey == key) return variant;
-    }
-    return defaultVariant;
+    return vividClean;
   }
 }

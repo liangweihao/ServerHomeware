@@ -75,10 +75,9 @@ class _AppButtonState extends State<AppButton> {
 
     final borderSide = switch (widget.variant) {
       ButtonVariant.outline => BorderSide(
-          color: AppColors.primaryLight,
-          width: 2,
+          color: AppColors.border,
+          width: 1.5,
         ),
-      ButtonVariant.primary => BorderSide(color: AppColors.primaryLight, width: 2),
       _ => BorderSide.none,
     };
 

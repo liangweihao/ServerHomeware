@@ -1,55 +1,106 @@
-import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_colors.dart';
-import '../../core/providers/theme_provider.dart';
-import '../../core/theme/app_theme_variant.dart';
+import '../../core/constants/app_radius.dart';
+import '../../core/constants/app_typography.dart';
+import '../../core/icons/app_icon.dart';
+import '../../core/icons/candy_icons.dart';
 import '../common/widgets/app_card.dart';
-import '../common/widgets/app_list_row.dart';
 import '../common/widgets/warm_scaffold.dart';
 
-/// 主题样式设置 — 遵循 ui_system 设置页模板
-class ThemeSettingsPage extends ConsumerWidget {
+/// 糖果轻点设计规范预览（只读）
+class ThemeSettingsPage extends StatelessWidget {
   const ThemeSettingsPage({super.key});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final current = ref.watch(appThemeVariantProvider);
+  static const _accents = [
+    ('珊瑚主色', AppColors.accentCoral),
+    ('青绿', AppColors.accentTeal),
+    ('天蓝', AppColors.accentSky),
+    ('紫藤', AppColors.accentViolet),
+    ('蜜糖', AppColors.accentAmber),
+    ('玫瑰', AppColors.accentRose),
+  ];
 
+  @override
+  Widget build(BuildContext context) {
     return WarmScaffold(
-      title: '主题样式',
+      title: '视觉规范',
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           AppCard(
-            padding: EdgeInsets.zero,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (var i = 0; i < AppThemeVariant.values.length; i++) ...[
-                  if (i > 0) const AppListDivider(),
-                  _ThemeOptionRow(
-                    variant: AppThemeVariant.values[i],
-                    selected: current == AppThemeVariant.values[i],
-                    onSelect: () {
-                      debugPrint(
-                        '[ThemeSettingsPage] INFO: 选择 ${AppThemeVariant.values[i].label}',
-                      );
-                      ref
-                          .read(appThemeVariantProvider.notifier)
-                          .setVariant(AppThemeVariant.values[i]);
-                    },
-                  ),
-                ],
+                Text('糖果轻点', style: AppTypography.headlineMedium),
+                const SizedBox(height: 6),
+                Text(
+                  '全 App 统一：暖灰白底、Nunito 圆体、饱和圆角图标底、大圆角卡片。',
+                  style: AppTypography.bodySmall,
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              '「清爽工具」为默认；「糖果轻点」为多彩点缀预览，可在真机对比后选择是否设为默认。',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
+          const SizedBox(height: 12),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('主色与点缀', style: AppTypography.titleMedium),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: _accents.map((item) {
+                    final (name, color) = item;
+                    return Column(
+                      children: [
+                        AppIcon.feature(
+                          icon: CandyIcons.inventory,
+                          accent: color,
+                          wellSize: 48,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(name, style: AppTypography.caption),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('字体层级', style: AppTypography.titleMedium),
+                const SizedBox(height: 8),
+                Text('大标题', style: AppTypography.headlineLarge),
+                Text('页面标题', style: AppTypography.titleLarge),
+                Text('正文 16', style: AppTypography.bodyLarge),
+                Text('辅助 14', style: AppTypography.bodyMedium),
+                Text('标签 11', style: AppTypography.labelSmall),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('圆角', style: AppTypography.titleMedium),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    _RadiusChip('md 14', AppRadius.md),
+                    const SizedBox(width: 8),
+                    _RadiusChip('lg 18', AppRadius.lg),
+                    const SizedBox(width: 8),
+                    _RadiusChip('xl 24', AppRadius.xl),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
@@ -58,52 +109,21 @@ class ThemeSettingsPage extends ConsumerWidget {
   }
 }
 
-class _ThemeOptionRow extends StatelessWidget {
-  const _ThemeOptionRow({
-    required this.variant,
-    required this.selected,
-    required this.onSelect,
-  });
+class _RadiusChip extends StatelessWidget {
+  const _RadiusChip(this.label, this.radius);
 
-  final AppThemeVariant variant;
-  final bool selected;
-  final VoidCallback onSelect;
+  final String label;
+  final double radius;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onSelect,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    variant.label,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    variant.description,
-                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                  ),
-                ],
-              ),
-            ),
-            if (selected)
-              Icon(Icons.check_circle, color: AppColors.primary, size: 22)
-            else
-              Icon(Icons.circle_outlined, color: AppColors.textHint, size: 22),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.primaryLighter,
+        borderRadius: BorderRadius.circular(radius),
       ),
+      child: Text(label, style: AppTypography.labelSmall),
     );
   }
 }
