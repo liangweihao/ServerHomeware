@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/icons/app_icon.dart';
+import '../../../core/icons/candy_icons.dart';
 
 /// 列表三态容器 — 加载 / 空 / 错误 / 内容
 class AsyncListBody extends StatelessWidget {
@@ -48,7 +50,12 @@ class AsyncListBody extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline, size: 48, color: AppColors.danger),
+              AppIcon.feature(
+                icon: CandyIcons.error,
+                accent: AppColors.danger,
+                wellSize: 56,
+                iconSize: 28,
+              ),
               const SizedBox(height: 12),
               Text(errorMessage!, textAlign: TextAlign.center),
               if (onRetry != null) ...[
@@ -62,13 +69,19 @@ class AsyncListBody extends StatelessWidget {
     }
 
     if (isEmpty) {
+      final accent = _accentForEmptyIcon(emptyIcon);
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(emptyIcon, size: 48, color: AppColors.textHint),
+              AppIcon.feature(
+                icon: emptyIcon,
+                accent: accent,
+                wellSize: 56,
+                iconSize: 28,
+              ),
               const SizedBox(height: 12),
               Text(
                 emptyTitle,
@@ -99,5 +112,14 @@ class AsyncListBody extends StatelessWidget {
     }
 
     return child;
+  }
+
+  static Color _accentForEmptyIcon(IconData icon) {
+    final rounded = CandyIcons.rounded(icon);
+    if (rounded == CandyIcons.check) return AppColors.success;
+    if (rounded == CandyIcons.error) return AppColors.danger;
+    if (rounded == CandyIcons.searchOff) return AppColors.accentSky;
+    if (rounded == CandyIcons.notifications) return AppColors.accentRose;
+    return AppColors.accentCoral;
   }
 }

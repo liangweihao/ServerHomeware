@@ -1,13 +1,11 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/theme/app_visual_style.dart';
-import '../../../core/theme/cartoon_decorations.dart';
+import '../../../core/constants/app_radius.dart';
 import '../../../core/theme/cartoon_motion.dart';
 import '../../common/widgets/cartoon_pressable.dart';
 
-/// 卡通主题 — 浮动圆角 Dock 底栏（贴纸描边 + 弹性 Tab）
+/// 糖果轻点 — 浮动圆角 Dock 底栏
 class CartoonBottomNav extends StatelessWidget {
   const CartoonBottomNav({
     super.key,
@@ -26,7 +24,6 @@ class CartoonBottomNav extends StatelessWidget {
   static const horizontalMargin = 16.0;
   static const bottomMargin = 10.0;
 
-  /// 底栏占用总高度（含安全区），供 Scaffold 预留留白
   static double totalHeight(BuildContext context) {
     return contentHeight +
         bottomMargin +
@@ -38,25 +35,21 @@ class CartoonBottomNav extends StatelessWidget {
       outlineAsset: 'assets/icons/home_outline.svg',
       filledAsset: 'assets/icons/home_filled.svg',
       label: '首页',
-      emoji: '🏠',
     ),
     _TabData(
       outlineAsset: 'assets/icons/items_outline.svg',
       filledAsset: 'assets/icons/items_filled.svg',
       label: '物品',
-      emoji: '📦',
     ),
     _TabData(
       outlineAsset: 'assets/icons/alerts_outline.svg',
       filledAsset: 'assets/icons/alerts_filled.svg',
       label: '提醒',
-      emoji: '🔔',
     ),
     _TabData(
       outlineAsset: 'assets/icons/profile_outline.svg',
       filledAsset: 'assets/icons/profile_filled.svg',
       label: '我的',
-      emoji: '😊',
     ),
   ];
 
@@ -72,11 +65,10 @@ class CartoonBottomNav extends StatelessWidget {
         bottomInset + bottomMargin,
       ),
       child: DecoratedBox(
-        decoration: CartoonDecorations.stickerCard(
-          fillColor: AppColors.white,
-          borderColor: AppColors.primaryDark,
-          borderRadius: BorderRadius.circular(28),
-          shadowLevel: CartoonShadowLevel.floating,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppRadius.dock),
+          boxShadow: AppColors.cardShadow,
         ),
         child: SizedBox(
           height: contentHeight,
@@ -101,18 +93,14 @@ class CartoonBottomNav extends StatelessWidget {
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         color: AppColors.primaryLighter,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppColors.primary,
-                          width: CartoonDecorations.borderWidth,
-                        ),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
                     ),
                   ),
                   Row(
                     children: List.generate(tabCount, (index) {
                       return Expanded(
-                        child: _CartoonNavSlot(
+                        child: _CandyNavSlot(
                           tab: _tabs[index],
                           selected: currentIndex == index,
                           showBadge: index == 2 && alertCount > 0,
@@ -120,8 +108,7 @@ class CartoonBottomNav extends StatelessWidget {
                           onTap: () {
                             if (currentIndex == index) return;
                             debugPrint(
-                              '[CartoonBottomNav] 切换 Tab: '
-                              '${_tabs[index].label} (index=$index)',
+                              '[CartoonBottomNav] Tab ${_tabs[index].label}',
                             );
                             onTap(index);
                           },
@@ -144,17 +131,15 @@ class _TabData {
     required this.outlineAsset,
     required this.filledAsset,
     required this.label,
-    required this.emoji,
   });
 
   final String outlineAsset;
   final String filledAsset;
   final String label;
-  final String emoji;
 }
 
-class _CartoonNavSlot extends StatelessWidget {
-  const _CartoonNavSlot({
+class _CandyNavSlot extends StatelessWidget {
+  const _CandyNavSlot({
     required this.tab,
     required this.selected,
     required this.showBadge,
@@ -185,21 +170,16 @@ class _CartoonNavSlot extends StatelessWidget {
             builder: (context, t, _) {
               final color = Color.lerp(
                 AppColors.textHint,
-                AppColors.primaryDark,
+                AppColors.primary,
                 t,
               )!;
 
-              Widget iconWidget = selected
-                  ? Text(
-                      tab.emoji,
-                      style: TextStyle(fontSize: 22 + t * 4, height: 1),
-                    )
-                  : SvgPicture.asset(
-                      tab.outlineAsset,
-                      width: 24,
-                      height: 24,
-                      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-                    );
+              Widget iconWidget = SvgPicture.asset(
+                selected ? tab.filledAsset : tab.outlineAsset,
+                width: 24,
+                height: 24,
+                colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+              );
 
               if (showBadge) {
                 iconWidget = Badge(
@@ -216,10 +196,10 @@ class _CartoonNavSlot extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Transform.scale(
-                      scale: selected ? 1.0 + t * 0.15 : 1.0,
+                      scale: selected ? 1.0 + t * 0.12 : 1.0,
                       child: iconWidget,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       tab.label,
                       style: TextStyle(
