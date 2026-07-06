@@ -28,6 +28,7 @@ lwh/
 | 物品录入与消耗 | [`doc/core/modules/items-entry-and-consume.md`](../doc/core/modules/items-entry-and-consume.md) |
 | 认证与家庭 | [`doc/core/modules/auth-and-family.md`](../doc/core/modules/auth-and-family.md) |
 | UI 与首页 | [`doc/core/modules/ui-and-home.md`](../doc/core/modules/ui-and-home.md) |
+| **UI/Icon 全局审计** | [`ui_icon_style_audit.md`](ui_icon_style_audit.md) ← 替换清单与批次 |
 
 ---
 
