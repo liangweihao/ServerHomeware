@@ -651,7 +651,10 @@ class LlmService:
         }
 
         try:
-            async with httpx.AsyncClient(timeout=settings.DEEPSEEK_TIMEOUT_SECONDS) as client:
+            async with httpx.AsyncClient(
+                timeout=settings.DEEPSEEK_TIMEOUT_SECONDS,
+                trust_env=False,
+            ) as client:
                 resp = await client.post(url, headers=headers, json=payload)
                 resp.raise_for_status()
                 return resp.json()

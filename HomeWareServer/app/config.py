@@ -207,7 +207,7 @@ class Settings(BaseSettings):
     )
 
 
-# 检查是否设置了 ENV_FILE 环境变量
+# 检查是否设置了 ENV_FILE 环境变量（默认读取 HomeWareServer/.env）
 env_file = os.environ.get("ENV_FILE", ".env")
 
 # 全局配置实例

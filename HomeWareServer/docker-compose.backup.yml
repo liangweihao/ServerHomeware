@@ -5,7 +5,7 @@ services:
     image: postgres:15
     container_name: homestock_backup
     env_file:
-      - .env.production
+      - .env
     volumes:
       - ./scripts/backup.sh:/backup.sh:ro
       - backups_data:/backups

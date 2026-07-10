@@ -32,9 +32,12 @@ HomeWareClient/   # Flutter mobile/desktop client
 cd HomeWareServer
 
 # Development mode (SQLite, no PostgreSQL/Redis needed):
-./start-dev.sh          # macOS/Linux/Git Bash
-# or on Windows:
-.\start-dev.ps1
+./start.sh              # 后台守护
+./start.sh prod         # 同上
+./start.sh restart      # 重启
+./start.sh foreground   # 前台调试
+
+# 配置：复制 .env.example 为 .env 后编辑（JWT、DEEPSEEK_API_KEY 等）
 
 # Production (requires PostgreSQL + Redis via Docker):
 ./start-docker.sh
@@ -77,9 +80,9 @@ app/
 - `get_current_family` — resolves user's current family
 - `require_member` → `require_admin` → `require_owner` — cascading role checks
 
-**Database**: Dual-mode (`core/database.py`). Set `DATABASE_URL` in `.env` to switch between PostgreSQL and SQLite. Development uses `.env.dev` with `ENV_FILE=.env.dev`.
+**Database**: Dual-mode (`core/database.py`). Set `DATABASE_URL` in `.env` to switch between PostgreSQL and SQLite.
 
-**Config** (`config.py`): pydantic-settings reads from `.env` (or `ENV_FILE` override). Key settings: `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET_KEY`, `UPLOAD_DIR`.
+**Config** (`config.py`): pydantic-settings reads from `.env`. Key settings: `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET_KEY`, `DEEPSEEK_API_KEY`, `UPLOAD_DIR`.
 
 **API response format** (uniform across all endpoints):
 ```json

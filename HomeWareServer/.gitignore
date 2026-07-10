@@ -1,9 +1,5 @@
-# Environment files
+# Environment files（仅保留 .env 本地配置，模板见 .env.example）
 .env
-.env.test
-.env.development
-.env.dev
-.env.production
 
 # IDE
 .vscode
