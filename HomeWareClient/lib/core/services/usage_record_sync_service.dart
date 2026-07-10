@@ -90,6 +90,8 @@ class UsageRecordSyncService {
 
       var inserted = 0;
       var skipped = 0;
+      final skippedByMissingItem = <int, int>{};
+      final itemSync = ItemSyncService(_db);
 
       for (final serverRecord in serverRecords) {
         final serverId = _parseId(serverRecord['id']);
@@ -104,12 +106,14 @@ class UsageRecordSyncService {
         if (createdAt == null) continue;
 
         final serverItemIdRaw = _parseId(serverRecord['item_id']) ?? 0;
-        final localItemId =
-            await _itemIdResolver.toLocalId(serverItemIdRaw);
+        var localItemId = await _itemIdResolver.toLocalId(serverItemIdRaw);
+        // 本地无映射时尝试从服务端拉取单条物品（问管管/usage 共用）
+        if (localItemId == null && serverItemIdRaw > 0) {
+          localItemId = await itemSync.ensureLocalByServerId(serverItemIdRaw);
+        }
         if (localItemId == null) {
-          debugPrint(
-            '[UsageRecordSync] WARN: 跳过无本地映射 usage serverItemId=$serverItemIdRaw',
-          );
+          skippedByMissingItem[serverItemIdRaw] =
+              (skippedByMissingItem[serverItemIdRaw] ?? 0) + 1;
           skipped++;
           continue;
         }
@@ -156,6 +160,13 @@ class UsageRecordSyncService {
         } catch (e) {
           debugPrint('[UsageRecordSync] WARN: 插入失败 $e');
         }
+      }
+
+      if (skippedByMissingItem.isNotEmpty) {
+        debugPrint(
+          '[UsageRecordSync] WARN: 跳过无本地映射的使用记录 '
+          'countByServerItemId=$skippedByMissingItem',
+        );
       }
 
       debugPrint(

@@ -21,9 +21,11 @@ import '../../core/providers/space_skin_provider.dart';
 import '../../core/utils/alert_display_helper.dart';
 import '../../core/utils/item_api_id.dart';
 import '../../core/services/consumption_prediction_service.dart';
+import '../../core/services/item_deleted_registry.dart';
 import '../../core/services/item_service.dart';
 import '../../core/utils/item_image_storage.dart';
 import '../../data/database/app_database.dart';
+import '../home/providers/guanguan_panel_provider.dart';
 import '../common/widgets/app_button.dart';
 import '../common/widgets/app_empty_state.dart';
 import '../common/widgets/app_progress_bar.dart';
@@ -1174,16 +1176,28 @@ class _ItemDetailPageState extends ConsumerState<ItemDetailPage> {
     );
     if (confirmed != true || !mounted) return;
 
+    final serverId = item.serverApiId;
     await ref.read(databaseProvider).deleteItem(item.id);
 
-    // 同步到服务端
-    ItemService().deleteItem(itemId: item.serverApiId);
+    // 登记已删 ID，防止 sync 从服务端恢复
+    if (serverId > 0) {
+      await ItemDeletedRegistry.markDeleted(serverId);
+      final apiResult = await ItemService().deleteItem(itemId: serverId);
+      if (apiResult.code != 200) {
+        debugPrint(
+          '[ItemDetailPage] WARN: 服务端删除失败 id=$serverId msg=${apiResult.message}',
+        );
+      } else {
+        debugPrint('[ItemDetailPage] INFO: 服务端删除成功 id=$serverId');
+      }
+    }
 
-    // 通知事件总线：物品已删除
+    // 通知事件总线：物品已删除，刷新首页今日任务等
     ref.read(itemEventBusProvider.notifier).notifyDeleted(itemId: item.id);
-
-    debugPrint('[ItemDetailPage] INFO: 删除物品 id=${item.id}');
     ref.invalidate(allItemsProvider);
+    ref.invalidate(guanguanPanelProvider);
+
+    debugPrint('[ItemDetailPage] INFO: 删除物品 local=${item.id} server=$serverId');
     if (mounted) {
       context.pop();
       ScaffoldMessenger.of(context).showSnackBar(

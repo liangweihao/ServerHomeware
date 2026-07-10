@@ -119,3 +119,44 @@ class ItemRepository(BaseRepository[Item]):
                 preview_map[row[0]] = url
 
         return preview_map
+
+    async def search_by_name(
+        self, family_id: int, keyword: str, limit: int = 5
+    ) -> List[Item]:
+        """
+        按物品名称模糊搜索（供 LLM Function Calling 使用）
+        只返回状态正常(status=0)的物品，携带 location 关联
+        """
+        result = await self.db.execute(
+            select(Item)
+            .options(joinedload(Item.location))
+            .filter(
+                Item.family_id == family_id,
+                Item.status == 0,
+                Item.deleted_at.is_(None),
+                Item.name.ilike(f"%{keyword}%"),
+            )
+            .limit(limit)
+        )
+        return result.unique().scalars().all()
+
+    async def search_by_category_keyword(
+        self, family_id: int, keyword: str, limit: int = 20
+    ) -> List[Item]:
+        """
+        按分类名称关键词搜索物品（供 LLM Function Calling 使用）
+        通过 Category.name 模糊匹配，携带 location 关联
+        """
+        result = await self.db.execute(
+            select(Item)
+            .options(joinedload(Item.location))
+            .join(Category, Item.category_id == Category.id, isouter=True)
+            .filter(
+                Item.family_id == family_id,
+                Item.status == 0,
+                Item.deleted_at.is_(None),
+                Category.name.ilike(f"%{keyword}%"),
+            )
+            .limit(limit)
+        )
+        return result.unique().scalars().all()

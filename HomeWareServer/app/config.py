@@ -54,6 +54,16 @@ class Settings(BaseSettings):
     # FCM
     FCM_SERVER_KEY: str = ""
 
+    # DeepSeek LLM（AI 助手功能）
+    # 在 .env 文件中填写：DEEPSEEK_API_KEY=sk-xxxxxxxx
+    DEEPSEEK_API_KEY: str = ""
+    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com"
+    DEEPSEEK_MODEL: str = "deepseek-chat"
+    # 单次对话最大历史轮数（节省 token）
+    DEEPSEEK_MAX_HISTORY_TURNS: int = 6
+    # LLM 请求超时秒数
+    DEEPSEEK_TIMEOUT_SECONDS: int = 30
+
     # ========== Validators ==========
 
     @field_validator("APP_ENV")

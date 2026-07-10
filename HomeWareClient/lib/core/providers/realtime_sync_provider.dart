@@ -10,7 +10,6 @@ import '../providers/database_provider.dart';
 import '../providers/home_provider.dart';
 import '../providers/realtime_sync_status_provider.dart';
 import '../services/api_service.dart';
-import '../services/item_sync_service.dart';
 import '../services/realtime_sync_service.dart';
 import '../services/usage_record_sync_service.dart';
 
@@ -95,7 +94,7 @@ class RealtimeSyncController {
       final db = _ref.read(databaseProvider);
       debugPrint('[RealtimeSyncController] INFO: 开始防抖同步');
 
-      await ItemSyncService(db).syncFromServer();
+      // syncBidirectional 内已含物品同步 + usage 拉取/补推
       await UsageRecordSyncService(db).syncBidirectional();
 
       final itemIdRaw = data['item_id'];

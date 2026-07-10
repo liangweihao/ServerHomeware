@@ -67,7 +67,12 @@ class AssistantParser {
       );
     }
 
-    // 短词默认当作物品名查询
+    // 复杂语义 / 症状护理诉求 → 交给大模型，不走短词兜底
+    if (_looksLikeSymptomOrNeed(msg)) {
+      return const AssistantParsedQuery(intent: AssistantIntentType.unknown);
+    }
+
+    // 短词默认当作物品名查询（如「创可贴」「牛奶」）
     if (msg.length <= 12 && !_looksLikeQuestion(msg)) {
       return AssistantParsedQuery(
         intent: AssistantIntentType.queryItemLocation,
@@ -86,7 +91,44 @@ class AssistantParser {
     return msg.contains('?') || msg.contains('？') || msg.contains('吗');
   }
 
-  /// 「厨房有什么」「卫生间还剩什么」
+  /// 交给 LLM 处理的意图前缀 — 规则引擎无法处理的复杂语义
+  static const _llmIntentPrefixes = [
+    '我想吃', '想吃', '我要做', '要做', '做个', '做一个', '做一道',
+    '手受伤', '脚受伤', '手划破', '手破了', '头疼', '发烧', '感冒', '肚子疼',
+    '手有点', '手很', '手太', '手干', '手粗', '皮肤干燥', '皮肤粗糙',
+    '有点粗糙', '有点干', '很干燥',
+    '帮我', '推荐', '建议', '怎么做',
+  ];
+
+  /// 症状/护理诉求 — 应走 LLM 而非短词物品查询
+  static bool _looksLikeSymptomOrNeed(String msg) {
+    if (_containsAny(msg, _llmIntentPrefixes)) return true;
+
+    // 身体部位 + 状态/不适描述（如「皮肤很干」「嗓子痒」）
+    if (RegExp(r'(手|脚|皮肤|头发|嗓子|眼睛|肚子).*(粗糙|干燥|干|痒|痛|疼|裂|脱皮|不舒服|难受)')
+        .hasMatch(msg)) {
+      return true;
+    }
+
+    // 第一人称身体状况，排除「我…在哪/有没有」类物品查询
+    if (RegExp(r'^我(的)?(手|脚|皮肤|头|肚子|嗓子|眼睛)').hasMatch(msg) &&
+        !_looksLikeItemQuery(msg)) {
+      return true;
+    }
+    return false;
+  }
+
+  /// 是否像查物品库存/位置的句式
+  static bool _looksLikeItemQuery(String msg) {
+    return msg.contains('在哪') ||
+        msg.contains('在哪里') ||
+        msg.contains('在哪儿') ||
+        msg.contains('有没有') ||
+        msg.contains('还有') ||
+        msg.contains('剩多少');
+  }
+
+
   static String? _extractSpaceName(String msg) {
     final patterns = [
       RegExp(r'^(.+?)(有什么|还有啥|还剩什么|里有什么|里面有什么|有哪些)$'),

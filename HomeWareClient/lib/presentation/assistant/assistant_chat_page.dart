@@ -1,21 +1,22 @@
-import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../core/assistant/assistant_item_resolver.dart';
+import '../../core/assistant/assistant_chat_storage.dart';
 import '../../core/assistant/assistant_executor.dart';
 import '../../core/assistant/assistant_models.dart';
 import '../../core/config/space_skin_config.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
+import '../../core/constants/app_typography.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/providers/space_skin_provider.dart';
 import '../common/widgets/warm_scaffold.dart';
-import 'widgets/assistant_item_result_list.dart';
 import 'widgets/assistant_mascot_header.dart';
-import 'widgets/assistant_message_bubble.dart';
+import 'widgets/assistant_typing_indicator.dart';
+import 'widgets/assistant_turn.dart';
 
-/// 问管管 — Phase 1 端侧规则对话（查本地库存）
+/// 问管管 — 直连 LLM + 服务端对话历史（重装 App 可恢复）
 class AssistantChatPage extends ConsumerStatefulWidget {
   const AssistantChatPage({super.key});
 
@@ -28,8 +29,15 @@ class _AssistantChatPageState extends ConsumerState<AssistantChatPage> {
   final _scrollController = ScrollController();
   final _messages = <AssistantChatMessage>[];
   bool _busy = false;
+  bool _historyLoaded = false;
   List<String> _lastSuggestions = SpaceSkinConfig.home.assistantSuggestions;
-  bool _welcomeSeeded = false;
+  AssistantExecutor? _executor;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadHistory());
+  }
 
   @override
   void dispose() {
@@ -38,35 +46,80 @@ class _AssistantChatPageState extends ConsumerState<AssistantChatPage> {
     super.dispose();
   }
 
+  /// 从服务端加载历史记录
+  Future<void> _loadHistory() async {
+    final db = ref.read(databaseProvider);
+    final skin = ref.read(spaceSkinProvider);
+    final stored = await AssistantChatStorage.load();
+    if (!mounted) return;
+
+    // 历史 meta 中的 itemId 需与当前 Drift 对齐，保证可点击跳转
+    final resolvedStored = <AssistantChatMessage>[];
+    for (final msg in stored) {
+      if (msg.isUser || msg.items.isEmpty) {
+        resolvedStored.add(msg);
+        continue;
+      }
+      final items = await AssistantItemResolver.resolve(db, msg.items);
+      resolvedStored.add(
+        AssistantChatMessage(
+          isUser: msg.isUser,
+          text: msg.text,
+          items: items,
+          actionLabel: msg.actionLabel,
+          actionRoute: msg.actionRoute,
+        ),
+      );
+    }
+
+    setState(() {
+      _historyLoaded = true;
+      if (resolvedStored.isEmpty) {
+        _messages.add(
+          AssistantChatMessage(isUser: false, text: skin.welcomeMessage),
+        );
+      } else {
+        _messages.addAll(resolvedStored);
+      }
+      _executor = AssistantExecutor(db: db, skin: skin);
+      _lastSuggestions = skin.assistantSuggestions;
+    });
+    _scrollToBottom();
+    debugPrint('[AssistantChatPage] INFO: 历史加载完成 messages=${_messages.length}');
+  }
+
   Future<void> _send(String text) async {
     final trimmed = text.trim();
-    if (trimmed.isEmpty || _busy) return;
+    if (trimmed.isEmpty || _busy || !_historyLoaded) return;
+
+    final db = ref.read(databaseProvider);
+    final skin = ref.read(spaceSkinProvider);
+    final userMsg = AssistantChatMessage(isUser: true, text: trimmed);
 
     debugPrint('[AssistantChatPage] INFO: 用户提问 $trimmed');
     setState(() {
       _busy = true;
-      _messages.add(AssistantChatMessage(isUser: true, text: trimmed));
+      _messages.add(userMsg);
       _controller.clear();
     });
     _scrollToBottom();
 
     try {
-      final db = ref.read(databaseProvider);
-      final skin = ref.read(spaceSkinProvider);
-      final executor = AssistantExecutor(db, skin: skin);
-      final reply = await executor.handle(trimmed);
+      _executor ??= AssistantExecutor(db: db, skin: skin);
+      final reply = await _executor!.handle(trimmed);
 
       if (!mounted) return;
+      debugPrint('[AssistantChatPage] INFO: 管管回复 >>> ${reply.text}');
+      final assistantMsg = AssistantChatMessage(
+        isUser: false,
+        text: reply.text,
+        items: reply.items,
+        actionLabel: reply.actionLabel,
+        actionRoute: reply.actionRoute,
+      );
+
       setState(() {
-        _messages.add(
-          AssistantChatMessage(
-            isUser: false,
-            text: reply.text,
-            items: reply.items,
-            actionLabel: reply.actionLabel,
-            actionRoute: reply.actionRoute,
-          ),
-        );
+        _messages.add(assistantMsg);
         if (reply.suggestions.isNotEmpty) {
           _lastSuggestions = reply.suggestions;
         }
@@ -88,6 +141,34 @@ class _AssistantChatPageState extends ConsumerState<AssistantChatPage> {
     }
   }
 
+  /// 清空服务端对话历史
+  Future<void> _clearHistory() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('清空对话'),
+        content: const Text('确定清空与管管的所有聊天记录吗？清空后其他设备也会同步删除。'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('清空')),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    await AssistantChatStorage.clear();
+    final db = ref.read(databaseProvider);
+    final skin = ref.read(spaceSkinProvider);
+
+    setState(() {
+      _messages
+        ..clear()
+        ..add(AssistantChatMessage(isUser: false, text: skin.welcomeMessage));
+      _executor = AssistantExecutor(db: db, skin: skin);
+    });
+    debugPrint('[AssistantChatPage] INFO: 用户清空服务端对话历史');
+  }
+
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) return;
@@ -101,62 +182,45 @@ class _AssistantChatPageState extends ConsumerState<AssistantChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final skin = ref.watch(spaceSkinProvider);
-    if (!_welcomeSeeded) {
-      _welcomeSeeded = true;
-      _lastSuggestions = skin.assistantSuggestions;
-      _messages.add(
-        AssistantChatMessage(isUser: false, text: skin.welcomeMessage),
-      );
-    }
     return WarmScaffold(
       title: '问管管',
+      actions: [
+        if (_historyLoaded && _messages.length > 1)
+          IconButton(
+            tooltip: '清空对话',
+            onPressed: _busy ? null : _clearHistory,
+            icon: const Icon(Icons.delete_outline_rounded),
+          ),
+      ],
       body: Column(
         children: [
-          const AssistantMascotHeader(),
+          AssistantMascotHeader(isThinking: _busy),
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final msg = _messages[index];
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AssistantMessageBubble(message: msg),
-                    if (!msg.isUser && msg.actionRoute != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: FilledButton.tonalIcon(
-                            onPressed: () {
-                              debugPrint(
-                                '[AssistantChatPage] INFO: 跳转 ${msg.actionRoute}',
-                              );
-                              context.push(msg.actionRoute!);
-                            },
-                            icon: const Icon(Icons.edit_note_outlined, size: 18),
-                            label: Text(msg.actionLabel ?? '去确认'),
-                          ),
-                        ),
-                      ),
-                    if (!msg.isUser && msg.items.isNotEmpty)
-                      AssistantItemResultList(items: msg.items),
-                  ],
-                );
-              },
-            ),
+            child: !_historyLoaded
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+                    itemCount: _messages.length + (_busy ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (_busy && index == _messages.length) {
+                        return const AssistantTypingIndicator();
+                      }
+                      return AssistantTurn(
+                        message: _messages[index],
+                        onSuggestionTap: _busy ? null : _send,
+                      );
+                    },
+                  ),
           ),
           _SuggestionChips(
             suggestions: _lastSuggestions,
             onTap: _send,
-            enabled: !_busy,
+            enabled: !_busy && _historyLoaded,
           ),
           _InputBar(
             controller: _controller,
-            busy: _busy,
+            busy: _busy || !_historyLoaded,
             onSend: () => _send(_controller.text),
           ),
         ],
@@ -179,21 +243,60 @@ class _SuggestionChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 40,
+      height: 44,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.fromLTRB(14, 4, 14, 4),
         itemCount: suggestions.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final label = suggestions[index];
-          return ActionChip(
-            label: Text(label, style: const TextStyle(fontSize: 12)),
-            onPressed: enabled ? () => onTap(label) : null,
-            backgroundColor: AppColors.white,
-            side: const BorderSide(color: AppColors.border),
-            shape: RoundedRectangleBorder(
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: enabled ? () => onTap(label) : null,
               borderRadius: BorderRadius.circular(AppRadius.full),
+              child: Ink(
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                  border: Border.all(
+                    color: AppColors.primaryLight.withValues(alpha: 0.35),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.accentCoral.withValues(alpha: 0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 7),
+                    Text(
+                      label,
+                      style: AppTypography.labelLarge.copyWith(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: enabled
+                            ? AppColors.textPrimary
+                            : AppColors.textHint,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
         },
@@ -218,44 +321,87 @@ class _InputBar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
         decoration: BoxDecoration(
           color: AppColors.white,
-          border: Border(top: BorderSide(color: AppColors.homeDivider)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.gray700.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, -2),
+            ),
+          ],
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
               child: TextField(
                 controller: controller,
                 enabled: !busy,
+                minLines: 1,
+                maxLines: 4,
+                style: AppTypography.bodyMedium,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => onSend(),
                 decoration: InputDecoration(
-                  hintText: '问管管：厨房有什么、牛奶在哪',
+                  hintText: '想问什么？比如「羊肉在哪」',
+                  hintStyle: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textHint,
+                  ),
                   filled: true,
                   fillColor: AppColors.gray100,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    borderRadius: BorderRadius.circular(AppRadius.xl),
                     borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.xl),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.xl),
+                    borderSide: BorderSide(
+                      color: AppColors.primaryLight.withValues(alpha: 0.6),
+                      width: 1.5,
+                    ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            IconButton.filled(
-              onPressed: busy ? null : onSend,
-              icon: busy
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Icon(Icons.send_rounded),
-              style: IconButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.white,
+            const SizedBox(width: 10),
+            Material(
+              color: busy ? AppColors.gray300 : AppColors.primary,
+              borderRadius: BorderRadius.circular(AppRadius.xl),
+              elevation: busy ? 0 : 2,
+              shadowColor: AppColors.primary.withValues(alpha: 0.35),
+              child: InkWell(
+                onTap: busy ? null : onSend,
+                borderRadius: BorderRadius.circular(AppRadius.xl),
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Center(
+                    child: busy
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.send_rounded,
+                            color: AppColors.white,
+                            size: 22,
+                          ),
+                  ),
+                ),
               ),
             ),
           ],

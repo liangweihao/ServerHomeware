@@ -46,3 +46,6 @@ class ActivityLog(Base, BaseMixin):
     ACTION_JOIN_FAMILY = "join_family"
     ACTION_LEAVE_FAMILY = "leave_family"
     ACTION_UPDATE_MEMBER_ROLE = "update_member_role"
+
+    # AI 助手对话（供后续意图缓存分析）
+    ACTION_ASSISTANT_CHAT = "assistant_chat"

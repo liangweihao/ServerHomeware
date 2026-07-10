@@ -31,5 +31,21 @@ void main() {
       final q = AssistantParser.parse('有什么要处理的');
       expect(q.intent, AssistantIntentType.queryPending);
     });
+
+    test('症状护理诉求走 LLM（unknown）', () {
+      final q = AssistantParser.parse('我手有点粗糙');
+      expect(q.intent, AssistantIntentType.unknown);
+    });
+
+    test('短词物品名仍走本地查询', () {
+      final q = AssistantParser.parse('创可贴');
+      expect(q.intent, AssistantIntentType.queryItemLocation);
+      expect(q.itemName, '创可贴');
+    });
+
+    test('做饭诉求走 LLM', () {
+      final q = AssistantParser.parse('想吃红烧肉');
+      expect(q.intent, AssistantIntentType.unknown);
+    });
   });
 }

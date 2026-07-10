@@ -5,6 +5,7 @@
 from fastapi import APIRouter
 
 from app.api.v1 import (
+    assistant_router,
     activities_router,
     alerts_router,
     auth_router,
@@ -30,6 +31,7 @@ from app.api.v1 import (
 api_router = APIRouter()
 
 # 注册各模块路由
+api_router.include_router(assistant_router)
 api_router.include_router(auth_router)
 api_router.include_router(users_router)
 api_router.include_router(families_router)

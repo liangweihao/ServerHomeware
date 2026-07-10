@@ -10,6 +10,7 @@ from app.models.category import Category
 from app.models.location import Location
 from app.models.usage_record import UsageRecord
 from app.models.shopping import ShoppingItem
+from app.models.assistant_chat_message import AssistantChatMessage
 
 __all__ = [
     "BaseMixin",
@@ -22,4 +23,5 @@ __all__ = [
     "Location",
     "UsageRecord",
     "ShoppingItem",
+    "AssistantChatMessage",
 ]

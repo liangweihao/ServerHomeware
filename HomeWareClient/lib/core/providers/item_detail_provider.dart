@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/services/item_service.dart';
 import '../../core/utils/item_api_id.dart';
 import '../../core/utils/item_image_storage.dart';
+import '../../core/utils/item_route_resolver.dart';
 import '../../data/database/app_database.dart';
 import 'database_provider.dart';
 
@@ -48,9 +49,15 @@ final itemDetailProvider =
   final db = ref.watch(databaseProvider);
   await db.ensureInitialized();
 
-  final item = await db.getItemById(id);
+  final localId = await ItemRouteResolver.resolveLocalId(db, id);
+  if (localId == null) {
+    debugPrint('[ItemDetailProvider] WARN: 无法解析物品 routeId=$id');
+    return null;
+  }
+
+  final item = await db.getItemById(localId);
   if (item == null) {
-    debugPrint('[ItemDetailProvider] WARN: 物品不存在 id=$id');
+    debugPrint('[ItemDetailProvider] WARN: 物品不存在 localId=$localId routeId=$id');
     return null;
   }
 
@@ -68,7 +75,7 @@ final itemDetailProvider =
     locationImages = location?.images;
   }
 
-  final recentRecords = await db.getUsageRecordsByItem(id, limit: 5);
+  final recentRecords = await db.getUsageRecordsByItem(localId, limit: 5);
 
   // 优先从服务端拉取最新数据（图片 + 关键字段纠正列表同步默认值问题）
   List<String> imageUrls = [];
@@ -166,8 +173,8 @@ final itemDetailProvider =
   // 位置自带照片（从 Location.images 读取 — 新方案）
   final locationPhotoUrls = ItemImageStorage.resolveDisplaySources(locationImages);
 
-  debugPrint('[ItemDetailProvider] INFO: 加载物品详情 id=$id name=${item.name} '
-      'images=${imageUrls.length} locPhotos=${locationImageUrls.length}');
+  debugPrint('[ItemDetailProvider] INFO: 加载物品详情 routeId=$id localId=$localId '
+      'name=${item.name} images=${imageUrls.length} locPhotos=${locationImageUrls.length}');
   return ItemDetailData(
     item: updatedItem,
     category: category,

@@ -99,7 +99,8 @@ class ActivityService:
             ActivityLog.ACTION_PURCHASE_SHOPPING_ITEM: "标记已购买",
             ActivityLog.ACTION_JOIN_FAMILY: "加入了家庭",
             ActivityLog.ACTION_LEAVE_FAMILY: "离开了家庭",
-            ActivityLog.ACTION_UPDATE_MEMBER_ROLE: "修改了成员角色"
+            ActivityLog.ACTION_UPDATE_MEMBER_ROLE: "修改了成员角色",
+            ActivityLog.ACTION_ASSISTANT_CHAT: "使用了 AI 助手",
         }
 
         action_text = action_map.get(log.action, log.action)

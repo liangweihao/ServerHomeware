@@ -45,13 +45,18 @@ class AssistantItemSummary {
     required this.itemId,
     required this.name,
     required this.subtitle,
+    this.serverItemId,
   });
 
+  /// 本地 Drift 主键 — 跳转详情用
   final int itemId;
   final String name;
 
   /// 位置 · 数量等副信息
   final String subtitle;
+
+  /// 服务端 items.id — 本地无记录时用于拉取同步
+  final int? serverItemId;
 }
 
 /// 执行器返回

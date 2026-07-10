@@ -122,6 +122,16 @@ class AlertReadStates extends Table {
   BoolColumn get ignored => boolean().withDefault(const Constant(false))();
 }
 
+/// 问管管对话记录 — 本地持久化（方案 A）
+class AssistantMessages extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  BoolColumn get isUser => boolean()();
+  TextColumn get content => text()();
+  /// JSON：items / actionLabel / actionRoute
+  TextColumn get metaJson => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 @DriftDatabase(
   tables: [
     Categories,
@@ -131,6 +141,7 @@ class AlertReadStates extends Table {
     ShoppingList,
     FamilyMembers,
     AlertReadStates,
+    AssistantMessages,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -141,7 +152,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(_openConnection());
   
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -164,6 +175,9 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 6) {
           await m.addColumn(items, items.supplier);
+        }
+        if (from < 7) {
+          await m.createTable(assistantMessages);
         }
       },
     );
@@ -311,8 +325,19 @@ class AppDatabase extends _$AppDatabase {
     final direct = await getItemById(serverItemId);
     if (direct != null) return direct.id;
 
-    debugPrint('[ItemIdMap] WARN: 未找到 serverItemId=$serverItemId 的本地物品');
+    _logMissingServerItemIdOnce(serverItemId);
     return null;
+  }
+
+  /// 同一 serverItemId 仅 WARN 一次，避免 usage 批量同步刷屏
+  static final Set<int> _warnedMissingServerItemIds = {};
+
+  static void _logMissingServerItemIdOnce(int serverItemId) {
+    if (_warnedMissingServerItemIds.add(serverItemId)) {
+      debugPrint(
+        '[ItemIdMap] WARN: 未找到 serverItemId=$serverItemId 的本地物品（后续同 id 不再重复打印）',
+      );
+    }
   }
 
   /// 绑定本地物品与服务端 id
@@ -445,6 +470,39 @@ class AppDatabase extends _$AppDatabase {
   // 插入购物清单项
   Future<int> insertShoppingListItem(ShoppingListCompanion item) {
     return into(shoppingList).insert(item);
+  }
+
+  // ==================== AssistantMessages DAO ====================
+
+  /// 插入一条问管管消息
+  Future<int> insertAssistantMessage(AssistantMessagesCompanion message) {
+    return into(assistantMessages).insert(message);
+  }
+
+  /// 按时间正序加载最近 N 条对话
+  Future<List<AssistantMessage>> getAssistantMessages({int limit = 50}) {
+    return (select(assistantMessages)
+          ..orderBy([(m) => OrderingTerm(expression: m.createdAt, mode: OrderingMode.desc)])
+          ..limit(limit))
+        .get()
+        .then((rows) => rows.reversed.toList());
+  }
+
+  /// 清空问管管对话记录
+  Future<int> clearAssistantMessages() {
+    return delete(assistantMessages).go();
+  }
+
+  /// 保留最近 keep 条，删除更早记录
+  Future<void> trimAssistantMessages({int keep = 100}) async {
+    final ids = await (select(assistantMessages)
+          ..orderBy([(m) => OrderingTerm(expression: m.createdAt, mode: OrderingMode.asc)]))
+        .map((m) => m.id)
+        .get();
+    if (ids.length <= keep) return;
+    final toRemove = ids.sublist(0, ids.length - keep);
+    await (delete(assistantMessages)..where((m) => m.id.isIn(toRemove))).go();
+    debugPrint('[DB] INFO: 问管管记录裁剪 删除=${toRemove.length} 保留=$keep');
   }
 
   // ==================== FamilyMembers DAO ====================

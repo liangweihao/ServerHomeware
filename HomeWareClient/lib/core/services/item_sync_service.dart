@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Value;
 import '../../data/database/app_database.dart';
 import '../utils/item_image_storage.dart';
 import '../utils/item_server_mapper.dart';
+import 'item_deleted_registry.dart';
 import 'item_service.dart';
 
 /// 物品服务端 → 本地数据库同步服务
@@ -18,10 +19,80 @@ class ItemSyncService {
 
   ItemSyncService(this._db) : _itemService = ItemService();
 
+  /// 问管管跳转详情 — 确保服务端物品在本地 Drift 存在，返回本地 id
+  Future<int?> ensureLocalByServerId(int serverItemId) async {
+    if (serverItemId <= 0) return null;
+
+    if (await ItemDeletedRegistry.isDeleted(serverItemId)) {
+      debugPrint(
+        '[ItemSync] WARN: 物品已被用户删除，不恢复 serverId=$serverItemId',
+      );
+      return null;
+    }
+
+    final mapped = await _db.getItemByServerItemId(serverItemId);
+    if (mapped != null) {
+      return mapped.id;
+    }
+
+    // 本地主键与服务端 id 数值相同时须校验映射，避免 id=1 误绑到其他物品
+    final byLocalId = await _db.getItemById(serverItemId);
+    if (byLocalId != null) {
+      final boundServer = byLocalId.serverItemId;
+      if (boundServer == null) {
+        await _db.ensureItemServerItemId(byLocalId.id, serverItemId);
+        return byLocalId.id;
+      }
+      if (boundServer == serverItemId) {
+        return byLocalId.id;
+      }
+      debugPrint(
+        '[ItemSync] WARN: 本地 id=$serverItemId 已绑定 serverId=$boundServer，'
+        '与目标 $serverItemId 冲突，改拉取新行',
+      );
+    }
+
+    final remote = await _itemService.getItemDetail(itemId: serverItemId);
+    if (remote.code != 200 || remote.data == null) {
+      debugPrint(
+        '[ItemSync] WARN: 服务端物品不存在 serverId=$serverItemId code=${remote.code}',
+      );
+      return null;
+    }
+
+    try {
+      final useAutoId = byLocalId != null;
+      final localId = await _insertServerItemFromRemote(
+        remote.data!,
+        forceAutoId: useAutoId,
+      );
+      debugPrint(
+        '[ItemSync] INFO: 问管管拉取物品入库 serverId=$serverItemId localId=$localId',
+      );
+      return localId;
+    } catch (e) {
+      debugPrint(
+        '[ItemSync] ERROR: 问管管拉取物品失败 serverId=$serverItemId err=$e',
+      );
+      return null;
+    }
+  }
+
+  /// 写入服务端物品；forceAutoId 时不用服务端 id 作主键（避免本地 id 冲突）
+  Future<int> _insertServerItemFromRemote(
+    Map<String, dynamic> json, {
+    bool forceAutoId = false,
+  }) async {
+    final companion = _serverItemToCompanion(json, forceAutoId: forceAutoId);
+    return _db.insertItem(companion);
+  }
+
   /// 从服务端同步物品到本地数据库
   ///
   /// - 本地已存在的物品（同 ID）：跳过（避免覆盖本地更完整的数据）
   /// - 本地不存在的物品：插入（覆盖缓存清理/新设备登录场景）
+  /// - 用户已删除的物品（ItemDeletedRegistry）：不再恢复
+  /// - 服务端已删、本地仍有的物品：清理本地副本
   ///
   /// 返回同步后本地物品总数
   Future<int> syncFromServer() async {
@@ -32,14 +103,27 @@ class ItemSyncService {
         return await _countLocalItems();
       }
 
+      final serverIds = <int>{};
       int inserted = 0;
       int skipped = 0;
-
+      int removedLocal = 0;
       int updatedImages = 0;
 
       for (final serverItem in serverItems) {
         final id = _parseId(serverItem['id']);
         if (id == null) continue;
+        serverIds.add(id);
+
+        // 用户已删除 — 不恢复，并清理本地残留
+        if (await ItemDeletedRegistry.isDeleted(id)) {
+          final existing = await _db.getItemById(id);
+          if (existing != null) {
+            await _db.deleteItem(existing.id);
+            removedLocal++;
+            debugPrint('[ItemSync] INFO: 清理已删物品残留 id=$id');
+          }
+          continue;
+        }
 
         // 检查本地是否已存在
         final existing = await _db.getItemById(id);
@@ -117,10 +201,22 @@ class ItemSyncService {
         }
       }
 
+      // 服务端已不存在、本地仍有的同步物品 — 删除本地副本
+      final localAll = await _db.getAllItems();
+      for (final local in localAll) {
+        final sid = local.serverItemId;
+        if (sid == null) continue;
+        if (!serverIds.contains(sid)) {
+          await _db.deleteItem(local.id);
+          removedLocal++;
+          debugPrint('[ItemSync] INFO: 移除服务端已删物品 local=${local.id} server=$sid');
+        }
+      }
+
       final total = await _countLocalItems();
       debugPrint(
         '[ItemSync] INFO: 同步完成 — 新增 $inserted 件, '
-        '已存在 $skipped 件, 补图 $updatedImages 件, 本地共 $total 件',
+        '已存在 $skipped 件, 补图 $updatedImages 件, 清理 $removedLocal 件, 本地共 $total 件',
       );
       return total;
     } catch (e) {
@@ -130,12 +226,16 @@ class ItemSyncService {
   }
 
   /// 将服务端物品 JSON 转为 Drift InsertCompanion
-  ItemsCompanion _serverItemToCompanion(Map<String, dynamic> json) {
+  ItemsCompanion _serverItemToCompanion(
+    Map<String, dynamic> json, {
+    bool forceAutoId = false,
+  }) {
     final name = json['name']?.toString() ?? '未知物品';
+    final serverId = _parseId(json['id']);
 
     return ItemsCompanion(
-      id: Value(_parseId(json['id']) ?? 0),
-      serverItemId: Value(_parseId(json['id']) ?? 0),
+      id: forceAutoId || serverId == null ? const Value.absent() : Value(serverId),
+      serverItemId: serverId != null ? Value(serverId) : const Value.absent(),
       name: Value(name),
       brand: json['brand'] != null
           ? Value(json['brand'].toString())
