@@ -179,13 +179,21 @@ $PY_CMD -m pip install \
 }
 
 # ===========================================
-#  加载环境变量（production 优先，.env 不覆盖已设置的 prod 值）
+#  加载环境变量（生产环境仅读 .env.production，避免 .env 开发配置污染）
 # ===========================================
-if [ -f ".env" ]; then
-    export $(grep -v '^#' .env | xargs)
+if [ ! -f ".env.production" ] && [ -f ".env.production.example" ]; then
+    echo "  未找到 .env.production，从 .env.production.example 复制..."
+    cp .env.production.example .env.production
+    echo "  请编辑 .env.production 填写 JWT_SECRET_KEY、DEEPSEEK_API_KEY 等后重启"
 fi
 if [ -f ".env.production" ]; then
-    export $(grep -v '^#' .env.production | xargs)
+    set -a
+    # shellcheck disable=SC1091
+    source .env.production
+    set +a
+else
+    echo "错误: 缺少 .env.production，请复制 .env.production.example 并配置"
+    exit 1
 fi
 # 强制使用生产配置文件（避免 config.py 默认读 .env）
 export ENV_FILE=".env.production"

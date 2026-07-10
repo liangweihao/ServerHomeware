@@ -16,7 +16,7 @@ class AppEnv {
   /// // 正式服环境 82.156.91.220
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://192.168.1.98:8000/api/v1',
+    defaultValue: 'http://82.156.91.220:8000/api/v1',
   );
 
   /// 静态资源根地址（图片、上传文件等），默认从 apiBaseUrl 推导
