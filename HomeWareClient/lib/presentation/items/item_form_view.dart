@@ -22,6 +22,7 @@ import 'item_form_controller.dart';
 import 'widgets/item_form_category_chips.dart';
 import 'widgets/item_image_picker_section.dart';
 import 'widgets/item_image_tile.dart';
+import 'widgets/notes_magic_field.dart';
 
 /// 添加/编辑物品共享表单 UI（Phase C：首屏 + 手风琴折叠）
 class ItemFormView extends ConsumerStatefulWidget {
@@ -750,11 +751,12 @@ class _ItemFormViewState extends ConsumerState<ItemFormView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextFormField(
-          controller: c.notesController,
+        NotesMagicField(
+          controller: c,
+          onChanged: widget.onChanged,
           maxLines: 4,
-          decoration: const InputDecoration(hintText: '添加备注信息（可选）'),
-          onChanged: (_) => widget.onChanged(),
+          labelText: '备注（可选）',
+          hintText: '添加备注信息（可选）',
         ),
         if (!c.usesPackageLikeUnit) ...[
           const SizedBox(height: 16),

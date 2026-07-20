@@ -92,6 +92,11 @@ class ItemService:
         
         # 关联图片 URL（Phase 6 上传接口返回的路径）
         image_urls = item_data.pop("image_urls", None)
+
+        # 检索别名：List → JSON 字符串入库
+        from app.services.item_enrich_service import aliases_to_storage
+        if "search_aliases" in item_data:
+            item_data["search_aliases"] = aliases_to_storage(item_data.get("search_aliases"))
         
         # 如果没传 current_quantity，默认等于 purchase_quantity
         if "current_quantity" not in item_data or item_data["current_quantity"] is None:
@@ -262,6 +267,7 @@ class ItemService:
             "expiry_alert_days": item.expiry_alert_days,
             "stock_alert": item.stock_alert,
             "notes": item.notes,
+            "search_aliases": item.search_aliases,
             "status": item.status,
             "avg_daily_consumption": float(item.avg_daily_consumption) if item.avg_daily_consumption else None,
             "predicted_empty_date": item.predicted_empty_date,
@@ -417,13 +423,17 @@ class ItemService:
             "unit", "safety_stock", "purchase_date", "purchase_channel",
             "production_date", "expiry_date", "shelf_life_days", "opened_date",
             "after_open_days", "warranty_date", "expiry_alert_days", "stock_alert",
-            "notes", "status",
+            "notes", "search_aliases", "status",
             "avg_daily_consumption", "predicted_empty_date",
         ]
 
+        from app.services.item_enrich_service import aliases_to_storage
         for key, value in merged.items():
             if key in allowed_fields and value is not None:
-                update_data[key] = value
+                if key == "search_aliases":
+                    update_data[key] = aliases_to_storage(value)
+                else:
+                    update_data[key] = value
 
         assert_can_update_item(role, space_type, update_data)
         

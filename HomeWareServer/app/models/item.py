@@ -51,6 +51,8 @@ class Item(Base, BaseMixin):
     
     # 其他
     notes = Column(Text, nullable=True, comment="备注")
+    # 检索别名 JSON 数组字符串，供问管管用俗称/品类词命中（如 护肤霜→精华露）
+    search_aliases = Column(Text, nullable=True, comment="检索别名 JSON 数组")
     status = Column(Integer, default=0, comment="状态(0使用中/1用完/2过期/3丢弃)")
     avg_daily_consumption = Column(Numeric(10, 4), nullable=True, comment="日均消耗量")
     predicted_empty_date = Column(Date, nullable=True, comment="预计用完日期")

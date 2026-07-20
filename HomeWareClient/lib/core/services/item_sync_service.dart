@@ -151,6 +151,7 @@ class ItemSyncService {
               srvAvgDaily != null ||
               srvPredictedEmpty != null ||
               srvLastUsedAt != null ||
+              serverItem['search_aliases'] != null ||
               shouldUpdatePreview;
 
           if (needsUpdate) {
@@ -183,6 +184,7 @@ class ItemSyncService {
               lastUsedAt: srvLastUsedAt != null
                   ? Value(DateTime.tryParse(srvLastUsedAt.toString()))
                   : const Value.absent(),
+              searchAliases: _aliasesValueFromJson(serverItem['search_aliases']),
               images: shouldUpdatePreview
                   ? Value(jsonEncode([preview]))
                   : const Value.absent(),
@@ -303,11 +305,25 @@ class ItemSyncService {
       lastUsedAt: json['last_used_at'] != null
           ? Value(DateTime.tryParse(json['last_used_at'].toString()))
           : const Value.absent(),
+      searchAliases: _aliasesValueFromJson(json['search_aliases']),
       // 如果有预览图，以 JSON 数组格式存入本地
       images: json['preview_image'] != null
           ? Value(jsonEncode([json['preview_image']]))
           : const Value.absent(),
     );
+  }
+
+  /// 服务端 search_aliases(list|string) → Drift Value
+  Value<String?> _aliasesValueFromJson(dynamic raw) {
+    if (raw == null) return const Value.absent();
+    if (raw is List) {
+      final list = raw.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).toList();
+      if (list.isEmpty) return const Value.absent();
+      return Value(jsonEncode(list));
+    }
+    final s = raw.toString().trim();
+    if (s.isEmpty) return const Value.absent();
+    return Value(s);
   }
 
   int? _parseId(dynamic value) {

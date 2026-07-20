@@ -146,6 +146,27 @@ def _score_item_name_match(name: str, keyword: str) -> int:
     return 0
 
 
+def _score_item_match(name: str, aliases: Any, keyword: str) -> int:
+    """名称得分与别名得分取较高者（别名命中略降权，避免误召回过高）。"""
+    best = _score_item_name_match(name, keyword)
+    alias_list: List[str] = []
+    if isinstance(aliases, list):
+        alias_list = [str(a) for a in aliases]
+    elif isinstance(aliases, str) and aliases.strip():
+        from app.services.item_enrich_service import aliases_from_storage
+        alias_list = aliases_from_storage(aliases)
+    for alias in alias_list:
+        # 别名完全命中按 95，包含按 55，略低于品名
+        s = _score_item_name_match(alias, keyword)
+        if s >= 100:
+            best = max(best, 95)
+        elif s >= 60:
+            best = max(best, 55)
+        elif s > 0:
+            best = max(best, s)
+    return best
+
+
 class LlmService:
     """DeepSeek LLM 服务，处理家庭助手的智能对话"""
 
@@ -440,6 +461,7 @@ class LlmService:
             {
                 "item_id": item.id,
                 "name": item.name,
+                "search_aliases": item.search_aliases,
                 "quantity": float(item.current_quantity),
                 "unit": item.unit or "个",
                 "location": item.location.full_path if item.location else "未指定位置",
@@ -497,7 +519,7 @@ class LlmService:
         scored: List[tuple[int, Dict]] = []
         for item in items:
             name = str(item.get("name") or "")
-            score = _score_item_name_match(name, keyword)
+            score = _score_item_match(name, item.get("search_aliases"), keyword)
             if score >= min_score and float(item.get("quantity") or 0) > 0:
                 scored.append((score, item))
         scored.sort(key=lambda pair: (-pair[0], len(pair[1].get("name", ""))))
@@ -598,6 +620,7 @@ class LlmService:
                     "local_id": raw.get("local_id"),
                     "item_id": raw.get("server_item_id"),
                     "name": str(raw.get("name") or ""),
+                    "search_aliases": raw.get("search_aliases"),
                     "quantity": float(raw.get("quantity") or 0),
                     "unit": raw.get("unit") or "个",
                     "location": raw.get("location") or "未指定位置",

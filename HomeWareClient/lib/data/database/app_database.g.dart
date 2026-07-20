@@ -1404,6 +1404,17 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _searchAliasesMeta = const VerificationMeta(
+    'searchAliases',
+  );
+  @override
+  late final GeneratedColumn<String> searchAliases = GeneratedColumn<String>(
+    'search_aliases',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1474,6 +1485,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     avgDailyConsumption,
     predictedEmptyDate,
     lastUsedAt,
+    searchAliases,
     createdAt,
     updatedAt,
     serverItemId,
@@ -1743,6 +1755,15 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         ),
       );
     }
+    if (data.containsKey('search_aliases')) {
+      context.handle(
+        _searchAliasesMeta,
+        searchAliases.isAcceptableOrUnknown(
+          data['search_aliases']!,
+          _searchAliasesMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1905,6 +1926,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}last_used_at'],
       ),
+      searchAliases: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}search_aliases'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1966,6 +1991,9 @@ class Item extends DataClass implements Insertable<Item> {
 
   /// 最后一次使用时间（type=1 UsageRecord 写入时同步更新）
   final DateTime? lastUsedAt;
+
+  /// 检索别名 JSON 数组字符串（魔法备注生成，问管管俗称匹配）
+  final String? searchAliases;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -2005,6 +2033,7 @@ class Item extends DataClass implements Insertable<Item> {
     this.avgDailyConsumption,
     this.predictedEmptyDate,
     this.lastUsedAt,
+    this.searchAliases,
     required this.createdAt,
     required this.updatedAt,
     this.serverItemId,
@@ -2088,6 +2117,9 @@ class Item extends DataClass implements Insertable<Item> {
     }
     if (!nullToAbsent || lastUsedAt != null) {
       map['last_used_at'] = Variable<DateTime>(lastUsedAt);
+    }
+    if (!nullToAbsent || searchAliases != null) {
+      map['search_aliases'] = Variable<String>(searchAliases);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -2176,6 +2208,9 @@ class Item extends DataClass implements Insertable<Item> {
       lastUsedAt: lastUsedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(lastUsedAt),
+      searchAliases: searchAliases == null && nullToAbsent
+          ? const Value.absent()
+          : Value(searchAliases),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       serverItemId: serverItemId == null && nullToAbsent
@@ -2227,6 +2262,7 @@ class Item extends DataClass implements Insertable<Item> {
         json['predictedEmptyDate'],
       ),
       lastUsedAt: serializer.fromJson<DateTime?>(json['lastUsedAt']),
+      searchAliases: serializer.fromJson<String?>(json['searchAliases']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       serverItemId: serializer.fromJson<int?>(json['serverItemId']),
@@ -2269,6 +2305,7 @@ class Item extends DataClass implements Insertable<Item> {
       'avgDailyConsumption': serializer.toJson<double?>(avgDailyConsumption),
       'predictedEmptyDate': serializer.toJson<DateTime?>(predictedEmptyDate),
       'lastUsedAt': serializer.toJson<DateTime?>(lastUsedAt),
+      'searchAliases': serializer.toJson<String?>(searchAliases),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'serverItemId': serializer.toJson<int?>(serverItemId),
@@ -2309,6 +2346,7 @@ class Item extends DataClass implements Insertable<Item> {
     Value<double?> avgDailyConsumption = const Value.absent(),
     Value<DateTime?> predictedEmptyDate = const Value.absent(),
     Value<DateTime?> lastUsedAt = const Value.absent(),
+    Value<String?> searchAliases = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<int?> serverItemId = const Value.absent(),
@@ -2364,6 +2402,9 @@ class Item extends DataClass implements Insertable<Item> {
         ? predictedEmptyDate.value
         : this.predictedEmptyDate,
     lastUsedAt: lastUsedAt.present ? lastUsedAt.value : this.lastUsedAt,
+    searchAliases: searchAliases.present
+        ? searchAliases.value
+        : this.searchAliases,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     serverItemId: serverItemId.present ? serverItemId.value : this.serverItemId,
@@ -2449,6 +2490,9 @@ class Item extends DataClass implements Insertable<Item> {
       lastUsedAt: data.lastUsedAt.present
           ? data.lastUsedAt.value
           : this.lastUsedAt,
+      searchAliases: data.searchAliases.present
+          ? data.searchAliases.value
+          : this.searchAliases,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       serverItemId: data.serverItemId.present
@@ -2493,6 +2537,7 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('avgDailyConsumption: $avgDailyConsumption, ')
           ..write('predictedEmptyDate: $predictedEmptyDate, ')
           ..write('lastUsedAt: $lastUsedAt, ')
+          ..write('searchAliases: $searchAliases, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('serverItemId: $serverItemId')
@@ -2535,6 +2580,7 @@ class Item extends DataClass implements Insertable<Item> {
     avgDailyConsumption,
     predictedEmptyDate,
     lastUsedAt,
+    searchAliases,
     createdAt,
     updatedAt,
     serverItemId,
@@ -2576,6 +2622,7 @@ class Item extends DataClass implements Insertable<Item> {
           other.avgDailyConsumption == this.avgDailyConsumption &&
           other.predictedEmptyDate == this.predictedEmptyDate &&
           other.lastUsedAt == this.lastUsedAt &&
+          other.searchAliases == this.searchAliases &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.serverItemId == this.serverItemId);
@@ -2615,6 +2662,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<double?> avgDailyConsumption;
   final Value<DateTime?> predictedEmptyDate;
   final Value<DateTime?> lastUsedAt;
+  final Value<String?> searchAliases;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int?> serverItemId;
@@ -2652,6 +2700,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.avgDailyConsumption = const Value.absent(),
     this.predictedEmptyDate = const Value.absent(),
     this.lastUsedAt = const Value.absent(),
+    this.searchAliases = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.serverItemId = const Value.absent(),
@@ -2690,6 +2739,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.avgDailyConsumption = const Value.absent(),
     this.predictedEmptyDate = const Value.absent(),
     this.lastUsedAt = const Value.absent(),
+    this.searchAliases = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.serverItemId = const Value.absent(),
@@ -2729,6 +2779,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<double>? avgDailyConsumption,
     Expression<DateTime>? predictedEmptyDate,
     Expression<DateTime>? lastUsedAt,
+    Expression<String>? searchAliases,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? serverItemId,
@@ -2769,6 +2820,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (predictedEmptyDate != null)
         'predicted_empty_date': predictedEmptyDate,
       if (lastUsedAt != null) 'last_used_at': lastUsedAt,
+      if (searchAliases != null) 'search_aliases': searchAliases,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (serverItemId != null) 'server_item_id': serverItemId,
@@ -2809,6 +2861,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<double?>? avgDailyConsumption,
     Value<DateTime?>? predictedEmptyDate,
     Value<DateTime?>? lastUsedAt,
+    Value<String?>? searchAliases,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int?>? serverItemId,
@@ -2847,6 +2900,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       avgDailyConsumption: avgDailyConsumption ?? this.avgDailyConsumption,
       predictedEmptyDate: predictedEmptyDate ?? this.predictedEmptyDate,
       lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+      searchAliases: searchAliases ?? this.searchAliases,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       serverItemId: serverItemId ?? this.serverItemId,
@@ -2959,6 +3013,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     if (lastUsedAt.present) {
       map['last_used_at'] = Variable<DateTime>(lastUsedAt.value);
     }
+    if (searchAliases.present) {
+      map['search_aliases'] = Variable<String>(searchAliases.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -3007,6 +3064,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('avgDailyConsumption: $avgDailyConsumption, ')
           ..write('predictedEmptyDate: $predictedEmptyDate, ')
           ..write('lastUsedAt: $lastUsedAt, ')
+          ..write('searchAliases: $searchAliases, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('serverItemId: $serverItemId')
@@ -5816,6 +5874,7 @@ typedef $$ItemsTableCreateCompanionBuilder =
       Value<double?> avgDailyConsumption,
       Value<DateTime?> predictedEmptyDate,
       Value<DateTime?> lastUsedAt,
+      Value<String?> searchAliases,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int?> serverItemId,
@@ -5855,6 +5914,7 @@ typedef $$ItemsTableUpdateCompanionBuilder =
       Value<double?> avgDailyConsumption,
       Value<DateTime?> predictedEmptyDate,
       Value<DateTime?> lastUsedAt,
+      Value<String?> searchAliases,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int?> serverItemId,
@@ -6030,6 +6090,11 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<DateTime> get lastUsedAt => $composableBuilder(
     column: $table.lastUsedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get searchAliases => $composableBuilder(
+    column: $table.searchAliases,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6223,6 +6288,11 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get searchAliases => $composableBuilder(
+    column: $table.searchAliases,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -6393,6 +6463,11 @@ class $$ItemsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get searchAliases => $composableBuilder(
+    column: $table.searchAliases,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -6466,6 +6541,7 @@ class $$ItemsTableTableManager
                 Value<double?> avgDailyConsumption = const Value.absent(),
                 Value<DateTime?> predictedEmptyDate = const Value.absent(),
                 Value<DateTime?> lastUsedAt = const Value.absent(),
+                Value<String?> searchAliases = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int?> serverItemId = const Value.absent(),
@@ -6503,6 +6579,7 @@ class $$ItemsTableTableManager
                 avgDailyConsumption: avgDailyConsumption,
                 predictedEmptyDate: predictedEmptyDate,
                 lastUsedAt: lastUsedAt,
+                searchAliases: searchAliases,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 serverItemId: serverItemId,
@@ -6542,6 +6619,7 @@ class $$ItemsTableTableManager
                 Value<double?> avgDailyConsumption = const Value.absent(),
                 Value<DateTime?> predictedEmptyDate = const Value.absent(),
                 Value<DateTime?> lastUsedAt = const Value.absent(),
+                Value<String?> searchAliases = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int?> serverItemId = const Value.absent(),
@@ -6579,6 +6657,7 @@ class $$ItemsTableTableManager
                 avgDailyConsumption: avgDailyConsumption,
                 predictedEmptyDate: predictedEmptyDate,
                 lastUsedAt: lastUsedAt,
+                searchAliases: searchAliases,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 serverItemId: serverItemId,

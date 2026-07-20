@@ -3,7 +3,7 @@
 """
 from typing import Dict, List, Optional
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -124,9 +124,10 @@ class ItemRepository(BaseRepository[Item]):
         self, family_id: int, keyword: str, limit: int = 5
     ) -> List[Item]:
         """
-        按物品名称模糊搜索（供 LLM Function Calling 使用）
+        按物品名称或检索别名模糊搜索（供 LLM Function Calling 使用）
         只返回状态正常(status=0)的物品，携带 location 关联
         """
+        pattern = f"%{keyword}%"
         result = await self.db.execute(
             select(Item)
             .options(joinedload(Item.location))
@@ -134,7 +135,10 @@ class ItemRepository(BaseRepository[Item]):
                 Item.family_id == family_id,
                 Item.status == 0,
                 Item.deleted_at.is_(None),
-                Item.name.ilike(f"%{keyword}%"),
+                or_(
+                    Item.name.ilike(pattern),
+                    Item.search_aliases.ilike(pattern),
+                ),
             )
             .limit(limit)
         )

@@ -71,6 +71,8 @@ class Items extends Table {
   DateTimeColumn get predictedEmptyDate => dateTime().nullable()();
   /// 最后一次使用时间（type=1 UsageRecord 写入时同步更新）
   DateTimeColumn get lastUsedAt => dateTime().nullable()();
+  /// 检索别名 JSON 数组字符串（魔法备注生成，问管管俗称匹配）
+  TextColumn get searchAliases => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   /// 服务端 items.id — 本地主键与服务端不一致时用于 API / usage 映射
@@ -154,7 +156,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(_openConnection());
   
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {
@@ -183,6 +185,9 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 8) {
           await m.addColumn(items, items.lastUsedAt);
+        }
+        if (from < 9) {
+          await m.addColumn(items, items.searchAliases);
         }
       },
     );

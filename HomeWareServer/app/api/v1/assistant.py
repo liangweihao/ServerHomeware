@@ -300,3 +300,52 @@ async def assistant_chat(
             items=item_cards,
         ),
     )
+
+
+class EnrichItemDraftRequest(BaseModel):
+    """入库草稿 AI 增强：生成备注 + 检索别名"""
+    name: str = Field(..., min_length=1, max_length=100, description="物品名称")
+    brand: Optional[str] = Field(None, max_length=50, description="品牌")
+    category_name: Optional[str] = Field(None, max_length=50, description="分类名")
+    specification: Optional[str] = Field(None, max_length=100, description="规格")
+    existing_notes: Optional[str] = Field(None, max_length=500, description="已有备注")
+
+
+class EnrichItemDraftResponse(BaseModel):
+    notes: str = Field(..., description="生成的备注文案")
+    search_aliases: List[str] = Field(default=[], description="检索别名列表")
+
+
+@router.post("/enrich-item", summary="入库草稿魔法备注（备注+检索别名）")
+async def enrich_item_draft(
+    body: EnrichItemDraftRequest,
+    current_user: User = Depends(get_current_user),
+    current_family_id: int = Depends(get_current_family),
+):
+    """
+    根据已填入库信息生成口语化备注与检索别名。
+    不写库；由客户端填入表单，保存物品时一并提交 search_aliases。
+    """
+    from app.services.item_enrich_service import ItemEnrichService
+
+    logger.info(
+        "[AssistantRouter] INFO: enrich-item user=%s family=%s name=%s",
+        current_user.id,
+        current_family_id,
+        body.name,
+    )
+    result = await ItemEnrichService().enrich_draft(
+        name=body.name,
+        brand=body.brand,
+        category_name=body.category_name,
+        specification=body.specification,
+        existing_notes=body.existing_notes,
+    )
+    return ResponseSchema(
+        code=200,
+        message="success",
+        data=EnrichItemDraftResponse(
+            notes=result.get("notes") or "",
+            search_aliases=result.get("search_aliases") or [],
+        ),
+    )

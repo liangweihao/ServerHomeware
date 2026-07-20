@@ -17,6 +17,7 @@ import '../item_form_controller.dart';
 import 'item_form_category_chips.dart';
 import 'item_image_picker_section.dart';
 import 'item_location_photo_section.dart';
+import 'notes_magic_field.dart';
 import '../../common/widgets/location_picker.dart';
 import '../../common/widgets/app_date_picker.dart';
 import '../../common/widgets/quantity_stepper.dart';
@@ -445,15 +446,9 @@ class _AddItemWizardViewState extends ConsumerState<AddItemWizardView> {
             label: const Text('清除购买日期'),
           ),
         const SizedBox(height: 16),
-        TextFormField(
-          controller: c.notesController,
-          maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: '备注（可选）',
-            hintText: '例如：超市促销购入、开封后需冷藏',
-            alignLabelWithHint: true,
-          ),
-          onChanged: (_) => widget.onChanged(),
+        NotesMagicField(
+          controller: c,
+          onChanged: widget.onChanged,
         ),
         const SizedBox(height: 16),
         ItemImagePickerSection(

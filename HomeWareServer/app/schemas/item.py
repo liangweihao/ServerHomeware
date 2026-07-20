@@ -2,10 +2,11 @@
 物品相关的请求/响应模型
 """
 from datetime import date, datetime
-from typing import Optional, List
+from typing import Optional, List, Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
+from app.services.item_enrich_service import aliases_from_storage
 
 class ItemImageResponse(BaseModel):
     """物品图片响应模型"""
@@ -74,6 +75,9 @@ class ItemResponse(BaseModel):
     
     # 其他
     notes: Optional[str] = Field(None, description="备注")
+    search_aliases: Optional[List[str]] = Field(
+        None, description="检索别名列表（问管管俗称匹配）"
+    )
     status: int = Field(..., description="状态(0使用中/1用完/2过期/3丢弃)")
     avg_daily_consumption: Optional[float] = Field(None, description="日均消耗量")
     predicted_empty_date: Optional[date] = Field(None, description="预计用完日期")
@@ -88,6 +92,18 @@ class ItemResponse(BaseModel):
     usage_records: Optional[List[UsageRecordResponse]] = Field(None, description="使用记录列表")
     
     model_config = {"from_attributes": True}
+
+    @field_validator("search_aliases", mode="before")
+    @classmethod
+    def _parse_search_aliases(cls, v: Any) -> Optional[List[str]]:
+        if v is None:
+            return None
+        if isinstance(v, list):
+            return [str(x).strip() for x in v if str(x).strip()]
+        if isinstance(v, str):
+            parsed = aliases_from_storage(v)
+            return parsed or None
+        return None
 
 
 class CreateItemRequest(BaseModel):
@@ -128,6 +144,9 @@ class CreateItemRequest(BaseModel):
     
     # 其他
     notes: Optional[str] = Field(None, description="备注")
+    search_aliases: Optional[List[str]] = Field(
+        None, description="检索别名（魔法备注生成，问管管匹配用）"
+    )
     image_urls: Optional[List[str]] = Field(None, description="图片URL列表（先调用上传接口）")
 
     # 消耗预测（用户手填）
@@ -175,6 +194,9 @@ class UpdateItemRequest(BaseModel):
     
     # 其他
     notes: Optional[str] = Field(None, description="备注")
+    search_aliases: Optional[List[str]] = Field(
+        None, description="检索别名（魔法备注生成）"
+    )
     status: Optional[int] = Field(None, description="状态")
 
     # 消耗预测（用户手填）

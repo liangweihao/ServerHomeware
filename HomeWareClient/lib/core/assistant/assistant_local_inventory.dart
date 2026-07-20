@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 
+import '../services/item_enrich_service.dart';
 import '../../data/database/app_database.dart';
 
 /// 问管管 — 从本地 Drift 构建库存快照，供 LLM 查询（服务端 DB 未同步时的兜底）
@@ -27,6 +28,8 @@ class AssistantLocalInventory {
             'local_id': i.id,
             'server_item_id': i.serverItemId,
             'name': i.name,
+            'search_aliases':
+                ItemEnrichService.decodeAliases(i.searchAliases),
             'quantity': i.currentQuantity,
             'unit': i.unit,
             'location': i.locationId != null

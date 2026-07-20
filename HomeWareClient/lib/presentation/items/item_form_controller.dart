@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:drift/drift.dart' show Value;
 import '../../core/constants/app_constants.dart';
+import '../../core/services/item_enrich_service.dart';
 import '../../core/utils/item_image_storage.dart';
 import '../../data/database/app_database.dart';
 import 'category_form_policy.dart';
@@ -40,6 +41,9 @@ class ItemFormController {
 
   /// 扫码录入条码
   String? barcode;
+
+  /// 魔法备注生成的检索别名（保存时随 notes 一并提交）
+  List<String> searchAliases = [];
 
   /// 预计使用天数（可选）— 用于估算日均消耗与预计用完日
   int? estimatedUseDays;
@@ -88,6 +92,7 @@ class ItemFormController {
     nameController.text = item.name;
     brandController.text = item.brand ?? '';
     notesController.text = item.notes ?? '';
+    searchAliases = ItemEnrichService.decodeAliases(item.searchAliases);
     priceController.text =
         item.purchasePrice != null ? item.purchasePrice!.toString() : '';
     salePriceController.text =
@@ -129,6 +134,7 @@ class ItemFormController {
     nameController.clear();
     brandController.clear();
     notesController.clear();
+    searchAliases = [];
     priceController.clear();
     salePriceController.clear();
     supplierController.clear();
@@ -249,6 +255,9 @@ class ItemFormController {
     if (notesController.text.isNotEmpty) {
       body['notes'] = notesController.text.trim();
     }
+    if (searchAliases.isNotEmpty) {
+      body['search_aliases'] = searchAliases;
+    }
     if (barcode != null && barcode!.isNotEmpty) {
       body['barcode'] = barcode;
     }
@@ -328,6 +337,9 @@ class ItemFormController {
       notes: notesController.text.isEmpty
           ? const Value.absent()
           : Value(notesController.text.trim()),
+      searchAliases: searchAliases.isEmpty
+          ? const Value.absent()
+          : Value(ItemEnrichService.encodeAliases(searchAliases)),
       barcode: barcode != null && barcode!.isNotEmpty
           ? Value(barcode!)
           : const Value.absent(),
@@ -388,6 +400,9 @@ class ItemFormController {
       notes: notesController.text.isEmpty
           ? const Value.absent()
           : Value(notesController.text.trim()),
+      searchAliases: searchAliases.isEmpty
+          ? const Value.absent()
+          : Value(ItemEnrichService.encodeAliases(searchAliases)),
       images: imagesJson != null ? Value(imagesJson) : const Value.absent(),
       avgDailyConsumption: estimate.avgDaily != null
           ? Value(estimate.avgDaily)
@@ -435,6 +450,7 @@ class ItemFormController {
       'name': nameController.text,
       'brand': brandController.text,
       'notes': notesController.text,
+      'searchAliases': searchAliases,
       'price': priceController.text,
       'salePrice': salePriceController.text,
       'supplier': supplierController.text,
@@ -466,6 +482,12 @@ class ItemFormController {
     nameController.text = map['name']?.toString() ?? '';
     brandController.text = map['brand']?.toString() ?? '';
     notesController.text = map['notes']?.toString() ?? '';
+    final rawAliases = map['searchAliases'];
+    if (rawAliases is List) {
+      searchAliases = rawAliases.map((e) => e.toString()).toList();
+    } else {
+      searchAliases = [];
+    }
     priceController.text = map['price']?.toString() ?? '';
     salePriceController.text = map['salePrice']?.toString() ?? '';
     supplierController.text = map['supplier']?.toString() ?? '';
