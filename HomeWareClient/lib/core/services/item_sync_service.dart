@@ -140,6 +140,7 @@ class ItemSyncService {
           final srvExpiry = serverItem['expiry_date'];
           final srvAvgDaily = serverItem['avg_daily_consumption'];
           final srvPredictedEmpty = serverItem['predicted_empty_date'];
+          final srvLastUsedAt = serverItem['last_used_at'];
 
           final shouldUpdatePreview = preview != null &&
               preview.isNotEmpty &&
@@ -149,6 +150,7 @@ class ItemSyncService {
               purchaseQty != null ||
               srvAvgDaily != null ||
               srvPredictedEmpty != null ||
+              srvLastUsedAt != null ||
               shouldUpdatePreview;
 
           if (needsUpdate) {
@@ -178,6 +180,9 @@ class ItemSyncService {
                   ItemServerMapper.avgDailyConsumptionFromJson(serverItem),
               predictedEmptyDate:
                   ItemServerMapper.predictedEmptyDateFromJson(serverItem),
+              lastUsedAt: srvLastUsedAt != null
+                  ? Value(DateTime.tryParse(srvLastUsedAt.toString()))
+                  : const Value.absent(),
               images: shouldUpdatePreview
                   ? Value(jsonEncode([preview]))
                   : const Value.absent(),
@@ -295,6 +300,9 @@ class ItemSyncService {
       afterOpenDays: const Value.absent(),
       warrantyDate: const Value.absent(),
       notes: const Value.absent(),
+      lastUsedAt: json['last_used_at'] != null
+          ? Value(DateTime.tryParse(json['last_used_at'].toString()))
+          : const Value.absent(),
       // 如果有预览图，以 JSON 数组格式存入本地
       images: json['preview_image'] != null
           ? Value(jsonEncode([json['preview_image']]))

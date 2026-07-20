@@ -102,7 +102,7 @@ class GuanguanPanelCard extends ConsumerWidget {
                       ),
                       if (data.idleInsight != null) ...[
                         const SizedBox(height: 10),
-                        _InsightLine(text: data.idleInsight!),
+                        _InsightLine(insight: data.idleInsight!),
                       ],
                     ],
                   ),
@@ -315,24 +315,28 @@ class _QuipLine extends StatelessWidget {
 }
 
 class _InsightLine extends StatelessWidget {
-  const _InsightLine({required this.text});
+  const _InsightLine({required this.insight});
 
-  final String text;
+  final ({String text, int itemId}) insight;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CandyIcon(Icons.lightbulb_outline, size: 16, color: AppColors.warning),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(fontSize: 12, color: AppColors.textHint),
+    return GestureDetector(
+      onTap: () => context.push('/items/${insight.itemId}'),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CandyIcon(Icons.lightbulb_outline, size: 16, color: AppColors.warning),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              insight.text,
+              style: TextStyle(fontSize: 12, color: AppColors.textHint),
+            ),
           ),
-        ),
-      ],
+          CandyIcon(Icons.chevron_right, size: 14, color: AppColors.textHint),
+        ],
+      ),
     );
   }
 }

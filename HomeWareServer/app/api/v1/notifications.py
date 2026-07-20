@@ -29,7 +29,7 @@ async def get_notifications(
     """
     获取当前用户的通知列表（分页）
 
-    - **type**: 通知类型筛选，可选值：expiry, stock, purchase, warranty, system
+    - **type**: 通知类型筛选，可选值：expiry, stock, purchase, warranty, system, idle
     - **is_read**: 是否已读筛选
     - **page**: 页码，默认1
     - **page_size**: 每页数量，默认20，最大100

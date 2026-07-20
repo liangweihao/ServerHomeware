@@ -77,6 +77,7 @@ class ItemResponse(BaseModel):
     status: int = Field(..., description="状态(0使用中/1用完/2过期/3丢弃)")
     avg_daily_consumption: Optional[float] = Field(None, description="日均消耗量")
     predicted_empty_date: Optional[date] = Field(None, description="预计用完日期")
+    last_used_at: Optional[datetime] = Field(None, description="最后使用时间")
     urgency: Optional[int] = Field(None, description="紧急程度(0正常/1即将过期/2库存不足/3已过期/4已用完)")
     created_by: int = Field(..., description="创建者ID")
     created_at: datetime = Field(..., description="创建时间")

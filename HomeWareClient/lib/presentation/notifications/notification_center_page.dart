@@ -72,7 +72,11 @@ class NotificationCenterPage extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final entry = notifications[index];
                     final type = alertTypeFromKey(entry.alertTypeKey);
-                    final info = getAlertDisplayInfo(entry.item, type);
+                    final info = getAlertDisplayInfo(
+                      entry.item,
+                      type,
+                      descriptionOverride: entry.descriptionOverride,
+                    );
                     final tile = _NotificationListTile(
                       index: index,
                       entry: entry,

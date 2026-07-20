@@ -4,7 +4,9 @@ import '../events/item_event_bus.dart';
 import '../models/alert_tab.dart';
 import '../models/alert_type.dart';
 import '../models/notification_entry.dart';
+import '../services/idle_reminder_service.dart';
 import '../utils/alert_display_helper.dart';
+import '../utils/item_api_id.dart';
 import '../../data/database/app_database.dart';
 import 'database_provider.dart';
 import 'family_provider.dart';
@@ -19,6 +21,26 @@ final currentFamilyIdProvider = Provider<int>((ref) {
   return 0;
 });
 
+/// 服务端 idle AI 文案：本地 itemId → body
+final idleMessageByLocalItemIdProvider =
+    FutureProvider<Map<int, String>>((ref) async {
+  ref.watch(itemEventBusProvider);
+  final db = ref.watch(databaseProvider);
+  final byServerId =
+      await IdleReminderService().fetchIdleBodiesByServerItemId();
+  if (byServerId.isEmpty) return {};
+
+  final items = await db.getAllItems();
+  final result = <int, String>{};
+  for (final item in items) {
+    final body = byServerId[item.serverApiId];
+    if (body != null && body.isNotEmpty) {
+      result[item.id] = body;
+    }
+  }
+  return result;
+});
+
 /// 未读提醒数量（首页 Badge + 提醒 Tab Badge 真源）
 final unreadAlertCountProvider = FutureProvider<int>((ref) async {
   ref.watch(itemEventBusProvider);
@@ -27,11 +49,14 @@ final unreadAlertCountProvider = FutureProvider<int>((ref) async {
   return db.getUnreadAlertCount(familyId);
 });
 
-/// 未读通知列表（通知中心页，含位置路径）
-final unreadNotificationsProvider = FutureProvider<List<NotificationEntry>>((ref) async {
+/// 未读通知列表（通知中心页，含位置路径；idle 优先展示 AI 文案）
+final unreadNotificationsProvider =
+    FutureProvider<List<NotificationEntry>>((ref) async {
   ref.watch(itemEventBusProvider);
   final familyId = ref.watch(currentFamilyIdProvider);
   final db = ref.watch(databaseProvider);
+  final idleMessages =
+      await ref.watch(idleMessageByLocalItemIdProvider.future);
   final rows = await db.getUnreadNotifications(familyId, limit: 20);
   final locations = await db.getAllLocations();
   final pathById = {
@@ -48,6 +73,8 @@ final unreadNotificationsProvider = FutureProvider<List<NotificationEntry>>((ref
           locationPath: row.$1.locationId != null
               ? pathById[row.$1.locationId]
               : null,
+          descriptionOverride:
+              row.$2 == 'idle' ? idleMessages[row.$1.id] : null,
         ),
       )
       .toList();
@@ -90,6 +117,7 @@ void invalidateAlertProviders(WidgetRef ref) {
   ref.invalidate(unreadAlertCountProvider);
   ref.invalidate(unreadNotificationsProvider);
   ref.invalidate(alertListProvider);
+  ref.invalidate(idleMessageByLocalItemIdProvider);
 }
 
 void _logAlert(String message) {

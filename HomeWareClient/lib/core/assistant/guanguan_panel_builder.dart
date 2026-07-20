@@ -101,14 +101,15 @@ abstract final class GuanguanPanelBuilder {
             : null);
   }
 
-  /// 30 天无消耗/入库的物品 → 隐藏洞察
-  static String? buildIdleInsight({
+  /// 找出 30 天无消耗/入库的物品列表，返回携带 idleDays 的结构
+  static List<({int itemId, String itemName, int idleDays})> findIdleItems({
     required List<Item> activeItems,
     required List<UsageRecord> recentRecords,
+    int thresholdDays = 30,
     DateTime? now,
   }) {
     final clock = now ?? DateTime.now();
-    final threshold = clock.subtract(const Duration(days: 30));
+    final threshold = clock.subtract(Duration(days: thresholdDays));
 
     final lastTouchByItem = <int, DateTime>{};
     for (final r in recentRecords) {
@@ -119,14 +120,40 @@ abstract final class GuanguanPanelBuilder {
       }
     }
 
+    final result = <({int itemId, String itemName, int idleDays})>[];
     for (final item in activeItems) {
       if (item.status != 0) continue;
-      final last = lastTouchByItem[item.id] ?? item.createdAt;
+      // 优先使用记录时间，其次 lastUsedAt，最后回落到入库时间
+      final last =
+          lastTouchByItem[item.id] ?? item.lastUsedAt ?? item.createdAt;
       if (last.isBefore(threshold)) {
-        return '「${item.name}」30 天没动过了，还在吗？';
+        result.add((
+          itemId: item.id,
+          itemName: item.name,
+          idleDays: clock.difference(last).inDays,
+        ));
       }
     }
-    return null;
+    return result;
+  }
+
+  /// 30 天无消耗/入库的物品 → 隐藏洞察（携带第一条物品 id 用于点击跳转）
+  static ({String text, int itemId})? buildIdleInsight({
+    required List<Item> activeItems,
+    required List<UsageRecord> recentRecords,
+    DateTime? now,
+  }) {
+    final idleItems = findIdleItems(
+      activeItems: activeItems,
+      recentRecords: recentRecords,
+      now: now,
+    );
+    if (idleItems.isEmpty) return null;
+    final first = idleItems.first;
+    final text = idleItems.length == 1
+        ? '「${first.itemName}」${first.idleDays}天没动过了，还在吗？'
+        : '「${first.itemName}」等${idleItems.length}件物品超30天没有使用记录';
+    return (text: text, itemId: first.itemId);
   }
 
   static bool _isInSpaceTree(

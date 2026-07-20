@@ -154,32 +154,48 @@ if [ ! -f ".env" ] && [ -f ".env.example" ]; then
     echo "  请编辑 .env 填写 JWT_SECRET_KEY、DEEPSEEK_API_KEY 等后重启"
 fi
 if [ -f ".env" ]; then
-    set -a
-    # shellcheck disable=SC1091
-    source .env
-    set +a
+    # pydantic-settings 会自动读取 .env，bash 不再 source，
+    # 避免 Git Bash 将 /foo 路径值转义为 C:/Program Files/Git/foo
+    export ENV_FILE=".env"
+    # 清除可能被 Git Bash 污染的进程环境变量，强制从 .env 文件读取
+    unset API_PREFIX DATABASE_URL REDIS_URL RATE_LIMIT_STORAGE_URL UPLOAD_DIR 2>/dev/null || true
 else
     echo "错误: 缺少 .env，请复制 .env.example 并配置"
     exit 1
 fi
-export ENV_FILE=".env"
 
 _validate_env() {
-    local warn=0
-    if [ -z "$DEEPSEEK_API_KEY" ] || [ "$DEEPSEEK_API_KEY" = "your-deepseek-api-key" ]; then
-        echo "  警告: DEEPSEEK_API_KEY 未配置，问管管将不可用"
-        warn=1
-    else
-        echo "  DeepSeek: ${DEEPSEEK_API_KEY:0:8}... 已加载"
-    fi
-    if [ -z "$JWT_SECRET_KEY" ] || [[ "$JWT_SECRET_KEY" == *"change-in-production"* ]] || [[ "$JWT_SECRET_KEY" == *"your-secret-key"* ]]; then
-        echo "  警告: JWT_SECRET_KEY 仍为占位符，生产环境请改为强随机字符串"
-        warn=1
-    fi
-    echo "  数据库: ${DATABASE_URL:-未设置}"
-    if [ "$warn" = "1" ]; then
-        echo "  → 请编辑 .env 后执行 ./start.sh restart"
-    fi
+    # 用 python 读取 .env，避免 bash/Git Bash 路径转义污染变量值
+    $PY_CMD - << 'PYEOF'
+import re, sys
+vals = {}
+with open('.env', 'r', encoding='utf-8') as f:
+    for line in f:
+        line = line.rstrip('\r\n')
+        if not line or line.lstrip().startswith('#'):
+            continue
+        m = re.match(r'^([A-Za-z_][A-Za-z0-9_]*)\s*=(.*)', line)
+        if m:
+            k, v = m.group(1), m.group(2).strip()
+            if len(v) >= 2 and v[0] == v[-1] and v[0] in ('"', "'"):
+                v = v[1:-1]
+            vals[k] = v
+warn = False
+deepseek = vals.get('DEEPSEEK_API_KEY', '')
+if not deepseek or deepseek == 'your-deepseek-api-key':
+    print('  警告: DEEPSEEK_API_KEY 未配置，问管管将不可用')
+    warn = True
+else:
+    print(f'  DeepSeek: {deepseek[:8]}... 已加载')
+jwt = vals.get('JWT_SECRET_KEY', '')
+if not jwt or 'change-in-production' in jwt or 'your-secret-key' in jwt:
+    print('  警告: JWT_SECRET_KEY 仍为占位符，生产环境请改为强随机字符串')
+    warn = True
+db = vals.get('DATABASE_URL', '未设置')
+print(f'  数据库: {db}')
+if warn:
+    print('  → 请编辑 .env 后执行 ./start.sh restart')
+PYEOF
 }
 _validate_env
 

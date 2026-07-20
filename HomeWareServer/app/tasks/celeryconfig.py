@@ -31,4 +31,9 @@ CELERYBEAT_SCHEDULE = {
         'task': 'app.tasks.scheduled_tasks.clean_old_notifications',
         'schedule': crontab(hour=3, minute=0, day_of_week=0),
     },
+    # 每天凌晨 03:30 检测长期未使用物品，调用 AI 生成提醒
+    'generate-idle-reminders-daily': {
+        'task': 'app.tasks.scheduled_tasks.generate_idle_reminders',
+        'schedule': crontab(hour=3, minute=30),
+    },
 }

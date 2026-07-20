@@ -54,6 +54,8 @@ class Item(Base, BaseMixin):
     status = Column(Integer, default=0, comment="状态(0使用中/1用完/2过期/3丢弃)")
     avg_daily_consumption = Column(Numeric(10, 4), nullable=True, comment="日均消耗量")
     predicted_empty_date = Column(Date, nullable=True, comment="预计用完日期")
+    # 最后一次使用时间，每次写入 type=1 的 UsageRecord 时同步更新
+    last_used_at = Column(DateTime, nullable=True, comment="最后使用时间")
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False, comment="创建人ID")
     deleted_at = Column(DateTime, nullable=True, comment="删除时间(软删除)")
     

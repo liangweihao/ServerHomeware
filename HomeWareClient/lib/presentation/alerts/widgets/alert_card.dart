@@ -23,6 +23,8 @@ class AlertCard extends ConsumerWidget {
   final VoidCallback? onAcknowledge;
   final VoidCallback? onIgnore;
   final VoidCallback? onTap;
+  /// 服务端 AI 文案覆盖（idle）
+  final String? descriptionOverride;
 
   const AlertCard({
     super.key,
@@ -34,12 +36,17 @@ class AlertCard extends ConsumerWidget {
     this.onAddToShopping,
     this.onAcknowledge,
     this.onIgnore,
+    this.descriptionOverride,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final skin = ref.watch(spaceSkinProvider);
-    final info = getAlertDisplayInfo(item, type);
+    final info = getAlertDisplayInfo(
+      item,
+      type,
+      descriptionOverride: descriptionOverride,
+    );
 
     return Material(
       color: AppColors.white,
@@ -224,6 +231,7 @@ class AlertCard extends ConsumerWidget {
 
       case AlertType.warranty:
       case AlertType.other:
+      case AlertType.idle:
         if (onAcknowledge != null) {
           buttons.add(
             AppButton(

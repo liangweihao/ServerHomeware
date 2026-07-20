@@ -69,6 +69,8 @@ class Items extends Table {
   IntColumn get status => integer().withDefault(const Constant(0))();
   RealColumn get avgDailyConsumption => real().nullable()();
   DateTimeColumn get predictedEmptyDate => dateTime().nullable()();
+  /// 最后一次使用时间（type=1 UsageRecord 写入时同步更新）
+  DateTimeColumn get lastUsedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   /// 服务端 items.id — 本地主键与服务端不一致时用于 API / usage 映射
@@ -152,7 +154,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(_openConnection());
   
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -178,6 +180,9 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 7) {
           await m.createTable(assistantMessages);
+        }
+        if (from < 8) {
+          await m.addColumn(items, items.lastUsedAt);
         }
       },
     );
@@ -431,9 +436,26 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
-  // 插入使用记录
-  Future<int> insertUsageRecord(UsageRecordsCompanion record) {
-    return into(usageRecords).insert(record);
+  /// 插入使用记录；type=1（使用）时同步刷新物品 lastUsedAt
+  Future<int> insertUsageRecord(UsageRecordsCompanion record) async {
+    final id = await into(usageRecords).insert(record);
+    // type=1 代表「使用」，与服务端 usage_records 约定一致
+    if (record.type.present &&
+        record.type.value == 1 &&
+        record.itemId.present) {
+      final now = DateTime.now();
+      await (update(items)..where((i) => i.id.equals(record.itemId.value)))
+          .write(
+        ItemsCompanion(
+          lastUsedAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+      debugPrint(
+        '[DB] INFO: 同步 lastUsedAt itemId=${record.itemId.value}',
+      );
+    }
+    return id;
   }
 
   /// 按本地 id 查询
@@ -622,6 +644,22 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
+  /// 获取长期未使用物品（idle 提醒）
+  /// 条件：status=0 且 (lastUsedAt 为空且入库超 7 天) 或 (lastUsedAt 超 30 天)
+  Future<List<Item>> getIdleAlerts() {
+    final now = DateTime.now();
+    final neverUsedThreshold = now.subtract(const Duration(days: 7));
+    final lastUsedThreshold = now.subtract(const Duration(days: 30));
+    return (select(items)
+          ..where((i) => i.status.equals(0))
+          ..where((i) =>
+              // 从未使用且入库超 7 天
+              (i.lastUsedAt.isNull() & i.createdAt.isSmallerOrEqualValue(neverUsedThreshold)) |
+              // 或上次使用超 30 天
+              i.lastUsedAt.isSmallerOrEqualValue(lastUsedThreshold)))
+        .get();
+  }
+
   // 获取所有提醒数量（四类合计，不含已读/忽略）
   Future<int> getAlertCount() async {
     try {
@@ -644,6 +682,8 @@ class AppDatabase extends _$AppDatabase {
     pairs.addAll(restockAlerts.map((item) => (item, 'restock')));
     final warrantyAlerts = await getWarrantyAlerts();
     pairs.addAll(warrantyAlerts.map((item) => (item, 'warranty')));
+    final idleAlerts = await getIdleAlerts();
+    pairs.addAll(idleAlerts.map((item) => (item, 'idle')));
     return pairs;
   }
 

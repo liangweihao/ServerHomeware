@@ -29,6 +29,7 @@ class Notification(Base, BaseMixin):
     TYPE_PURCHASE = "purchase"
     TYPE_WARRANTY = "warranty"
     TYPE_SYSTEM = "system"
+    TYPE_IDLE = "idle"  # 长期未使用提醒
 
     # 优先级常量
     PRIORITY_HIGH = "high"

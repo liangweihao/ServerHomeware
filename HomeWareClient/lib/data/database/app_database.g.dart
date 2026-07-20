@@ -1393,6 +1393,17 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         type: DriftSqlType.dateTime,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _lastUsedAtMeta = const VerificationMeta(
+    'lastUsedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastUsedAt = GeneratedColumn<DateTime>(
+    'last_used_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1462,6 +1473,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     status,
     avgDailyConsumption,
     predictedEmptyDate,
+    lastUsedAt,
     createdAt,
     updatedAt,
     serverItemId,
@@ -1722,6 +1734,15 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         ),
       );
     }
+    if (data.containsKey('last_used_at')) {
+      context.handle(
+        _lastUsedAtMeta,
+        lastUsedAt.isAcceptableOrUnknown(
+          data['last_used_at']!,
+          _lastUsedAtMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1880,6 +1901,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}predicted_empty_date'],
       ),
+      lastUsedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_used_at'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1938,6 +1963,9 @@ class Item extends DataClass implements Insertable<Item> {
   final int status;
   final double? avgDailyConsumption;
   final DateTime? predictedEmptyDate;
+
+  /// 最后一次使用时间（type=1 UsageRecord 写入时同步更新）
+  final DateTime? lastUsedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -1976,6 +2004,7 @@ class Item extends DataClass implements Insertable<Item> {
     required this.status,
     this.avgDailyConsumption,
     this.predictedEmptyDate,
+    this.lastUsedAt,
     required this.createdAt,
     required this.updatedAt,
     this.serverItemId,
@@ -2056,6 +2085,9 @@ class Item extends DataClass implements Insertable<Item> {
     }
     if (!nullToAbsent || predictedEmptyDate != null) {
       map['predicted_empty_date'] = Variable<DateTime>(predictedEmptyDate);
+    }
+    if (!nullToAbsent || lastUsedAt != null) {
+      map['last_used_at'] = Variable<DateTime>(lastUsedAt);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -2141,6 +2173,9 @@ class Item extends DataClass implements Insertable<Item> {
       predictedEmptyDate: predictedEmptyDate == null && nullToAbsent
           ? const Value.absent()
           : Value(predictedEmptyDate),
+      lastUsedAt: lastUsedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastUsedAt),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       serverItemId: serverItemId == null && nullToAbsent
@@ -2191,6 +2226,7 @@ class Item extends DataClass implements Insertable<Item> {
       predictedEmptyDate: serializer.fromJson<DateTime?>(
         json['predictedEmptyDate'],
       ),
+      lastUsedAt: serializer.fromJson<DateTime?>(json['lastUsedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       serverItemId: serializer.fromJson<int?>(json['serverItemId']),
@@ -2232,6 +2268,7 @@ class Item extends DataClass implements Insertable<Item> {
       'status': serializer.toJson<int>(status),
       'avgDailyConsumption': serializer.toJson<double?>(avgDailyConsumption),
       'predictedEmptyDate': serializer.toJson<DateTime?>(predictedEmptyDate),
+      'lastUsedAt': serializer.toJson<DateTime?>(lastUsedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'serverItemId': serializer.toJson<int?>(serverItemId),
@@ -2271,6 +2308,7 @@ class Item extends DataClass implements Insertable<Item> {
     int? status,
     Value<double?> avgDailyConsumption = const Value.absent(),
     Value<DateTime?> predictedEmptyDate = const Value.absent(),
+    Value<DateTime?> lastUsedAt = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<int?> serverItemId = const Value.absent(),
@@ -2325,6 +2363,7 @@ class Item extends DataClass implements Insertable<Item> {
     predictedEmptyDate: predictedEmptyDate.present
         ? predictedEmptyDate.value
         : this.predictedEmptyDate,
+    lastUsedAt: lastUsedAt.present ? lastUsedAt.value : this.lastUsedAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     serverItemId: serverItemId.present ? serverItemId.value : this.serverItemId,
@@ -2407,6 +2446,9 @@ class Item extends DataClass implements Insertable<Item> {
       predictedEmptyDate: data.predictedEmptyDate.present
           ? data.predictedEmptyDate.value
           : this.predictedEmptyDate,
+      lastUsedAt: data.lastUsedAt.present
+          ? data.lastUsedAt.value
+          : this.lastUsedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       serverItemId: data.serverItemId.present
@@ -2450,6 +2492,7 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('status: $status, ')
           ..write('avgDailyConsumption: $avgDailyConsumption, ')
           ..write('predictedEmptyDate: $predictedEmptyDate, ')
+          ..write('lastUsedAt: $lastUsedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('serverItemId: $serverItemId')
@@ -2491,6 +2534,7 @@ class Item extends DataClass implements Insertable<Item> {
     status,
     avgDailyConsumption,
     predictedEmptyDate,
+    lastUsedAt,
     createdAt,
     updatedAt,
     serverItemId,
@@ -2531,6 +2575,7 @@ class Item extends DataClass implements Insertable<Item> {
           other.status == this.status &&
           other.avgDailyConsumption == this.avgDailyConsumption &&
           other.predictedEmptyDate == this.predictedEmptyDate &&
+          other.lastUsedAt == this.lastUsedAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.serverItemId == this.serverItemId);
@@ -2569,6 +2614,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<int> status;
   final Value<double?> avgDailyConsumption;
   final Value<DateTime?> predictedEmptyDate;
+  final Value<DateTime?> lastUsedAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int?> serverItemId;
@@ -2605,6 +2651,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.status = const Value.absent(),
     this.avgDailyConsumption = const Value.absent(),
     this.predictedEmptyDate = const Value.absent(),
+    this.lastUsedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.serverItemId = const Value.absent(),
@@ -2642,6 +2689,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.status = const Value.absent(),
     this.avgDailyConsumption = const Value.absent(),
     this.predictedEmptyDate = const Value.absent(),
+    this.lastUsedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.serverItemId = const Value.absent(),
@@ -2680,6 +2728,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Expression<int>? status,
     Expression<double>? avgDailyConsumption,
     Expression<DateTime>? predictedEmptyDate,
+    Expression<DateTime>? lastUsedAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? serverItemId,
@@ -2719,6 +2768,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
         'avg_daily_consumption': avgDailyConsumption,
       if (predictedEmptyDate != null)
         'predicted_empty_date': predictedEmptyDate,
+      if (lastUsedAt != null) 'last_used_at': lastUsedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (serverItemId != null) 'server_item_id': serverItemId,
@@ -2758,6 +2808,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<int>? status,
     Value<double?>? avgDailyConsumption,
     Value<DateTime?>? predictedEmptyDate,
+    Value<DateTime?>? lastUsedAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int?>? serverItemId,
@@ -2795,6 +2846,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       status: status ?? this.status,
       avgDailyConsumption: avgDailyConsumption ?? this.avgDailyConsumption,
       predictedEmptyDate: predictedEmptyDate ?? this.predictedEmptyDate,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       serverItemId: serverItemId ?? this.serverItemId,
@@ -2904,6 +2956,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
         predictedEmptyDate.value,
       );
     }
+    if (lastUsedAt.present) {
+      map['last_used_at'] = Variable<DateTime>(lastUsedAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2951,6 +3006,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('status: $status, ')
           ..write('avgDailyConsumption: $avgDailyConsumption, ')
           ..write('predictedEmptyDate: $predictedEmptyDate, ')
+          ..write('lastUsedAt: $lastUsedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('serverItemId: $serverItemId')
@@ -5759,6 +5815,7 @@ typedef $$ItemsTableCreateCompanionBuilder =
       Value<int> status,
       Value<double?> avgDailyConsumption,
       Value<DateTime?> predictedEmptyDate,
+      Value<DateTime?> lastUsedAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int?> serverItemId,
@@ -5797,6 +5854,7 @@ typedef $$ItemsTableUpdateCompanionBuilder =
       Value<int> status,
       Value<double?> avgDailyConsumption,
       Value<DateTime?> predictedEmptyDate,
+      Value<DateTime?> lastUsedAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int?> serverItemId,
@@ -5967,6 +6025,11 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<DateTime> get predictedEmptyDate => $composableBuilder(
     column: $table.predictedEmptyDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6155,6 +6218,11 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -6320,6 +6388,11 @@ class $$ItemsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -6392,6 +6465,7 @@ class $$ItemsTableTableManager
                 Value<int> status = const Value.absent(),
                 Value<double?> avgDailyConsumption = const Value.absent(),
                 Value<DateTime?> predictedEmptyDate = const Value.absent(),
+                Value<DateTime?> lastUsedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int?> serverItemId = const Value.absent(),
@@ -6428,6 +6502,7 @@ class $$ItemsTableTableManager
                 status: status,
                 avgDailyConsumption: avgDailyConsumption,
                 predictedEmptyDate: predictedEmptyDate,
+                lastUsedAt: lastUsedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 serverItemId: serverItemId,
@@ -6466,6 +6541,7 @@ class $$ItemsTableTableManager
                 Value<int> status = const Value.absent(),
                 Value<double?> avgDailyConsumption = const Value.absent(),
                 Value<DateTime?> predictedEmptyDate = const Value.absent(),
+                Value<DateTime?> lastUsedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int?> serverItemId = const Value.absent(),
@@ -6502,6 +6578,7 @@ class $$ItemsTableTableManager
                 status: status,
                 avgDailyConsumption: avgDailyConsumption,
                 predictedEmptyDate: predictedEmptyDate,
+                lastUsedAt: lastUsedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 serverItemId: serverItemId,

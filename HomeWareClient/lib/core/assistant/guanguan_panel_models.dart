@@ -49,8 +49,8 @@ class GuanguanPanelData {
   final SpaceProficiency proficiency;
   final String? collaborationQuip;
 
-  /// 隐藏洞察：长期未动用的物品
-  final String? idleInsight;
+  /// 隐藏洞察：长期未动用的物品，携带 itemId 用于点击跳转
+  final ({String text, int itemId})? idleInsight;
 
   /// 无待处理提醒
   final bool allClear;

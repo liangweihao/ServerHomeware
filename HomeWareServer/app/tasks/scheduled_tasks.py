@@ -2,8 +2,9 @@
 Celery 定时任务模块
 实现各类定时检查任务
 """
+import json
 import logging
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import select, update, func
 from sqlalchemy.orm import Session
@@ -11,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.models.item import Item
 from app.models.notification import Notification
-from app.models.shopping import Shopping
+from app.models.shopping import ShoppingItem
 from app.models.user_device import UserDevice
 from app.repositories.notification_repo import NotificationRepository
 from app.tasks.celery_app import celery
@@ -20,11 +21,18 @@ logger = logging.getLogger(__name__)
 
 
 def get_sync_session():
-    """获取同步数据库会话"""
+    """获取同步数据库会话（Celery 任务专用，去掉 async driver）"""
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
 
-    engine = create_engine(settings.DATABASE_URL)
+    url = settings.DATABASE_URL
+    # Celery 同步任务不能使用 aiosqlite / asyncpg
+    if url.startswith("sqlite+aiosqlite://"):
+        url = url.replace("sqlite+aiosqlite://", "sqlite://", 1)
+    elif url.startswith("postgresql+asyncpg://"):
+        url = url.replace("postgresql+asyncpg://", "postgresql://", 1)
+
+    engine = create_engine(url)
     SessionLocal = sessionmaker(bind=engine)
     return SessionLocal()
 
@@ -203,10 +211,11 @@ def generate_shopping_suggestions():
 
             # 检查是否已在购物清单中（未购买）
             existing = session.execute(
-                select(Shopping)
+                select(ShoppingItem)
                 .filter(
-                    Shopping.item_id == item_id,
-                    Shopping.is_purchased == False
+                    ShoppingItem.related_item_id == item_id,
+                    ShoppingItem.is_purchased == False,
+                    ShoppingItem.deleted_at.is_(None),
                 )
             ).scalar_one_or_none()
 
@@ -215,12 +224,13 @@ def generate_shopping_suggestions():
                 continue
 
             # 创建购物推荐
-            shopping = Shopping(
+            shopping = ShoppingItem(
                 family_id=family_id,
-                item_id=item_id,
+                name=item_name,
+                related_item_id=item_id,
                 quantity=max(1, int(safety_stock * 2 - current_qty)) if current_qty < safety_stock else 1,
                 is_auto_generated=True,
-                is_purchased=False
+                is_purchased=False,
             )
             session.add(shopping)
             session.commit()
@@ -510,3 +520,358 @@ def _send_push_to_user(session, user_id: int, title: str, body: str, data: dict)
 
     except Exception as e:
         logger.error(f"向用户推送失败: {e}")
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 长期未使用提醒（idle reminder）
+# ──────────────────────────────────────────────────────────────────────────────
+
+# 候选物品筛选阈值
+_IDLE_NEVER_USED_DAYS = 7    # 入库后从未使用，超过 N 天触发候选
+_IDLE_LAST_USED_DAYS = 30    # 最后一次使用距今超过 N 天触发候选
+_IDLE_MAX_CANDIDATES = 30    # 每个家庭最多打包送给 AI 的物品数量
+
+
+def _as_naive_utc(dt: datetime | None) -> datetime | None:
+    """将 datetime 统一为 naive UTC，避免 aware/naive 相减报错。"""
+    if dt is None:
+        return None
+    if dt.tzinfo is not None:
+        return dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt
+
+
+def _get_current_season() -> str:
+    """根据月份返回当前季节（北半球）"""
+    month = date.today().month
+    if month in (3, 4, 5):
+        return "春季"
+    if month in (6, 7, 8):
+        return "夏季"
+    if month in (9, 10, 11):
+        return "秋季"
+    return "冬季"
+
+
+def _idle_threshold_for_item(category: str, name: str) -> int:
+    """
+    AI 不可用时的分类默认阈值（天）。
+    与 _build_idle_prompt 中的规则保持一致，避免降级时对清洁品等误报。
+    """
+    text = f"{category or ''}{name or ''}"
+    if any(k in text for k in ("食材", "生鲜", "食品", "饮料", "水果", "蔬菜", "肉")):
+        return 3
+    if any(k in text for k in ("洗发水", "牙膏", "沐浴露", "护肤", "个护")):
+        return 14
+    if any(k in text for k in ("清洁", "卫生", "洗衣液", "消毒液")):
+        return 60
+    if any(k in text for k in ("电子", "数码", "电器", "设备", "手机", "电脑")):
+        return 90
+    if any(k in text for k in ("防晒", "暖宝宝", "羽绒服", "电热毯", "蚊帐")):
+        # 季节性：默认 30 天，具体季节判断交给 AI；降级时保守提醒
+        return 30
+    return 30
+
+
+def _default_idle_result(prompt_item: dict) -> dict:
+    """按分类阈值生成默认 idle 判定结果。"""
+    idle_days = int(prompt_item.get("idle_days") or 0)
+    name = prompt_item.get("name") or ""
+    category = prompt_item.get("category") or ""
+    threshold = _idle_threshold_for_item(category, name)
+    need = idle_days >= threshold
+    urgency = 1 if idle_days >= 90 else 2 if idle_days >= 30 else 3
+    return {
+        "item_id": prompt_item["item_id"],
+        "need_remind": need,
+        "message": f"「{name}」已{idle_days}天没有使用记录，还在吗？" if need else "",
+        "urgency": urgency if need else 3,
+    }
+
+
+def _call_deepseek_sync(prompt: str) -> str | None:
+    """
+    同步调用 DeepSeek API（供 Celery 任务使用）。
+    返回模型输出的原始文本，失败返回 None。
+    """
+    import httpx
+
+    api_key = getattr(settings, "DEEPSEEK_API_KEY", None)
+    base_url = getattr(settings, "DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+    model = getattr(settings, "DEEPSEEK_MODEL", "deepseek-chat")
+    timeout = getattr(settings, "DEEPSEEK_TIMEOUT_SECONDS", 30)
+
+    if not api_key or not api_key.startswith("sk-"):
+        logger.warning("DEEPSEEK_API_KEY 未配置，跳过 AI 判断")
+        return None
+
+    url = f"{base_url}/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 1024,
+        "temperature": 0.3,
+    }
+
+    try:
+        with httpx.Client(timeout=timeout, trust_env=False) as client:
+            resp = client.post(url, headers=headers, json=payload)
+            resp.raise_for_status()
+            return resp.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        logger.error("DeepSeek 调用失败: %s", e)
+        return None
+
+
+def _build_idle_prompt(family_candidates: list[dict], season: str) -> str:
+    """
+    构建发送给 DeepSeek 的 prompt。
+    family_candidates: [{"item_id": int, "name": str, "category": str,
+                          "purchase_date": str, "last_used_at": str,
+                          "idle_days": int}]
+    """
+    items_json = json.dumps(family_candidates, ensure_ascii=False)
+    return f"""你是一个家庭物品管理助手。当前季节：{season}。
+
+以下是用户家庭中长时间未使用的物品清单（JSON 格式）：
+{items_json}
+
+请分析每件物品，判断是否需要提醒用户，并给出提醒文案。
+
+判断规则：
+1. 食材/生鲜类：入库超过 3 天未使用即可提醒
+2. 清洁/卫生用品：超过 60 天未使用才提醒
+3. 季节性物品（防晒、暖宝宝、羽绒服等）：结合当前季节判断，当季未用才提醒
+4. 电子产品/设备：超过 90 天未用才提醒
+5. 日常消耗品（洗发水、牙膏等）：超过 14 天未使用才提醒
+6. 其他物品：超过 30 天未使用才提醒
+
+提醒文案要求：口语化、亲切，不超过 30 字，带物品名称。
+
+请严格以 JSON 数组返回，不要有其他文字：
+[
+  {{
+    "item_id": <物品ID整数>,
+    "need_remind": <true 或 false>,
+    "message": "<提醒文案，need_remind=false 时可为空字符串>",
+    "urgency": <1=高/2=中/3=低，need_remind=false 时填 3>
+  }}
+]"""
+
+
+def _backfill_last_used_at(session: Session) -> int:
+    """
+    将仍为 NULL 的 last_used_at 用历史 type=1 使用记录回填。
+    返回更新行数（近似）。
+    """
+    from app.models.usage_record import UsageRecord
+
+    # 子查询：每个 item 最近一次使用时间
+    subq = (
+        select(
+            UsageRecord.item_id.label("item_id"),
+            func.max(UsageRecord.created_at).label("max_used"),
+        )
+        .where(UsageRecord.type == 1)
+        .group_by(UsageRecord.item_id)
+        .subquery()
+    )
+    result = session.execute(
+        select(Item.id, subq.c.max_used)
+        .join(subq, Item.id == subq.c.item_id)
+        .where(Item.last_used_at.is_(None))
+    )
+    rows = result.all()
+    for item_id, max_used in rows:
+        session.execute(
+            update(Item).where(Item.id == item_id).values(last_used_at=max_used)
+        )
+    if rows:
+        session.commit()
+        logger.info("idle 回填 last_used_at: %d 条", len(rows))
+    return len(rows)
+
+
+@celery.task
+def generate_idle_reminders():
+    """
+    每天凌晨 03:30 执行。
+    对每个家庭检测长期未使用物品，调用 DeepSeek 判断是否需要提醒，
+    结果 upsert 写入 notifications 表（type='idle'）。
+    """
+    logger.info("开始执行长期未使用提醒生成任务")
+
+    session = get_sync_session()
+    try:
+        from app.models.category import Category
+        from app.models.family import Family
+
+        # 幂等回填：迁移已跑过但数据未填时仍可补齐
+        try:
+            _backfill_last_used_at(session)
+        except Exception as e:
+            logger.warning("last_used_at 回填跳过: %s", e)
+            session.rollback()
+
+        season = _get_current_season()
+        now = datetime.now(timezone.utc)
+        now_naive = _as_naive_utc(now)
+        never_used_threshold = now - timedelta(days=_IDLE_NEVER_USED_DAYS)
+        last_used_threshold = now - timedelta(days=_IDLE_LAST_USED_DAYS)
+        # 「今日」起点用 UTC 零点，与 created_at 存储约定对齐
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start_naive = _as_naive_utc(today_start)
+
+        # 获取所有家庭 ID
+        family_ids = [row[0] for row in session.execute(select(Family.id)).all()]
+
+        for family_id in family_ids:
+            try:
+                # 查询候选物品：status=0 且 (last_used_at 为空且入库超 7 天) 或 (last_used_at < 30 天前)
+                result = session.execute(
+                    select(
+                        Item.id,
+                        Item.name,
+                        Item.created_at,
+                        Item.last_used_at,
+                        Category.name.label("category_name"),
+                    )
+                    .join(Category, Item.category_id == Category.id, isouter=True)
+                    .filter(
+                        Item.family_id == family_id,
+                        Item.status == 0,
+                        Item.deleted_at.is_(None),
+                    )
+                    .filter(
+                        # 从未使用 + 入库超 7 天，或上次使用超 30 天
+                        (
+                            (Item.last_used_at.is_(None))
+                            & (Item.created_at < never_used_threshold)
+                        )
+                        | (Item.last_used_at < last_used_threshold)
+                    )
+                    .order_by(Item.last_used_at.asc().nullsfirst())
+                    .limit(_IDLE_MAX_CANDIDATES)
+                )
+                candidates = result.all()
+
+                if not candidates:
+                    logger.info("家庭 %s 无长期未使用物品，跳过", family_id)
+                    continue
+
+                # 组装 prompt 所需数据
+                prompt_items = []
+                for row in candidates:
+                    item_id, name, created_at, last_used_at, category_name = row
+                    created_naive = _as_naive_utc(created_at)
+                    last_used_naive = _as_naive_utc(last_used_at)
+                    if last_used_naive and now_naive:
+                        idle_days = (now_naive - last_used_naive).days
+                        last_used_str = last_used_naive.strftime("%Y-%m-%d")
+                    else:
+                        idle_days = (
+                            (now_naive - created_naive).days
+                            if now_naive and created_naive
+                            else 0
+                        )
+                        last_used_str = "从未使用"
+                    prompt_items.append({
+                        "item_id": item_id,
+                        "name": name,
+                        "category": category_name or "其他",
+                        "purchase_date": created_naive.strftime("%Y-%m-%d") if created_naive else "",
+                        "last_used_at": last_used_str,
+                        "idle_days": idle_days,
+                    })
+
+                # 调用 DeepSeek
+                prompt = _build_idle_prompt(prompt_items, season)
+                raw_response = _call_deepseek_sync(prompt)
+
+                if raw_response:
+                    # 解析 JSON 结果
+                    try:
+                        # 提取 JSON 数组（模型可能在前后加说明文字）
+                        start = raw_response.find("[")
+                        end = raw_response.rfind("]") + 1
+                        ai_results = json.loads(raw_response[start:end]) if start >= 0 else []
+                    except (json.JSONDecodeError, ValueError) as e:
+                        logger.error(
+                            "解析 AI 返回失败 family=%s: %s | raw=%s",
+                            family_id,
+                            e,
+                            raw_response[:200],
+                        )
+                        ai_results = [_default_idle_result(p) for p in prompt_items]
+                else:
+                    # AI 不可用：按分类阈值降级，避免清洁品等误报
+                    ai_results = [_default_idle_result(p) for p in prompt_items]
+                    logger.info(
+                        "家庭 %s 使用分类默认规则，候选 %d 条，需提醒 %d 条",
+                        family_id,
+                        len(prompt_items),
+                        sum(1 for r in ai_results if r.get("need_remind")),
+                    )
+
+                # upsert Notification（先删今日旧记录再插入）
+                written = 0
+                for ai_item in ai_results:
+                    if not ai_item.get("need_remind"):
+                        continue
+
+                    item_id = ai_item.get("item_id")
+                    message = ai_item.get("message", "")
+                    urgency = ai_item.get("urgency", 3)
+                    priority = (
+                        Notification.PRIORITY_HIGH if urgency == 1
+                        else Notification.PRIORITY_MEDIUM if urgency == 2
+                        else Notification.PRIORITY_LOW
+                    )
+
+                    # 删除该物品今日已有的 idle 通知（避免重复堆积）
+                    existing = session.execute(
+                        select(Notification).filter(
+                            Notification.family_id == family_id,
+                            Notification.item_id == item_id,
+                            Notification.type == Notification.TYPE_IDLE,
+                            Notification.created_at >= today_start_naive,
+                        )
+                    ).scalars().all()
+                    for old in existing:
+                        session.delete(old)
+
+                    notification = Notification(
+                        family_id=family_id,
+                        type=Notification.TYPE_IDLE,
+                        title="久未使用提醒",
+                        body=message,
+                        item_id=item_id,
+                        priority=priority,
+                        action_url=f"/items/{item_id}",
+                    )
+                    session.add(notification)
+                    written += 1
+
+                session.commit()
+                logger.info(
+                    "家庭 %s idle 提醒生成完成，候选 %d 条，写入 %d 条",
+                    family_id,
+                    len(candidates),
+                    written,
+                )
+
+            except Exception as e:
+                logger.error("处理家庭 %s idle 提醒失败: %s", family_id, e)
+                session.rollback()
+
+    except Exception as e:
+        logger.error("generate_idle_reminders 任务失败: %s", e)
+        session.rollback()
+    finally:
+        session.close()
+
+    logger.info("长期未使用提醒生成任务完成")

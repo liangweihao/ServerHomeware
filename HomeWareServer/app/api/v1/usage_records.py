@@ -3,6 +3,7 @@
 定义使用记录CRUD接口
 """
 import logging
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
@@ -114,7 +115,7 @@ async def create_usage_record(
         operator_name,
     )
 
-    # 同步更新物品的 current_quantity 和 status
+    # 同步更新物品的 current_quantity、status 以及 last_used_at
     from app.repositories.item_repo import ItemRepository
     item_repo = ItemRepository(db)
     item = await item_repo.get_by_id(request.item_id)
@@ -122,10 +123,15 @@ async def create_usage_record(
         new_status = item.status
         if request.remaining_quantity <= 0:
             new_status = 1  # 已用完
-        await item_repo.update(item.id, {
+        update_data = {
             "current_quantity": request.remaining_quantity,
             "status": new_status,
-        })
+        }
+        # type=1 代表"使用"，同步记录最后使用时间
+        if request.type == 1:
+            update_data["last_used_at"] = datetime.now(timezone.utc)
+            logger.info("INFO: 更新 last_used_at item_id=%s", request.item_id)
+        await item_repo.update(item.id, update_data)
 
     broadcast_family_event(
         current_family_id,

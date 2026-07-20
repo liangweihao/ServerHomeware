@@ -204,6 +204,10 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
             );
           }
 
+          final idleMessages =
+              ref.watch(idleMessageByLocalItemIdProvider).valueOrNull ??
+                  const <int, String>{};
+
           return ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
@@ -219,6 +223,8 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
                 child: AlertCard(
                   item: item,
                   type: type,
+                  descriptionOverride:
+                      type == AlertType.idle ? idleMessages[item.id] : null,
                   onTap: () {
                     debugPrint('[AlertCenter] INFO: 打开详情 itemId=${item.id}');
                     context.push(detailUri);
@@ -229,7 +235,8 @@ class _AlertCenterPageState extends ConsumerState<AlertCenterPage>
                   onAddToShopping: (type == AlertType.stock || type == AlertType.restock)
                       ? () => _addToShoppingList(item)
                       : null,
-                  onAcknowledge: type == AlertType.warranty
+                  onAcknowledge: (type == AlertType.warranty ||
+                          type == AlertType.idle)
                       ? () => ignoreAlertAction(ref, item.id, type)
                       : null,
                   onIgnore: type == AlertType.expiry

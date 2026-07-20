@@ -35,6 +35,8 @@ String alertTypeToKey(AlertType type) {
       return 'restock';
     case AlertType.warranty:
       return 'warranty';
+    case AlertType.idle:
+      return 'idle';
     case AlertType.other:
       return 'other';
   }
@@ -50,13 +52,19 @@ AlertType alertTypeFromKey(String key) {
       return AlertType.restock;
     case 'warranty':
       return AlertType.warranty;
+    case 'idle':
+      return AlertType.idle;
     default:
       return AlertType.other;
   }
 }
 
 /// 计算展示文案与紧急度（1–3，3 最紧急）
-AlertDisplayInfo getAlertDisplayInfo(Item item, AlertType type) {
+AlertDisplayInfo getAlertDisplayInfo(
+  Item item,
+  AlertType type, {
+  String? descriptionOverride,
+}) {
   final today = DateTime.now();
 
   switch (type) {
@@ -152,6 +160,21 @@ AlertDisplayInfo getAlertDisplayInfo(Item item, AlertType type) {
         title: '其他提醒',
         description: '有待处理的事项',
         urgency: 1,
+      );
+
+    case AlertType.idle:
+      final ref = item.lastUsedAt ?? item.createdAt;
+      final idleDays = today.difference(ref).inDays;
+      final urgency = idleDays >= 90 ? 3 : idleDays >= 30 ? 2 : 1;
+      return AlertDisplayInfo(
+        color: AppColors.textHint,
+        icon: '😴',
+        iconData: Icons.hourglass_empty_outlined,
+        title: '长期未使用',
+        description: descriptionOverride?.trim().isNotEmpty == true
+            ? descriptionOverride!.trim()
+            : '已$idleDays天未记录使用动态',
+        urgency: urgency,
       );
   }
 }
